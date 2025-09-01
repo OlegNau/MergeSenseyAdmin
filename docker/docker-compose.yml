@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  mergesensei:
+    build: .
+    container_name: mergesensei-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=file:./data/mergesensei.db
+      - SESSION_SECRET=${SESSION_SECRET:-your-super-secret-session-key-here}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - mergesensei-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: mergesensei-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - mergesensei
+    networks:
+      - mergesensei-network
+
+networks:
+  mergesensei-network:
+    driver: bridge
+
+volumes:
+  mergesensei-data:
+  mergesensei-logs:
