@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 @Component({
-  standalone: false,
   selector: 'app-root',
-  template: `
-    <abp-loader-bar></abp-loader-bar>
-    <router-outlet></router-outlet>
-  `,
+  standalone: true,
+  imports: [RouterModule],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {}
