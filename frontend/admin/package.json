@@ -8,27 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "echo \"no tests\""
   },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
-  },
   "private": true,
   "dependencies": {
-    "-": "^0.0.1",
-    "@abp/ng.core": "^9.3.2",
-    "@abp/ng.identity": "^9.3.2",
-    "@abp/ng.oauth": "^9.3.2",
-    "@abp/ng.permission-management": "^9.3.2",
-    "@abp/ng.theme.shared": "^9.3.2",
-    "@angular-devkit/build-angular": "^20.2.1",
     "@angular/animations": "^20.2.3",
     "@angular/common": "^20.2.0",
     "@angular/compiler": "^20.2.0",
@@ -37,14 +18,7 @@
     "@angular/platform-browser": "^20.2.0",
     "@angular/platform-browser-dynamic": "^20.2.3",
     "@angular/router": "^20.2.0",
-    "@swimlane/ngx-datatable": "^22.0.0",
-    "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/typography": "^0.5.16",
-    "autoprefixer": "^10.4.21",
-    "lucide-angular": "^0.542.0",
-    "postcss": "^8.5.6",
     "rxjs": "~7.8.0",
-    "tailwindcss": "^3.4.17",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
