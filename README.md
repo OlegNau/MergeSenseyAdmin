@@ -1,4 +1,4 @@
-# Admin
+# MergeSensey Admin
 
 ## Команды
 
