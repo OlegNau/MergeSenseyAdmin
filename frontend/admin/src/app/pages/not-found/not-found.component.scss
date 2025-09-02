@@ -1,0 +1,15 @@
+:host {
+  --max-w-md: 28rem;
+  --space-8: 2rem;
+
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+}
+
+.card {
+  max-width: var(--max-w-md);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
