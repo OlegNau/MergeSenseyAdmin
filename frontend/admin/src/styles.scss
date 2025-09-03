@@ -12,7 +12,9 @@ body {
   color: $text-main-color;
 }
 
-/* Полупрозрачные поверхности */
+/* полупрозрачные поверхности и бордеры как в React */
 .app-header  { border-color: $border-color; background-color: $card-bg-50; }
 .app-sidebar { border-color: $border-color; background-color: $card-bg-30; }
-.is-active { background-color: rgba(255,255,255,.06); color: #fff; }
+
+/* защита от растягивания иконок, если вдруг есть глобальные правила */
+svg { max-width: none; max-height: none; }

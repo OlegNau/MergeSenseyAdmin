@@ -1,19 +1,22 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [NgOptimizedImage],
+  imports: [NgOptimizedImage, FormsModule],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppHeaderComponent {
-  @Output() menu = new EventEmitter<void>();
+  @Output() menuToggle = new EventEmitter<void>();
+
+  search = '';
 
   onMenuClick(): void {
-    this.menu.emit();
+    this.menuToggle.emit();
   }
 }
 
