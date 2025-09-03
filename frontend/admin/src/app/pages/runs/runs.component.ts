@@ -23,16 +23,15 @@ type Run = {
 })
 export class RunsComponent {
   private readonly router = inject(Router);
+  public query = signal('');
+  public status = signal<'all' | 'running' | 'success' | 'failed' | 'canceled'>('all');
+  public sort = signal<'started' | 'finished' | 'status' | 'pipeline'>('started');
 
-  query = signal('');
-  status = signal<'all' | 'running' | 'success' | 'failed' | 'canceled'>('all');
-  sort = signal<'started' | 'finished' | 'status' | 'pipeline'>('started');
-
-  runs = signal<Run[]>([
+  public runs = signal<Run[]>([
     // TODO: mock; replace with API
   ]);
 
-  filtered = computed(() => {
+  public filtered = computed(() => {
     let list = this.runs();
     const q = this.query().toLowerCase();
     if (q) {
@@ -61,25 +60,25 @@ export class RunsComponent {
     });
   });
 
-  trackById = (_: number, r: Run) => r.id;
+  public trackById = (_: number, r: Run) => r.id;
 
-  openRun(id: string) {
+  public openRun(id: string): void {
     this.router.navigate(['runs', id]);
   }
 
-  openPipeline(nameOrId: string) {
+  public openPipeline(nameOrId: string): void {
     this.router.navigate(['pipeline-detail', nameOrId]);
   }
 
-  openProject(nameOrId: string) {
+  public openProject(nameOrId: string): void {
     this.router.navigate(['project-detail', nameOrId]);
   }
 
-  rerun(id: string) {
+  public rerun(id: string): void {
     // TODO: trigger re-run
   }
 
-  cancel(id: string) {
+  public cancel(id: string): void {
     // TODO: cancel run
   }
 }

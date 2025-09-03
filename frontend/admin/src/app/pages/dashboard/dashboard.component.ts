@@ -23,7 +23,7 @@ type Activity = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent {
-  stats: Stat[] = [
+  public stats: Stat[] = [
     { id:'total',    title:'Total Projects',  value:4,   deltaText:'+12% from last month', deltaDir:'up',   icon:'trend' },
     { id:'pipelines',title:'Active Pipelines',value:7,   deltaText:'+8% from last month',  deltaDir:'up',   icon:'activity' },
     { id:'loc',      title:'Lines of Code',   value:'2.4M', deltaText:'+15% from last month', deltaDir:'up', icon:'code' },
@@ -32,7 +32,7 @@ export class DashboardComponent {
     { id:'runtime',  title:'Avg Runtime',     value:'3.2m', deltaText:'-12% from last month', deltaDir:'down', icon:'time' },
   ];
 
-  activities: Activity[] = [
+  public activities: Activity[] = [
     { id:'a1', title:'Main Pipeline (main branch)', project:'AI Review Platform', status:'Active' },
     { id:'a2', title:'Log Analysis (staging)',      project:'AI Review Platform', status:'Inactive' },
     { id:'a3', title:'Daily Sales Report',          project:'E-commerce Analytics', status:'Active' },
@@ -41,7 +41,7 @@ export class DashboardComponent {
     { id:'a6', title:'Database Migration',          project:'Mobile App Backend', status:'Inactive' },
   ];
 
-  performance = {
+  public performance = {
     successRate: 94.2,   // %
     avgDuration: 72,     // % длины полосы (визуальная метрика)
     queueTime: 35,       // %

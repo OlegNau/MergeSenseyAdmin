@@ -31,12 +31,12 @@ export class ProjectDetailComponent {
   private readonly router = inject(Router);
   private readonly location = inject(Location);
 
-  project = signal<Project | null>(null);
-  isWizardOpen = signal(false);
+  public project = signal<Project | null>(null);
+  public isWizardOpen = signal(false);
 
-  pipelineName = '';
-  pipelineTrigger = '';
-  pipelineAgents = '';
+  public pipelineName = '';
+  public pipelineTrigger = '';
+  public pipelineAgents = '';
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -50,20 +50,20 @@ export class ProjectDetailComponent {
     }
   }
 
-  goBack() {
+  public goBack(): void {
     this.location.back();
     // or this.router.navigate(['/projects']);
   }
 
-  openWizard() {
+  public openWizard(): void {
     this.isWizardOpen.set(true);
   }
 
-  closeWizard() {
+  public closeWizard(): void {
     this.isWizardOpen.set(false);
   }
 
-  onWizardSubmit() {
+  public onWizardSubmit(): void {
     const data = {
       name: this.pipelineName.trim(),
       trigger: this.pipelineTrigger.trim(),
@@ -80,7 +80,7 @@ export class ProjectDetailComponent {
     this.pipelineName = this.pipelineTrigger = this.pipelineAgents = '';
   }
 
-  createPipeline(data: { name: string; agents: string[]; trigger: string }) {
+  private createPipeline(data: { name: string; agents: string[]; trigger: string }): void {
     // TODO: API create and local push in project.pipelines
     this.project.update(p => {
       if (!p) return p;
@@ -91,7 +91,7 @@ export class ProjectDetailComponent {
     });
   }
 
-  openPipelineDetails(pipelineId: string) {
+  public openPipelineDetails(pipelineId: string): void {
     this.router.navigate(['/pipeline-detail', pipelineId]);
   }
 }

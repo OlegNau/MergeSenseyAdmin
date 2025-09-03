@@ -26,7 +26,7 @@ export class PipelineDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
 
-  pipeline = signal<{
+  public pipeline = signal<{
     id: string;
     name: string;
     project?: string;
@@ -35,9 +35,9 @@ export class PipelineDetailComponent {
     agents?: string[];
   } | null>(null);
 
-  runs = signal<Run[]>([]);
-  query = signal<string>('');
-  filteredRuns = computed(() => {
+  public runs = signal<Run[]>([]);
+  public query = signal<string>('');
+  public filteredRuns = computed(() => {
     const q = this.query().toLowerCase();
     return this.runs().filter(r =>
       r.id.toLowerCase().includes(q) ||
@@ -45,8 +45,8 @@ export class PipelineDetailComponent {
       (r.author?.toLowerCase().includes(q) ?? false)
     );
   });
-  isStopping = signal<boolean>(false);
-  isStarting = signal<boolean>(false);
+  public isStopping = signal<boolean>(false);
+  public isStarting = signal<boolean>(false);
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -68,12 +68,12 @@ export class PipelineDetailComponent {
     }
   }
 
-  goBack() {
+  public goBack(): void {
     this.location.back();
     // or this.router.navigate(['/projects']);
   }
 
-  startPipeline() {
+  public startPipeline(): void {
     if (this.isStarting() || this.pipeline()?.status === 'running') return;
     this.isStarting.set(true);
     setTimeout(() => {
@@ -82,7 +82,7 @@ export class PipelineDetailComponent {
     }, 1000);
   }
 
-  stopPipeline() {
+  public stopPipeline(): void {
     if (this.isStopping() || this.pipeline()?.status !== 'running') return;
     this.isStopping.set(true);
     setTimeout(() => {
@@ -91,7 +91,7 @@ export class PipelineDetailComponent {
     }, 1000);
   }
 
-  openRunDetails(id: string) {
+  public openRunDetails(id: string): void {
     this.router.navigate(['/runs', id]);
   }
 }

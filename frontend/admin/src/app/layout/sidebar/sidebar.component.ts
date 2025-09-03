@@ -18,7 +18,7 @@ export type SidebarItem = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SidebarComponent {
-  @Input() logoSrc = 'assets/logo.png';
-  @Input() items: SidebarItem[] = [];
+  @Input() public logoSrc = 'assets/logo.png';
+  @Input() public items: SidebarItem[] = [];
 }
 

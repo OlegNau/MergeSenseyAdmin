@@ -15,7 +15,7 @@
 
     <div class="sm:ml-auto flex items-center gap-2">
       <select [(ngModel)]="projectFilter"
-              class="h-9 rounded-md border border-white/10 bg-white/5 px-3 text-sm">
+              class="h-9 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100">
         @for (p of projects; track p) { <option [value]="p">{{ p }}</option> }
       </select>
 
