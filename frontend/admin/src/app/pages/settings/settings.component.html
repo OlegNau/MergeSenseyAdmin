@@ -1,509 +1,118 @@
-<div class="space-y-6">
-  <div>
-    <h1 class="text-3xl font-bold settings-title" data-testid="text-settings-title">
-      Settings
-    </h1>
-    <p class="settings-hint mt-1" data-testid="text-settings-subtitle">
-      Manage your application settings.
-    </p>
+<div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
+  <header class="pt-8">
+    <h1 class="text-3xl font-bold">Settings</h1>
+    <p class="mt-1 text-sm text-gray-400">Manage your company settings and preferences</p>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="mt-4">
+    <ul class="flex flex-wrap gap-2 rounded-md border border-white/10 bg-white/[0.03] p-1" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <li>
+        <button (click)="setTab('company')" class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm text-gray-300 hover:bg-white/10" [class.bg-white/10]="is('company')" [class.text-white]="is('company')" [class.border]="is('company')" [class.border-white/10]="is('company')" [class.shadow-inner]="is('company')">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M7 21V10M17 21V10M12 10V3"/></svg>
+          Company
+        </button>
+      </li>
+      <li>
+        <button (click)="setTab('team')" class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm text-gray-300 hover:bg-white/10" [class.bg-white/10]="is('team')" [class.text-white]="is('team')" [class.border]="is('team')" [class.border-white/10]="is('team')" [class.shadow-inner]="is('team')">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Team
+        </button>
+      </li>
+      <li>
+        <button (click)="setTab('security')" class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm text-gray-300 hover:bg-white/10" [class.bg-white/10]="is('security')" [class.text-white]="is('security')" [class.border]="is('security')" [class.border-white/10]="is('security')" [class.shadow-inner]="is('security')">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Security
+        </button>
+      </li>
+      <li>
+        <button (click)="setTab('notifications')" class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm text-gray-300 hover:bg-white/10" [class.bg-white/10]="is('notifications')" [class.text-white]="is('notifications')" [class.border]="is('notifications')" [class.border-white/10]="is('notifications')" [class.shadow-inner]="is('notifications')">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Notifications
+        </button>
+      </li>
+      <li>
+        <button (click)="setTab('language')" class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm text-gray-300 hover:bg-white/10" [class.bg-white/10]="is('language')" [class.text-white]="is('language')" [class.border]="is('language')" [class.border-white/10]="is('language')" [class.shadow-inner]="is('language')">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10"/></svg>
+          Language
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Company Tab -->
+  <div *ngIf="is('company')" class="mt-4 rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+    <div class="px-6 py-4 border-b border-white/10">
+      <h2 class="text-lg font-semibold">Company Information</h2>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm text-gray-300" for="companyName">Company Name</label>
+          <input id="companyName" formControlName="companyName" type="text" class="w-full h-10 md:h-10 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20" placeholder="Company Name" />
+          <div *ngIf="form.get('companyName')?.invalid && form.get('companyName')?.touched" class="mt-1 text-xs text-rose-300">Company name is required.</div>
+        </div>
+        <div>
+          <label class="text-sm text-gray-300" for="website">Website</label>
+          <input id="website" formControlName="website" type="url" class="w-full h-10 md:h-10 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20" placeholder="https://example.com" />
+          <div *ngIf="form.get('website')?.invalid && form.get('website')?.touched" class="mt-1 text-xs text-rose-300">Please enter a valid URL.</div>
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-sm text-gray-300" for="description">Description</label>
+          <textarea id="description" formControlName="description" class="w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20 min-h-[120px] py-2" placeholder="Company description"></textarea>
+        </div>
+      </div>
+      <button type="submit" class="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium mt-4">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+        Save Changes
+      </button>
+    </form>
   </div>
 
-  <div class="space-y-6">
-    <div class="grid w-full grid-cols-5">
-      <button
-        class="flex items-center justify-center p-2"
-        [ngClass]="activeTab === 'company' ? 'border-b-2 font-semibold' : 'border-b'"
-        (click)="setActiveTab('company')"
-        data-testid="tab-company"
-      >
-        <svg
-          class="w-4 h-4 mr-2"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M3 21h18" />
-          <path d="M6 21V9h4v12" />
-          <path d="M14 21V3h4v18" />
-          <path d="M10 13h4" />
-        </svg>
-        Company
-      </button>
-      <button
-        class="flex items-center justify-center p-2"
-        [ngClass]="activeTab === 'team' ? 'border-b-2 font-semibold' : 'border-b'"
-        (click)="setActiveTab('team')"
-        data-testid="tab-team"
-      >
-        <svg
-          class="w-4 h-4 mr-2"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <circle cx="9" cy="7" r="4" />
-          <path d="M17 11v-1a4 4 0 0 0-4-4" />
-          <path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" />
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-        </svg>
-        Team
-      </button>
-      <button
-        class="flex items-center justify-center p-2"
-        [ngClass]="activeTab === 'security' ? 'border-b-2 font-semibold' : 'border-b'"
-        (click)="setActiveTab('security')"
-        data-testid="tab-security"
-      >
-        <svg
-          class="w-4 h-4 mr-2"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
-        Security
-      </button>
-      <button
-        class="flex items-center justify-center p-2"
-        [ngClass]="activeTab === 'notifications' ? 'border-b-2 font-semibold' : 'border-b'"
-        (click)="setActiveTab('notifications')"
-        data-testid="tab-notifications"
-      >
-        <svg
-          class="w-4 h-4 mr-2"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
-        Notifications
-      </button>
-      <button
-        class="flex items-center justify-center p-2"
-        [ngClass]="activeTab === 'language' ? 'border-b-2 font-semibold' : 'border-b'"
-        (click)="setActiveTab('language')"
-        data-testid="tab-language"
-      >
-        <svg
-          class="w-4 h-4 mr-2"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M2 12h20" />
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10" />
-        </svg>
-        Language
-      </button>
+  <!-- Team Tab -->
+  <div *ngIf="is('team')" class="mt-4 rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+    <div class="px-6 py-4 border-b border-white/10">
+      <h2 class="text-lg font-semibold">Team</h2>
     </div>
+    <div class="p-6 text-sm text-gray-300">
+      Placeholder for team invites and roles management.
+    </div>
+  </div>
 
-    @if (activeTab === 'company') {
-      <div class="space-y-6">
-        <div class="bg-white rounded-lg shadow-md" data-testid="card-company-info">
-          <div class="p-6 border-b">
-            <h2 class="text-lg font-semibold">Company Info</h2>
-          </div>
-          <form class="p-6 space-y-4" [formGroup]="companyForm" (ngSubmit)="saveCompany()">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label for="company-name" class="block text-sm font-medium">Company Name</label>
-                <input
-                  id="company-name"
-                  type="text"
-                  class="w-full border rounded-md px-3 py-2"
-                  formControlName="name"
-                  data-testid="input-company-name"
-                />
-              </div>
-              <div class="space-y-2">
-                <label for="company-website" class="block text-sm font-medium">Website</label>
-                <input
-                  id="company-website"
-                  type="text"
-                  class="w-full border rounded-md px-3 py-2"
-                  formControlName="website"
-                  data-testid="input-company-website"
-                />
-              </div>
-            </div>
-            <div class="space-y-2">
-              <label for="company-description" class="block text-sm font-medium">Description</label>
-              <textarea
-                id="company-description"
-                rows="4"
-                class="w-full border rounded-md px-3 py-2"
-                formControlName="description"
-                placeholder="Company description"
-                data-testid="textarea-company-description"
-              ></textarea>
-            </div>
-            <button
-              type="submit"
-              class="inline-flex items-center gap-2 rounded-full px-3 py-2 bg-blue-600 text-white"
-              data-testid="button-save-company"
-            >
-              <svg
-                class="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <path d="M17 21v-8H7v8" />
-                <path d="M7 3v5h8" />
-              </svg>
-              Save changes
-            </button>
-          </form>
-        </div>
-      </div>
-    }
+  <!-- Security Tab -->
+  <div *ngIf="is('security')" class="mt-4 rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+    <div class="px-6 py-4 border-b border-white/10">
+      <h2 class="text-lg font-semibold">Security</h2>
+    </div>
+    <div class="p-6 text-sm text-gray-300">
+      Placeholder for 2FA and SSO toggle settings.
+    </div>
+  </div>
 
-    @if (activeTab === 'team') {
-      <div class="space-y-6">
-        <div class="bg-white rounded-lg shadow-md" data-testid="card-team-settings">
-          <div class="p-6 border-b">
-            <h2 class="text-lg font-semibold">Team Settings</h2>
-          </div>
-          <form class="p-6 space-y-4" [formGroup]="teamForm" (ngSubmit)="saveTeam()">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-sm font-medium">Automatically add members</label>
-                <p class="text-sm settings-hint">Automatically add new members to the team.</p>
-              </div>
-              <label class="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  formControlName="autoAddMembers"
-                  data-testid="switch-auto-add-members"
-                />
-                <div
-                  class="w-10 h-6 bg-gray-200 rounded-full p-1 transition"
-                  [class.bg-blue-600]="teamForm.get('autoAddMembers')?.value"
-                >
-                  <div
-                    class="w-4 h-4 bg-white rounded-full transition-transform"
-                    [class.translate-x-4]="teamForm.get('autoAddMembers')?.value"
-                  ></div>
-                </div>
-              </label>
-            </div>
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-sm font-medium">Require approval</label>
-                <p class="text-sm settings-hint">Require admin approval for new members.</p>
-              </div>
-              <label class="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  formControlName="requireApproval"
-                  data-testid="switch-require-approval"
-                />
-                <div
-                  class="w-10 h-6 bg-gray-200 rounded-full p-1 transition"
-                  [class.bg-blue-600]="teamForm.get('requireApproval')?.value"
-                >
-                  <div
-                    class="w-4 h-4 bg-white rounded-full transition-transform"
-                    [class.translate-x-4]="teamForm.get('requireApproval')?.value"
-                  ></div>
-                </div>
-              </label>
-            </div>
-            <button
-              type="submit"
-              class="inline-flex items-center gap-2 rounded-full px-3 py-2 bg-blue-600 text-white"
-              data-testid="button-save-team"
-            >
-              <svg
-                class="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <path d="M17 21v-8H7v8" />
-                <path d="M7 3v5h8" />
-              </svg>
-              Save changes
-            </button>
-          </form>
-        </div>
-      </div>
-    }
+  <!-- Notifications Tab -->
+  <div *ngIf="is('notifications')" class="mt-4 rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+    <div class="px-6 py-4 border-b border-white/10">
+      <h2 class="text-lg font-semibold">Notifications</h2>
+    </div>
+    <div class="p-6 text-sm text-gray-300">
+      Placeholder for email and push notification preferences.
+    </div>
+  </div>
 
-    @if (activeTab === 'security') {
-      <div class="space-y-6">
-        <div class="bg-white rounded-lg shadow-md" data-testid="card-security-settings">
-          <div class="p-6 border-b">
-            <h2 class="text-lg font-semibold">Security Settings</h2>
-          </div>
-          <form class="p-6 space-y-4" [formGroup]="securityForm" (ngSubmit)="saveSecurity()">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-sm font-medium">Two-factor authentication</label>
-                <p class="text-sm settings-hint">Require an additional login step.</p>
-              </div>
-              <label class="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  formControlName="twoFactor"
-                  data-testid="switch-2fa"
-                />
-                <div
-                  class="w-10 h-6 bg-gray-200 rounded-full p-1 transition"
-                  [class.bg-blue-600]="securityForm.get('twoFactor')?.value"
-                >
-                  <div
-                    class="w-4 h-4 bg-white rounded-full transition-transform"
-                    [class.translate-x-4]="securityForm.get('twoFactor')?.value"
-                  ></div>
-                </div>
-              </label>
-            </div>
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-sm font-medium">Session timeout</label>
-                <p class="text-sm settings-hint">Log out inactive users automatically.</p>
-              </div>
-              <label class="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  formControlName="sessionTimeout"
-                  data-testid="switch-session-timeout"
-                />
-                <div
-                  class="w-10 h-6 bg-gray-200 rounded-full p-1 transition"
-                  [class.bg-blue-600]="securityForm.get('sessionTimeout')?.value"
-                >
-                  <div
-                    class="w-4 h-4 bg-white rounded-full transition-transform"
-                    [class.translate-x-4]="securityForm.get('sessionTimeout')?.value"
-                  ></div>
-                </div>
-              </label>
-            </div>
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-sm font-medium">IP restrictions</label>
-                <p class="text-sm settings-hint">Limit access to specific IP addresses.</p>
-              </div>
-              <label class="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  formControlName="ipRestrictions"
-                  data-testid="switch-ip-restrictions"
-                />
-                <div
-                  class="w-10 h-6 bg-gray-200 rounded-full p-1 transition"
-                  [class.bg-blue-600]="securityForm.get('ipRestrictions')?.value"
-                >
-                  <div
-                    class="w-4 h-4 bg-white rounded-full transition-transform"
-                    [class.translate-x-4]="securityForm.get('ipRestrictions')?.value"
-                  ></div>
-                </div>
-              </label>
-            </div>
-            <button
-              type="submit"
-              class="inline-flex items-center gap-2 rounded-full px-3 py-2 bg-blue-600 text-white"
-              data-testid="button-save-security"
-            >
-              <svg
-                class="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <path d="M17 21v-8H7v8" />
-                <path d="M7 3v5h8" />
-              </svg>
-              Save changes
-            </button>
-          </form>
-        </div>
-      </div>
-    }
-
-    @if (activeTab === 'notifications') {
-      <div class="space-y-6">
-        <div class="bg-white rounded-lg shadow-md" data-testid="card-notification-settings">
-          <div class="p-6 border-b">
-            <h2 class="text-lg font-semibold">Notification Preferences</h2>
-          </div>
-          <form class="p-6 space-y-4" [formGroup]="notificationsForm" (ngSubmit)="saveNotifications()">
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-sm font-medium">Pipeline failures</label>
-                <p class="text-sm settings-hint">Notify on pipeline execution errors.</p>
-              </div>
-              <label class="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  formControlName="pipelineFailures"
-                  data-testid="switch-pipeline-failures"
-                />
-                <div
-                  class="w-10 h-6 bg-gray-200 rounded-full p-1 transition"
-                  [class.bg-blue-600]="notificationsForm.get('pipelineFailures')?.value"
-                >
-                  <div
-                    class="w-4 h-4 bg-white rounded-full transition-transform"
-                    [class.translate-x-4]="notificationsForm.get('pipelineFailures')?.value"
-                  ></div>
-                </div>
-              </label>
-            </div>
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-sm font-medium">Security alerts</label>
-                <p class="text-sm settings-hint">Notify on potential security issues.</p>
-              </div>
-              <label class="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  formControlName="securityAlerts"
-                  data-testid="switch-security-alerts"
-                />
-                <div
-                  class="w-10 h-6 bg-gray-200 rounded-full p-1 transition"
-                  [class.bg-blue-600]="notificationsForm.get('securityAlerts')?.value"
-                >
-                  <div
-                    class="w-4 h-4 bg-white rounded-full transition-transform"
-                    [class.translate-x-4]="notificationsForm.get('securityAlerts')?.value"
-                  ></div>
-                </div>
-              </label>
-            </div>
-            <div class="flex items-center justify-between">
-              <div>
-                <label class="block text-sm font-medium">Weekly reports</label>
-                <p class="text-sm settings-hint">Receive summary reports every week.</p>
-              </div>
-              <label class="inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  class="sr-only"
-                  formControlName="weeklyReports"
-                  data-testid="switch-weekly-reports"
-                />
-                <div
-                  class="w-10 h-6 bg-gray-200 rounded-full p-1 transition"
-                  [class.bg-blue-600]="notificationsForm.get('weeklyReports')?.value"
-                >
-                  <div
-                    class="w-4 h-4 bg-white rounded-full transition-transform"
-                    [class.translate-x-4]="notificationsForm.get('weeklyReports')?.value"
-                  ></div>
-                </div>
-              </label>
-            </div>
-            <button
-              type="submit"
-              class="inline-flex items-center gap-2 rounded-full px-3 py-2 bg-blue-600 text-white"
-              data-testid="button-save-notifications"
-            >
-              <svg
-                class="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <path d="M17 21v-8H7v8" />
-                <path d="M7 3v5h8" />
-              </svg>
-              Save changes
-            </button>
-          </form>
-        </div>
-      </div>
-    }
-
-    @if (activeTab === 'language') {
-      <div class="space-y-6">
-        <div class="bg-white rounded-lg shadow-md" data-testid="card-language-settings">
-          <div class="p-6 border-b">
-            <h2 class="text-lg font-semibold">Language Settings</h2>
-          </div>
-          <form class="p-6 space-y-4" [formGroup]="languageForm" (ngSubmit)="saveLanguage()">
-            <div class="space-y-2">
-              <label class="block text-sm font-medium">Select language</label>
-              <select
-                class="w-48 border rounded-md px-3 py-2"
-                formControlName="language"
-                (change)="setLanguage(languageForm.get('language')?.value)"
-                data-testid="select-language"
-              >
-                <option value="en">English</option>
-                <option value="ru">Русский</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              class="inline-flex items-center gap-2 rounded-full px-3 py-2 bg-blue-600 text-white"
-              data-testid="button-save-language"
-            >
-              <svg
-                class="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                <path d="M17 21v-8H7v8" />
-                <path d="M7 3v5h8" />
-              </svg>
-              Save changes
-            </button>
-          </form>
-        </div>
-      </div>
-    }
+  <!-- Language Tab -->
+  <div *ngIf="is('language')" class="mt-4 rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+    <div class="px-6 py-4 border-b border-white/10">
+      <h2 class="text-lg font-semibold">Language</h2>
+    </div>
+    <div class="p-6 space-y-2 text-sm text-gray-300">
+      <label for="lang">Select language</label>
+      <select id="lang" class="w-full h-10 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-white/20">
+        <option value="en">English</option>
+        <option value="ru">Русский</option>
+        <option value="kk">Қазақша</option>
+      </select>
+      <p class="text-xs text-gray-400">Language selection placeholder.</p>
+    </div>
   </div>
 </div>
 
