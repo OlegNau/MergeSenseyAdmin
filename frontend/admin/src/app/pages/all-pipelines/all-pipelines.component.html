@@ -47,17 +47,17 @@
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-gray-50">
-            <tr>
-              <th class="text-left py-3 px-6 font-medium text-gray-600">Name</th>
-              <th class="text-left py-3 px-6 font-medium text-gray-600">Project</th>
-              <th class="text-left py-3 px-6 font-medium text-gray-600">Status</th>
-              <th class="text-left py-3 px-6 font-medium text-gray-600">Updated</th>
-              <th class="text-right py-3 px-6 font-medium text-gray-600">Actions</th>
-            </tr>
+          <tr>
+            <th class="text-left py-3 px-6 font-medium text-gray-600">Name</th>
+            <th class="text-left py-3 px-6 font-medium text-gray-600">Project</th>
+            <th class="text-left py-3 px-6 font-medium text-gray-600">Status</th>
+            <th class="text-left py-3 px-6 font-medium text-gray-600">Updated</th>
+            <th class="text-right py-3 px-6 font-medium text-gray-600">Actions</th>
+          </tr>
           </thead>
           <tbody>
             @if (filtered().length) {
-              @for (p of filtered(); track trackById) {
+              @for (p of filtered(); track p.id) {
                 <tr class="border-t border-gray-100 hover:bg-gray-50">
                   <td class="py-3 px-6 text-gray-900">
                     <button class="text-blue-600 hover:underline" (click)="openPipeline(p.id)">{{ p.name }}</button>

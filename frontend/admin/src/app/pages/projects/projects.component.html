@@ -38,6 +38,7 @@
           />
         </svg>
       </div>
+
       <select
         [ngModel]="tag()"
         (ngModelChange)="tag.set($event)"
@@ -47,6 +48,7 @@
         <option value="active">Active</option>
         <option value="archived">Archived</option>
       </select>
+
       <select
         [ngModel]="sort()"
         (ngModelChange)="sort.set($event)"
@@ -61,7 +63,7 @@
       <div class="text-sm text-gray-500">No projects found.</div>
     } @else {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        @for (p of filtered(); track trackById) {
+        @for (p of filtered(); track p.id) {
           <article
             class="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer"
             (click)="openProject(p.id)"
@@ -70,12 +72,16 @@
               <div class="flex items-start justify-between">
                 <h2 class="text-lg font-semibold page-title">{{ p.name }}</h2>
                 @if (p.status === 'archived') {
-                  <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Archived</span>
+                  <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                    Archived
+                  </span>
                 }
               </div>
+
               @if (p.description) {
                 <p class="mt-2 text-sm text-gray-600">{{ p.description }}</p>
               }
+
               <div class="mt-4 text-xs text-gray-400">
                 @if (p.updatedAt) { <span>Updated {{ p.updatedAt }}</span> }
               </div>

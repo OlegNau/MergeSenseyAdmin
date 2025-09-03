@@ -28,6 +28,7 @@
         </svg>
         FAQ
       </button>
+
       <button
         class="flex items-center justify-center p-2"
         [ngClass]="activeTab === 'chat' ? 'border-b-2 font-semibold' : 'border-b'"
@@ -43,9 +44,7 @@
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path
-            d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"
-          />
+          <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" />
         </svg>
         AI Assistant
       </button>
@@ -59,11 +58,15 @@
         <div class="p-6">
           <div class="space-y-4">
             @for (item of faqItems; track item.id) {
-              <div class="border rounded-lg" data-testid="faq-item-{{ item.id }}">
+              <div
+                class="border rounded-lg"
+                [attr.data-testid]="'faq-item-' + item.id"
+              >
                 <button
                   class="w-full p-4 text-left flex items-center justify-between hover:bg-gray-100 transition-colors"
                   (click)="toggleFaq(item.id)"
-                  data-testid="faq-question-{{ item.id }}"
+                  [attr.data-testid]="'faq-question-' + item.id"
+                  [attr.aria-expanded]="expandedFaq === item.id"
                 >
                   <span class="font-medium">{{ item.question }}</span>
                   @if (expandedFaq === item.id) {
@@ -75,6 +78,7 @@
                       stroke-width="2"
                       stroke-linecap="round"
                       stroke-linejoin="round"
+                      aria-hidden="true"
                     >
                       <path d="m6 9 6 6 6-6" />
                     </svg>
@@ -87,15 +91,17 @@
                       stroke-width="2"
                       stroke-linecap="round"
                       stroke-linejoin="round"
+                      aria-hidden="true"
                     >
                       <path d="m9 18 6-6-6-6" />
                     </svg>
                   }
                 </button>
+
                 @if (expandedFaq === item.id) {
                   <div
                     class="p-4 border-t faq-answer"
-                    data-testid="faq-answer-{{ item.id }}"
+                    [attr.data-testid]="'faq-answer-' + item.id"
                   >
                     <p class="muted-text">{{ item.answer }}</p>
                   </div>
@@ -130,18 +136,21 @@
             AI Assistant
           </h2>
         </div>
+
         <div class="p-6">
           <div class="space-y-4">
             <div
               class="h-96 border rounded-lg p-4 overflow-y-auto space-y-4"
               data-testid="chat-messages"
+              role="log"
+              aria-live="polite"
             >
               @for (message of chatMessages; track message.id) {
                 <div
                   class="flex"
                   [class.justify-end]="message.type === 'user'"
                   [class.justify-start]="message.type === 'bot'"
-                  data-testid="chat-message-{{ message.id }}"
+                  [attr.data-testid]="'chat-message-' + message.id"
                 >
                   <div
                     class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg"
@@ -163,7 +172,9 @@
                 class="flex-1 min-h-[60px] resize-none p-2 rounded-md border"
                 (keydown)="onKeyDown($event)"
                 data-testid="textarea-chat-input"
+                aria-label="Message to AI assistant"
               ></textarea>
+
               <button
                 class="px-4 py-2 rounded-md send-btn"
                 (click)="handleSendMessage()"
@@ -178,10 +189,9 @@
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
+                  aria-hidden="true"
                 >
-                  <path
-                    d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"
-                  />
+                  <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" />
                   <path d="m21.854 2.147-10.94 10.939" />
                 </svg>
               </button>
