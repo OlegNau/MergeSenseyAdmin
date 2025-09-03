@@ -1,0 +1,162 @@
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+      <button (click)="goBack()" class="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+        <!-- ArrowLeft -->
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span>Back</span>
+      </button>
+
+      <h1 class="text-2xl font-bold text-gray-900">
+        {{ pipeline()?.name || 'Pipeline' }}
+      </h1>
+
+      <div class="ml-auto flex items-center gap-2">
+        <!-- Start -->
+        <button
+          (click)="startPipeline()"
+          [disabled]="isStarting() || pipeline()?.status==='running'"
+          class="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+            <path d="M8 5v14l11-7-11-7z" fill="currentColor" />
+          </svg>
+          <span>Run</span>
+        </button>
+        <!-- Stop -->
+        <button
+          (click)="stopPipeline()"
+          [disabled]="isStopping() || pipeline()?.status!=='running'"
+          class="inline-flex items-center gap-2 rounded-full px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-60"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+            <rect x="7" y="7" width="10" height="10" fill="currentColor" />
+          </svg>
+          <span>Stop</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Meta -->
+    <section class="bg-white border border-gray-200 rounded-lg shadow-sm">
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <div class="text-xs text-gray-500">Project</div>
+          <div class="text-gray-900">{{ pipeline()?.project || '—' }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500">Trigger</div>
+          <div class="text-gray-900">{{ pipeline()?.trigger || '—' }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500">Status</div>
+          <div>
+            @if (pipeline()?.status === 'running') {
+              <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Running</span>
+            }
+            @if (pipeline()?.status === 'idle') {
+              <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Idle</span>
+            }
+            @if (pipeline()?.status === 'disabled') {
+              <span class="text-xs px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-700">Disabled</span>
+            }
+          </div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500">Agents</div>
+          <div class="text-gray-900 truncate">
+            @if (pipeline()?.agents?.length) {
+              {{ pipeline()!.agents!.join(', ') }}
+            } @else {
+              —
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Runs -->
+    <section class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900">Runs</h2>
+          <p class="text-sm text-gray-600">Recent pipeline runs</p>
+        </div>
+        <div class="relative w-64">
+          <input
+            [ngModel]="query()"
+            (ngModelChange)="query.set($event)"
+            type="text"
+            placeholder="Search runs..."
+            class="w-full border border-gray-200 rounded-md px-3 py-2 pl-9 bg-white"
+          />
+          <!-- Search -->
+          <svg class="w-4 h-4 absolute left-3 top-2.5 text-gray-400" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28.79.79L20 20.5 21.5 19l-6-6z"
+              fill="currentColor"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="text-left py-3 px-6 font-medium text-gray-600">Run</th>
+              <th class="text-left py-3 px-6 font-medium text-gray-600">Status</th>
+              <th class="text-left py-3 px-6 font-medium text-gray-600">Started</th>
+              <th class="text-left py-3 px-6 font-medium text-gray-600">Finished</th>
+              <th class="text-left py-3 px-6 font-medium text-gray-600">Author</th>
+              <th class="text-right py-3 px-6 font-medium text-gray-600">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (filteredRuns().length) {
+              @for (r of filteredRuns(); track r.id) {
+                <tr class="border-t border-gray-100 hover:bg-gray-50">
+                  <td class="py-3 px-6 text-gray-900">#{{ r.id }}</td>
+                  <td class="py-3 px-6">
+                    @if (r.status === 'running') {
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Running</span>
+                    }
+                    @if (r.status === 'success') {
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">Success</span>
+                    }
+                    @if (r.status === 'failed') {
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-700">Failed</span>
+                    }
+                    @if (r.status === 'canceled') {
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Canceled</span>
+                    }
+                  </td>
+                  <td class="py-3 px-6 text-gray-700">{{ r.startedAt || '—' }}</td>
+                  <td class="py-3 px-6 text-gray-700">{{ r.finishedAt || '—' }}</td>
+                  <td class="py-3 px-6 text-gray-700">{{ r.author || '—' }}</td>
+                  <td class="py-3 px-6 text-right">
+                    <button
+                      (click)="openRunDetails(r.id)"
+                      class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border border-gray-200 hover:bg-white"
+                    >
+                      <span>Details</span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            } @else {
+              <tr class="border-t border-gray-100">
+                <td colspan="6" class="py-6 px-6 text-sm text-gray-600">No runs found.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</div>
