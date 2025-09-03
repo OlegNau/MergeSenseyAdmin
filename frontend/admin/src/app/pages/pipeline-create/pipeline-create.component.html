@@ -1,0 +1,78 @@
+<div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="pt-8">
+    <a [routerLink]="['/projects', projectId]" class="inline-flex items-center gap-2 text-gray-300 hover:text-white">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      Back to Project
+    </a>
+    <h1 class="mt-2 text-3xl font-bold">Create Pipeline</h1>
+    <p class="text-sm text-gray-400">Configure triggers and options for this project</p>
+  </div>
+
+  <section class="mt-6 max-w-screen-lg">
+    <div class="rounded-xl border border-white/10 bg-white/[0.03] p-6"
+         style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <form class="space-y-5" [formGroup]="form" (ngSubmit)="submit()">
+        <div>
+          <label class="text-sm text-gray-300">Pipeline Name *</label>
+          <input formControlName="name" class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
+                 placeholder="Main Pipeline"/>
+        </div>
+
+        <div>
+          <label class="text-sm text-gray-300 block mb-2">Trigger</label>
+          <div class="flex flex-wrap gap-2">
+            <label class="rounded-md border border-white/10 px-3 py-2 text-sm cursor-pointer"
+                   [class.bg-white/10]="is('manual')">
+              <input class="sr-only" type="radio" formControlName="trigger" value="manual"> Manual
+            </label>
+            <label class="rounded-md border border-white/10 px-3 py-2 text-sm cursor-pointer"
+                   [class.bg-white/10]="is('push')">
+              <input class="sr-only" type="radio" formControlName="trigger" value="push"> Push
+            </label>
+            <label class="rounded-md border border-white/10 px-3 py-2 text-sm cursor-pointer"
+                   [class.bg-white/10]="is('schedule')">
+              <input class="sr-only" type="radio" formControlName="trigger" value="schedule"> Schedule
+            </label>
+          </div>
+        </div>
+
+        @if (is('push')) {
+          <div>
+            <label class="text-sm text-gray-300">Branch</label>
+            <input formControlName="branch" class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100" placeholder="main"/>
+          </div>
+        }
+
+        @if (is('schedule')) {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm text-gray-300">Schedule Type</label>
+              <select formGroupName="schedule" formControlName="type"
+                      class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="cron">Cron</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm text-gray-300">Cron (если выбрано Cron)</label>
+              <input formGroupName="schedule" formControlName="cron"
+                     class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100"
+                     placeholder="0 2 * * *"/>
+            </div>
+          </div>
+        }
+
+        <div>
+          <label class="text-sm text-gray-300">Description (optional)</label>
+          <textarea formControlName="description" class="mt-1 w-full min-h-[100px] rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-100"></textarea>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="button" (click)="cancel()" class="h-10 px-4 rounded-md border border-white/10 bg-white/5 text-sm">Cancel</button>
+          <button type="submit" class="h-10 px-4 rounded-md bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium">Create Pipeline</button>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
