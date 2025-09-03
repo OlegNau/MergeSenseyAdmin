@@ -1,0 +1,131 @@
+<!-- Mobile overlay + drawer -->
+<div class="md:hidden" [class.hidden]="!sidebarOpen()">
+  <div class="fixed inset-0 bg-black/40 z-40" (click)="closeSidebar()"></div>
+  <aside class="app-sidebar fixed inset-y-0 left-0 w-64 h-screen z-50 p-4 bg-white/30 backdrop-blur border-r"
+         (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between mb-4">
+      <a [routerLink]="['/dashboard']" class="flex items-center gap-3">
+        <img src="/logo.png" alt="Logo" class="h-8 w-auto object-contain" />
+        <span class="font-semibold">App</span>
+      </a>
+      <button class="p-2 rounded-md hover:bg-gray-100" (click)="closeSidebar()">✕</button>
+    </div>
+
+    <!-- Primary nav -->
+    <nav class="flex-1 px-2 space-y-2">
+      @for (i of nav; track i.id) {
+        <a [routerLink]="[i.to]" routerLinkActive="is-active"
+           class="nav-btn"
+           (click)="closeSidebar()">
+          <span class="icon">@switch (i.icon) {
+            @case ('home')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> }
+            @case ('folder')   { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M10 4l2 2h8v12H4V4z"/></svg> }
+            @case ('activity') { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 12h4l2 7 4-14 2 7h4"/></svg> }
+            @case ('runs')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20m1-10H7"/></svg> }
+            @case ('stats')    { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 20h18v-2H3zM7 10h2v6H7zM11 6h2v10h-2zM15 13h2v3h-2z"/></svg> }
+            @case ('settings') { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M19.4 12.9l1.4-2.4-1.8-3.1-2.8.4-1.6-2.3h-3.6L8.4 7.8l-2.8-.4-1.8 3.1 1.4 2.4-1.4 2.4 1.8 3.1 2.8-.4 1.6 2.3h3.6l1.6-2.3 2.8.4 1.8-3.1-1.4-2.4z"/></svg> }
+            @case ('help')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20m-1-6h2v2h-2zm0-8h2v6h-2z"/></svg> }
+          }</span>
+          <span>{{ i.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <!-- Secondary -->
+    <div class="mt-6 border-t pt-4 px-2 space-y-2">
+      @for (i of secondary; track i.id) {
+        <a [routerLink]="[i.to]" routerLinkActive="is-active" class="nav-btn" (click)="closeSidebar()">
+          <span class="icon">@switch (i.icon) {
+            @case ('home')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> }
+            @case ('folder')   { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M10 4l2 2h8v12H4V4z"/></svg> }
+            @case ('activity') { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 12h4l2 7 4-14 2 7h4"/></svg> }
+            @case ('runs')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20m1-10H7"/></svg> }
+            @case ('stats')    { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 20h18v-2H3zM7 10h2v6H7zM11 6h2v10h-2zM15 13h2v3h-2z"/></svg> }
+            @case ('settings') { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M19.4 12.9l1.4-2.4-1.8-3.1-2.8.4-1.6-2.3h-3.6L8.4 7.8l-2.8-.4-1.8 3.1 1.4 2.4-1.4 2.4 1.8 3.1 2.8-.4 1.6 2.3h3.6l1.6-2.3 2.8.4 1.8-3.1-1.4-2.4z"/></svg> }
+            @case ('help')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20m-1-6h2v2h-2zm0-8h2v6h-2z"/></svg> }
+          }</span>
+          <span>{{ i.label }}</span>
+        </a>
+      }
+    </div>
+  </aside>
+</div>
+
+<div class="min-h-screen bg-gray-50 text-gray-900">
+  <div class="flex">
+    <!-- Desktop sidebar -->
+    <aside class="app-sidebar hidden md:block md:sticky md:top-0 md:h-screen w-64 bg-white/30 backdrop-blur border-r">
+      <div class="px-4 py-6">
+        <a [routerLink]="['/dashboard']" class="flex items-center gap-3">
+          <img src="/logo.png" alt="Logo" class="h-8 w-auto object-contain" />
+          <span class="font-semibold">App</span>
+        </a>
+      </div>
+      <nav class="px-2 space-y-2">
+        @for (i of nav; track i.id) {
+          <a [routerLink]="[i.to]" routerLinkActive="is-active" class="nav-btn">
+            <span class="icon">@switch (i.icon) {
+              @case ('home')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> }
+              @case ('folder')   { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M10 4l2 2h8v12H4V4z"/></svg> }
+              @case ('activity') { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 12h4l2 7 4-14 2 7h4"/></svg> }
+              @case ('runs')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20m1-10H7"/></svg> }
+              @case ('stats')    { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 20h18v-2H3zM7 10h2v6H7zM11 6h2v10h-2zM15 13h2v3h-2z"/></svg> }
+              @case ('settings') { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M19.4 12.9l1.4-2.4-1.8-3.1-2.8.4-1.6-2.3h-3.6L8.4 7.8l-2.8-.4-1.8 3.1 1.4 2.4-1.4 2.4 1.8 3.1 2.8-.4 1.6 2.3h3.6l1.6-2.3 2.8.4 1.8-3.1-1.4-2.4z"/></svg> }
+              @case ('help')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20m-1-6h2v2h-2zm0-8h2v6h-2z"/></svg> }
+            }</span>
+            <span>{{ i.label }}</span>
+          </a>
+        }
+      </nav>
+      <div class="mt-6 border-t pt-4 px-2 space-y-2">
+        @for (i of secondary; track i.id) {
+          <a [routerLink]="[i.to]" routerLinkActive="is-active" class="nav-btn">
+            <span class="icon">@switch (i.icon) {
+              @case ('home')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> }
+              @case ('folder')   { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M10 4l2 2h8v12H4V4z"/></svg> }
+              @case ('activity') { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 12h4l2 7 4-14 2 7h4"/></svg> }
+              @case ('runs')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20m1-10H7"/></svg> }
+              @case ('stats')    { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 20h18v-2H3zM7 10h2v6H7zM11 6h2v10h-2zM15 13h2v3h-2z"/></svg> }
+              @case ('settings') { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M19.4 12.9l1.4-2.4-1.8-3.1-2.8.4-1.6-2.3h-3.6L8.4 7.8l-2.8-.4-1.8 3.1 1.4 2.4-1.4 2.4 1.8 3.1 2.8-.4 1.6 2.3h3.6l1.6-2.3 2.8.4 1.8-3.1-1.4-2.4z"/></svg> }
+              @case ('help')     { <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20m-1-6h2v2h-2zm0-8h2v6h-2z"/></svg> }
+            }</span>
+            <span>{{ i.label }}</span>
+          </a>
+        }
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="flex-1 min-w-0">
+      <!-- Header -->
+      <header class="app-header border-b bg-white/50 backdrop-blur">
+        <div class="flex h-16 items-center px-6">
+          <button class="md:hidden p-2 rounded-md hover:bg-gray-100" (click)="toggleSidebar()">
+            <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg>
+          </button>
+
+          <div class="ml-auto flex items-center gap-1">
+            <!-- Search -->
+            <button class="p-2 rounded-md hover:bg-gray-100">
+              <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 9.5 16 6.5 6.5 0 0 0 15.5 14zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/><path fill="currentColor" d="M20 20l-4-4"/></svg>
+            </button>
+            <!-- Bell -->
+            <button class="p-2 rounded-md hover:bg-gray-100">
+              <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2zM18 8a6 6 0 10-12 0c0 7-3 5-3 7h18c0-2-3 0-3-7z"/></svg>
+            </button>
+            <!-- Settings -->
+            <button class="p-2 rounded-md hover:bg-gray-100">
+              <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M19.4 12.9l1.4-2.4-1.8-3.1-2.8.4-1.6-2.3h-3.6L8.4 7.8l-2.8-.4-1.8 3.1 1.4 2.4-1.4 2.4 1.8 3.1 2.8-.4 1.6 2.3h3.6l1.6-2.3 2.8.4 1.8-3.1-1.4-2.4z"/></svg>
+            </button>
+            <!-- User -->
+            <div class="w-8 h-8 rounded-full bg-gray-200"></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-4 sm:p-6">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  </div>
+</div>
