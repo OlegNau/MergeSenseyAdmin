@@ -81,11 +81,11 @@ export class DashboardStatsComponent {
   }
 
   public openPipeline(id: string): void {
-    this.router.navigate(['pipeline-detail', id]);
+    this.router.navigate(['/pipelines', id]);
   }
 
   public openProject(id: string): void {
-    this.router.navigate(['project-detail', id]);
+    this.router.navigate(['/projects', id]);
   }
 
   // TODO: load real data from API; recalc KPIs on range change; i18n

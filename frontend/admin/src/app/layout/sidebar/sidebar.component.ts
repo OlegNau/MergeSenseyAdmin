@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 export type SidebarItem = {
-  id: string;
-  label: string;
-  to: string;
-  icon: 'dashboard' | 'projects' | 'pipelines' | 'runs' | 'stats' | 'settings' | 'help';
+    id: string;
+    label: string;
+    to: string;
+    icon: 'dashboard' | 'projects' | 'pipelines' | 'stats' | 'settings' | 'help';
 };
 
 @Component({
