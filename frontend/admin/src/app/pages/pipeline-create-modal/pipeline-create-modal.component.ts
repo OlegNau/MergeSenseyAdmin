@@ -53,12 +53,6 @@ export class PipelineCreateModalComponent {
     return this.form.controls.trigger.value;
   }
 
-  selectedAgents(): string[] {
-    return this.agentDefs
-      .filter((_, i) => this.agentsArray.at(i).value)
-      .map(a => a.label);
-  }
-
   constructor() {
     this.agentDefs.forEach(() => this.agentsArray.push(this.fb.nonNullable.control(false)));
   }
@@ -108,7 +102,7 @@ export class PipelineCreateModalComponent {
     this.router.navigate([{ outlets: { modal: null } }]);
   }
 
-  create() {
+  submit() {
     const payload = this.form.getRawValue();
     console.log('CREATE PIPELINE', payload);
     this.close();
