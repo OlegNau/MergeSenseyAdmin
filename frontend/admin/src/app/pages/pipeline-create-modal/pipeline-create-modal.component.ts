@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -12,7 +12,12 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PipelineCreateModalComponent {
+  private fb = inject(FormBuilder);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   step: 1 | 2 | 3 | 4 = 1;
+
   projectId = this.route.snapshot.paramMap.get('projectId') || '';
 
   agentOptions = ['Static Analysis', 'Security Scan', 'Lint/Format'];
@@ -28,8 +33,6 @@ export class PipelineCreateModalComponent {
     agents: this.fb.array(this.agentOptions.map(() => this.fb.control(false))),
     rule: [''],
   });
-
-  constructor(private fb: FormBuilder, private router: Router, private route: ActivatedRoute) {}
 
   get agentsArray(): FormArray {
     return this.form.get('agents') as FormArray;

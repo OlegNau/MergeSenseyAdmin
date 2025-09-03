@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
@@ -11,6 +11,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PipelineDetailsComponent {
+  private readonly route = inject(ActivatedRoute);
   id = this.route.snapshot.paramMap.get('id') || '0';
 
   pipeline = {
@@ -37,8 +38,6 @@ export class PipelineDetailsComponent {
     { name: 'Security Scan', active: true },
     { name: 'Lint/Format', active: false },
   ];
-
-  constructor(private route: ActivatedRoute) {}
 
   setTab(t: 'overview' | 'history' | 'agents' | 'settings') {
     this.tab = t;
