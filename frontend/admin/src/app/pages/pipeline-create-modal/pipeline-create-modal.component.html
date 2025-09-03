@@ -88,15 +88,30 @@
       }
 
       @if (step === 4) {
-        <div class="space-y-2 text-sm text-gray-300">
-          <p><span class="text-gray-400">Name:</span> {{ form.value.name }}</p>
-          <p><span class="text-gray-400">Trigger:</span> {{ form.value.trigger }}</p>
-          @if (form.value.trigger === 'push') { <p><span class="text-gray-400">Branch:</span> {{ form.value.branch }}</p> }
-          @if (form.value.trigger === 'schedule') {
-            <p><span class="text-gray-400">Schedule:</span> {{ form.value.schedule.type }} @if (form.value.schedule.type === 'cron') { ({{ form.value.schedule.cron }}) }}</p>
+        <div class="mt-4 space-y-3 text-sm">
+          <div><span class="text-gray-400">Name:</span> <span class="text-white">{{ form.value.name }}</span></div>
+          <div><span class="text-gray-400">Trigger:</span> <span class="text-white">{{ form.value.trigger }}</span></div>
+          @if (form.value.trigger === 'push') {
+            <div><span class="text-gray-400">Branch:</span> <span class="text-white">{{ form.value.branch }}</span></div>
           }
-          @if (selectedAgents().length) { <p><span class="text-gray-400">Agents:</span> {{ selectedAgents().join(', ') }}</p> }
-          @if (form.value.notes) { <p><span class="text-gray-400">Notes:</span> {{ form.value.notes }}</p> }
+          @if (form.value.trigger === 'schedule') {
+            <div>
+              <span class="text-gray-400">Schedule:</span>
+              <span class="text-white">{{ form.value.schedule?.type }}</span>
+              @if (form.value.schedule?.type === 'cron') {
+                <span class="text-gray-400"> — Cron: </span>
+                <span class="text-white">{{ form.value.schedule?.cron }}</span>
+              }
+            </div>
+          }
+          <div>
+            <span class="text-gray-400">Agents:</span>
+            <span class="text-white">
+              @for (ctrl, i of agentsArray.controls; track i) {
+                @if (ctrl.value) { <span class="mr-2">{{ agentDefs[i].label }}</span> }
+              }
+            </span>
+          </div>
         </div>
       }
     </form>
@@ -105,7 +120,7 @@
       <button class="h-10 px-4 rounded-md bg-white/5 hover:bg-white/10 text-sm" (click)="step === 1 ? close() : prev()">
         {{ step === 1 ? 'Cancel' : 'Previous' }}
       </button>
-      <button class="h-10 px-4 rounded-md bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium" [disabled]="step !== 4 && !canNext(step)" (click)="step === 4 ? create() : next()">
+      <button class="h-10 px-4 rounded-md bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium" [disabled]="step !== 4 && !canNext(step)" (click)="step === 4 ? submit() : next()">
         {{ step === 4 ? 'Create' : 'Next' }}
       </button>
     </div>
