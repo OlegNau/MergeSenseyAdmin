@@ -34,7 +34,7 @@
               >
                 <path d="M3 7V5a2 2 0 0 1 2-2h5l2 2h9v14H3Z" />
               </svg>
-              <h2 class="text-lg font-semibold">{{ p.name }}</h2>
+              <a [routerLink]="['/projects', p.id]" class="text-lg font-semibold hover:underline">{{ p.name }}</a>
             </div>
             <span class="rounded-full border border-white/10 px-2 py-0.5 text-[11px] bg-white/10"
               >{{ p.provider }}</span
