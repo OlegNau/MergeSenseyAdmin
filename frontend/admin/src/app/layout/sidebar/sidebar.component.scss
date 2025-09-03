@@ -1,0 +1,4 @@
+@use 'styles/variables' as *;
+
+.app-sidebar { border-color: $border-color; background-color: $card-bg-30; }
+.is-active   { background-color: rgba(255,255,255,.06); color: #fff; }

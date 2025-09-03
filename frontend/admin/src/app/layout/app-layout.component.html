@@ -1,61 +1,46 @@
 <div class="min-h-screen">
   <div class="flex">
-    <aside class="app-sidebar hidden md:block shrink-0 w-64 md:sticky md:top-0 md:h-screen border-r backdrop-blur">
-      <div class="px-4 py-6">
-        <a routerLink="/dashboard" class="flex items-center gap-2">
-          <img src="assets/logo.png" width="32" height="32" alt="Logo" class="h-8 w-auto object-contain" />
-          <span class="sr-only">Home</span>
-        </a>
-      </div>
+    <!-- Левый сайдбар (desktop) -->
+    <app-sidebar [logoSrc]="'assets/logo.png'" [items]="nav"></app-sidebar>
 
-      <nav class="px-2 space-y-2">
-        @for (i of nav; track i.id) {
-          <a [routerLink]="[i.to]" routerLinkActive="is-active" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
-            @switch (i.icon) {
-              @case ('home') {
-                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-7 9 7v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-              }
-              @case ('folder') {
-                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h5l2 2h9v14H3Z"/></svg>
-              }
-              @case ('activity') {
-                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-              }
-              @case ('runs') {
-                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M13 12H7"/></svg>
-              }
-              @case ('stats') {
-                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="22" x2="21" y2="22"/><rect x="7" y="10" width="2" height="6"/><rect x="11" y="6" width="2" height="10"/><rect x="15" y="13" width="2" height="3"/></svg>
-              }
-            }
-            <span>{{ i.label }}</span>
-          </a>
-        }
-
-        <div class="pt-4 mt-4 border-t px-2 space-y-2">
-          @for (i of secondary; track i.id) {
-            <a [routerLink]="[i.to]" routerLinkActive="is-active" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
-              @switch (i.icon) {
-                @case ('settings') {
-                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19.4 12.9l1.4-2.4-1.8-3.1-2.8.4-1.6-2.3h-3.6L8.4 7.8l-2.8-.4-1.8 3.1 1.4 2.4-1.4 2.4 1.8 3.1 2.8-.4 1.6 2.3h3.6l1.6-2.3 2.8.4 1.8-3.1-1.4-2.4z"/></svg>
-                }
-                @case ('help') {
-                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 1 1 3 3v2"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
-                }
-              }
-              <span>{{ i.label }}</span>
-            </a>
-          }
-        </div>
-      </nav>
-    </aside>
-
+    <!-- Правая колонка -->
     <div class="flex-1 min-w-0">
       <app-header (menuToggle)="toggleSidebar()"></app-header>
-
       <main class="p-4 sm:p-6">
         <router-outlet></router-outlet>
       </main>
     </div>
+  </div>
+
+  <!-- Mobile drawer -->
+  <div class="md:hidden" [class.hidden]="!sidebarOpen()">
+    <div class="fixed inset-0 bg-black/40 z-40" (click)="sidebarOpen.set(false)"></div>
+    <aside class="app-sidebar fixed inset-y-0 left-0 z-50 w-64 p-4 border-r backdrop-blur">
+      <div class="px-4 py-6">
+        <a class="flex items-center gap-2">
+          <img src="assets/logo.png" alt="Logo" class="h-8 w-auto object-contain" width="32" height="32" />
+          <span class="sr-only">Home</span>
+        </a>
+      </div>
+      <div class="px-2 space-y-2">
+        @for (it of nav; track it.id) {
+          <a [routerLink]="[it.to]" (click)="sidebarOpen.set(false)" routerLinkActive="is-active"
+             class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              @switch (it.icon) {
+                @case ('dashboard') { <path d="M3 10l9-7 9 7v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/> }
+                @case ('projects') { <path d="M3 7V5a2 2 0 0 1 2-2h5l2 2h9v14H3Z"/> }
+                @case ('pipelines') { <path d="M22 12h-4l-3 9L9 3l-3 9H2"/> }
+                @case ('runs') { <circle cx="12" cy="12" r="10"/><path d="M13 12H7"/> }
+                @case ('stats') { <line x1="3" y1="22" x2="21" y2="22"/><rect x="7" y="10" width="2" height="6"/><rect x="11" y="6" width="2" height="10"/><rect x="15" y="13" width="2" height="3"/> }
+                @case ('settings') { <path d="M19.4 12.9l1.4-2.4-1.8-3.1-2.8.4-1.6-2.3h-3.6L8.4 7.8l-2.8-.4-1.8 3.1 1.4 2.4-1.4 2.4 1.8 3.1 2.8-.4 1.6 2.3h3.6l1.6-2.3 2.8.4 1.8-3.1-1.4-2.4z"/> }
+                @case ('help') { <circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 1 1 3 3v2"/><line x1="12" y1="17" x2="12" y2="17"/> }
+              }
+            </svg>
+            <span>{{ it.label }}</span>
+          </a>
+        }
+      </div>
+    </aside>
   </div>
 </div>
