@@ -1,0 +1,119 @@
+<div class="space-y-6 max-w-6xl mx-auto p-4 sm:p-6">
+  <div class="flex items-center gap-4">
+    <button (click)="goBack()" class="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M15 6l-6 6 6 6"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      <span>Back</span>
+    </button>
+
+    <h1 class="text-2xl font-bold" style="color: $text-main-color;">{{ project()?.name || 'Project' }}</h1>
+
+    <div class="ml-auto">
+      <button
+        (click)="openWizard()"
+        class="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 5v14M5 12h14"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+        <span>Create pipeline</span>
+      </button>
+    </div>
+  </div>
+
+  <section class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-xl font-semibold" style="color: $text-main-color;">Project pipelines</h2>
+      <p class="text-sm" style="color: $muted-text-color;">No pipelines yet — create your first one.</p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="text-left py-3 px-6 font-medium text-gray-600">Name</th>
+            <th class="text-left py-3 px-6 font-medium text-gray-600">Status</th>
+            <th class="text-left py-3 px-6 font-medium text-gray-600">Updated</th>
+            <th class="text-right py-3 px-6 font-medium text-gray-600">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (project()?.pipelines?.length) {
+            @for (p of project()!.pipelines; track p.id) {
+              <tr class="border-t border-gray-100 hover:bg-gray-50">
+                <td class="py-3 px-6 text-gray-900">{{ p.name }}</td>
+                <td class="py-3 px-6 text-gray-600">{{ p.status || '—' }}</td>
+                <td class="py-3 px-6 text-gray-600">{{ p.updatedAt || '—' }}</td>
+                <td class="py-3 px-6 text-right">
+                  <button
+                    (click)="openPipelineDetails(p.id)"
+                    class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border border-gray-200 hover:bg-white"
+                  >
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                      <path d="M8 5v14l11-7-11-7z" fill="currentColor" />
+                    </svg>
+                    <span>Details</span>
+                  </button>
+                </td>
+              </tr>
+            }
+          } @else {
+            <tr class="border-t border-gray-100">
+              <td colspan="4" class="py-6 px-6 text-sm" style="color: $muted-text-color;">No pipelines found.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  @if (isWizardOpen()) {
+    <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-xl shadow-md w-full max-w-lg">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <h3 class="text-lg font-semibold" style="color: $text-main-color;">New pipeline</h3>
+          <button (click)="closeWizard()" class="text-gray-500 hover:text-gray-800">✕</button>
+        </div>
+        <div class="p-6 space-y-4">
+          <input
+            [(ngModel)]="pipelineName"
+            placeholder="Name"
+            class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+          />
+          <input
+            [(ngModel)]="pipelineTrigger"
+            placeholder="Trigger (e.g., push:main)"
+            class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+          />
+          <input
+            [(ngModel)]="pipelineAgents"
+            placeholder="Agents (comma-separated)"
+            class="w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+          />
+        </div>
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
+          <button (click)="closeWizard()" class="px-4 py-2 rounded-full border border-gray-200">Cancel</button>
+          <button
+            (click)="onWizardSubmit()"
+            class="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
+          >
+            <span>Create</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- TODO: extract to component -->
+  }
+</div>
