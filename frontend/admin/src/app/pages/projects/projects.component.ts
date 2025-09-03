@@ -1,20 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 
-type Project = {
+interface ProjectVm {
   id: string;
   name: string;
-  description?: string;
-  updatedAt?: string;
-  status?: 'active' | 'archived';
-};
+  description: string;
+  provider: 'GitHub' | 'GitLab' | 'Bitbucket';
+  repoPath: string;
+  branch: string;
+  active: number;
+  total: number;
+}
 
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './projects.component.html',
   styleUrls: ['./projects.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,65 +24,51 @@ type Project = {
 export class ProjectsComponent {
   private readonly router = inject(Router);
 
-  projects = signal<Project[]>([
+  projects = signal<ProjectVm[]>([
     {
       id: '1',
       name: 'Alpha Project',
-      description: 'First project',
-      updatedAt: '2024-06-01',
-      status: 'active',
+      description: 'First project description',
+      provider: 'GitHub',
+      repoPath: 'org/alpha',
+      branch: 'main',
+      active: 3,
+      total: 10,
     },
     {
       id: '2',
       name: 'Beta Project',
-      description: 'Second project',
-      updatedAt: '2024-05-20',
-      status: 'archived',
+      description: 'Second project description',
+      provider: 'GitLab',
+      repoPath: 'team/beta',
+      branch: 'develop',
+      active: 1,
+      total: 5,
     },
     {
       id: '3',
       name: 'Gamma Project',
-      description: 'Third project',
-      updatedAt: '2024-05-25',
-      status: 'active',
+      description: 'Third project description',
+      provider: 'Bitbucket',
+      repoPath: 'acme/gamma',
+      branch: 'main',
+      active: 0,
+      total: 2,
+    },
+    {
+      id: '4',
+      name: 'Delta Project',
+      description: 'Fourth project description',
+      provider: 'GitHub',
+      repoPath: 'org/delta',
+      branch: 'release',
+      active: 4,
+      total: 12,
     },
   ]);
-  // TODO: load projects from API (без внешних пакетов)
-
-  query = signal('');
-  tag = signal<'all' | 'active' | 'archived'>('all');
-  sort = signal<'updated' | 'name'>('updated');
-
-  filtered = computed(() => {
-    let list = this.projects();
-    const q = this.query().toLowerCase();
-    if (q) {
-      list = list.filter(p =>
-        p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q)
-      );
-    }
-    const tag = this.tag();
-    if (tag !== 'all') {
-      list = list.filter(p => p.status === tag);
-    }
-    const sort = this.sort();
-    return [...list].sort((a, b) => {
-      if (sort === 'name') {
-        return a.name.localeCompare(b.name);
-      }
-      const ad = a.updatedAt ? Date.parse(a.updatedAt) : 0;
-      const bd = b.updatedAt ? Date.parse(b.updatedAt) : 0;
-      return bd - ad;
-    });
-  });
-
-  trackById = (_: number, p: { id: string }) => p.id;
 
   createProject() {
     this.router.navigate(['/create-project']);
   }
 
-  openProject(id: string) {
-    this.router.navigate(['/project-detail', id]);
-  }
 }
