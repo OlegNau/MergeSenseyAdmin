@@ -1,1 +1,10 @@
-@use 'styles/variables';
+/* 1) СНАЧАЛА ваши SCSS-переменные */
+@use 'styles/variables' as *;
+
+/* 2) ПОТОМ Tailwind v4 директивы (это CSS-директивы) */
+@config "../tailwind.v4.config.js";   /* путь от src/styles.scss к конфигу в корне */
+@import "tailwindcss";                /* не @use! */
+
+/* 3) В КОНЦЕ любые ваши глобальные правила */
+.app-header  { border-color: $border-color; background-color: $card-bg-50; }
+.app-sidebar { border-color: $border-color; background-color: $card-bg-30; }
