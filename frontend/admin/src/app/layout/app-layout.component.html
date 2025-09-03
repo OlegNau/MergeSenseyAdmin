@@ -12,6 +12,7 @@
       @for (i of nav; track i.id) {
         <a [routerLink]="i.to"
            routerLinkActive="is-active"
+           [routerLinkActiveOptions]="{ exact: true }"
            class="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-white/5 hover:text-white">
           <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             @switch (i.icon) {
@@ -33,6 +34,7 @@
       @for (i of secondary; track i.id) {
         <a [routerLink]="i.to"
            routerLinkActive="is-active"
+           [routerLinkActiveOptions]="{ exact: true }"
            class="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-white/5 hover:text-white">
           <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             @switch (i.icon) {
@@ -62,6 +64,7 @@
           @for (i of nav; track i.id) {
             <a [routerLink]="i.to" (click)="toggleSidebar()"
                routerLinkActive="is-active"
+               [routerLinkActiveOptions]="{ exact: true }"
                class="block px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-white/5 hover:text-white">
               {{ i.label }}
             </a>
@@ -70,6 +73,7 @@
             @for (i of secondary; track i.id) {
               <a [routerLink]="i.to" (click)="toggleSidebar()"
                  routerLinkActive="is-active"
+                 [routerLinkActiveOptions]="{ exact: true }"
                  class="block px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-white/5 hover:text-white">
                 {{ i.label }}
               </a>
