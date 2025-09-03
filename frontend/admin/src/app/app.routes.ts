@@ -28,6 +28,11 @@ export const routes: Routes = [
       import('./pages/pipeline-detail/pipeline-detail.component').then(m => m.PipelineDetailComponent),
   },
   {
+    path: 'runs',
+    loadComponent: () =>
+      import('./pages/runs/runs.component').then(m => m.RunsComponent),
+  },
+  {
     path: 'create-project',
     loadComponent: () =>
       import('./pages/create-project/create-project.component').then(m => m.CreateProjectComponent),
@@ -54,3 +59,4 @@ export const routes: Routes = [
   },
   { path: '**', redirectTo: 'not-found' },
 ];
+
