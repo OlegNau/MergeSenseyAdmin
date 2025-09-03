@@ -18,10 +18,10 @@ import {
 })
 export class CreateProjectComponent {
   // TODO: i18n
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
 
-  readonly form = this.fb.group({
+  public readonly form = this.fb.group({
     name: ['', Validators.required],
     description: [''],
     repository: [''],
@@ -29,7 +29,7 @@ export class CreateProjectComponent {
     visibility: ['private'],
   });
 
-  submit(): void {
+  public submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -38,7 +38,7 @@ export class CreateProjectComponent {
     // TODO: API call and navigation to project detail page
   }
 
-  cancel(): void {
+  public cancel(): void {
     this.router.navigate(['/projects']);
   }
 }

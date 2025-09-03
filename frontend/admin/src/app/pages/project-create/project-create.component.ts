@@ -14,13 +14,13 @@ type Provider = 'github'|'gitlab'|'bitbucket';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectCreateComponent {
-  step = 1;
-  provider: Provider | null = null;
+  public step = 1;
+  public provider: Provider | null = null;
 
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
 
-  readonly form = this.fb.group({
+  public readonly form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
     description: ['', [Validators.required, Validators.minLength(10)]],
     repo: this.fb.group({
@@ -30,22 +30,22 @@ export class ProjectCreateComponent {
     }),
   });
 
-  get repoGroup(): FormGroup {
+  public get repoGroup(): FormGroup {
     return this.form.get('repo') as FormGroup;
   }
 
-  setProvider(p: Provider) { this.provider = p; }
-  canContinue1() { return this.form.get('name')!.valid && this.form.get('description')!.valid; }
-  canContinue2() {
+  public setProvider(p: Provider): void { this.provider = p; }
+  public canContinue1(): boolean { return this.form.get('name')!.valid && this.form.get('description')!.valid; }
+  public canContinue2(): boolean {
     if (!this.provider) return false;
     // URL/token опциональны — подключение можно сделать позже
     return true;
   }
 
-  next(){ if (this.step === 1 && this.canContinue1()) this.step = 2; else if (this.step === 2 && this.canContinue2()) this.step = 3; }
-  back(){ if (this.step > 1) this.step--; else this.router.navigateByUrl('/projects'); }
+  public next(): void { if (this.step === 1 && this.canContinue1()) this.step = 2; else if (this.step === 2 && this.canContinue2()) this.step = 3; }
+  public back(): void { if (this.step > 1) this.step--; else this.router.navigateByUrl('/projects'); }
 
-  submit(){
+  public submit(): void {
     if (this.step !== 3) return;
     const payload = {
       name: this.form.value.name,

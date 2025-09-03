@@ -24,7 +24,7 @@
       <select
         [ngModel]="status()"
         (ngModelChange)="status.set($event)"
-        class="border border-gray-200 rounded-md px-3 py-2 bg-white"
+        class="border border-white/10 rounded-md px-3 py-2 bg-white/5 text-gray-100"
       >
         <option value="all">All statuses</option>
         <option value="running">Running</option>
@@ -36,7 +36,7 @@
       <select
         [ngModel]="sort()"
         (ngModelChange)="sort.set($event)"
-        class="border border-gray-200 rounded-md px-3 py-2 bg-white"
+        class="border border-white/10 rounded-md px-3 py-2 bg-white/5 text-gray-100"
       >
         <option value="started">Sort by: Started</option>
         <option value="finished">Sort by: Finished</option>

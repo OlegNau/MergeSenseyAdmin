@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -15,12 +15,14 @@ type Quick = { title: string; desc: string; icon: 'book'|'rocket'|'api'|'changel
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HelpComponent {
-  // поиск по FAQ
-  query = signal('');
-  category = signal<'all'|'projects'|'pipelines'|'billing'|'account'>('all');
-  opened = signal<Set<number>>(new Set());
+  private readonly fb = inject(FormBuilder);
 
-  faqs: FaqItem[] = [
+  // поиск по FAQ
+  public query = signal('');
+  public category = signal<'all'|'projects'|'pipelines'|'billing'|'account'>('all');
+  public opened = signal<Set<number>>(new Set());
+
+  public faqs: FaqItem[] = [
     { q: 'Как связать проект с GitHub/ GitLab?', a: 'Откройте “Projects → Create New Project”, на втором шаге выберите провайдера и укажите URL/ветку. Подключение токена можно сделать позже.', cat: 'projects' },
     { q: 'Почему пайплайн не запускается?', a: 'Проверьте триггер (manual/push/schedule) и токен доступа. В “All Pipelines” откройте детали и посмотрите логи последнего запуска.', cat: 'pipelines' },
     { q: 'Как включить двухфакторную аутентификацию?', a: 'Зайдите в “Settings → Security” и активируйте 2FA. Сохраните резервные коды.', cat: 'account' },
@@ -29,14 +31,14 @@ export class HelpComponent {
     { q: 'Как поделиться доступом к проекту?', a: '“Settings → Team”: пригласите пользователя по email и назначьте роль (Viewer/Editor/Admin).', cat: 'projects' },
   ];
 
-  quick: Quick[] = [
+  public quick: Quick[] = [
     { title: 'Документация', desc: 'Руководства и best practices', icon: 'book', href: '#' },
     { title: 'Быстрый старт', desc: '5 шагов для запуска', icon: 'rocket', href: '#' },
     { title: 'API Reference', desc: 'REST/Webhook эндпоинты', icon: 'api', href: '#' },
     { title: 'Changelog', desc: 'Новые фичи и фиксы', icon: 'changelog', href: '#' },
   ];
 
-  filtered = computed(() => {
+  public filtered = computed(() => {
     const q = this.query().trim().toLowerCase();
     const cat = this.category();
     return this.faqs.filter(f =>
@@ -45,14 +47,14 @@ export class HelpComponent {
     );
   });
 
-  toggle(i: number) {
+  public toggle(i: number): void {
     const s = new Set(this.opened());
     s.has(i) ? s.delete(i) : s.add(i);
     this.opened.set(s);
   }
 
   // форма обращения
-  readonly form = this.fb.group({
+  public readonly form = this.fb.group({
     subject: ['', [Validators.required, Validators.minLength(5)]],
     category: ['general', [Validators.required]],
     severity: ['normal'],
@@ -61,15 +63,13 @@ export class HelpComponent {
     attachment: [null as File | null],
   });
 
-  constructor(private fb: FormBuilder) {}
-
-  onFile(ev: Event){
+  public onFile(ev: Event): void{
     const input = ev.target as HTMLInputElement;
     const file = input.files && input.files[0] ? input.files[0] : null;
     this.form.patchValue({ attachment: file });
   }
 
-  submit(){
+  public submit(): void{
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     const payload = { ...this.form.value, app: { version: '0.1.0', build: 'dev' } };
     console.log('HELP TICKET', payload);

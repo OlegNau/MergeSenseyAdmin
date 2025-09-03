@@ -13,17 +13,16 @@ import { FormsModule } from '@angular/forms';
 })
 export class DashboardStatsComponent {
   private readonly router = inject(Router);
-
   // Filters
-  range = signal<'7d' | '30d' | '90d' | 'custom'>('7d');
-  from = signal<string | null>(null);
-  to = signal<string | null>(null);
-  query = signal<string>('');
+  public range = signal<'7d' | '30d' | '90d' | 'custom'>('7d');
+  public from = signal<string | null>(null);
+  public to = signal<string | null>(null);
+  public query = signal<string>('');
 
-  readonly presetRanges = ['7d', '30d', '90d'] as const;
+  public readonly presetRanges = ['7d', '30d', '90d'] as const;
 
   // KPI
-  kpis = signal([
+  public kpis = signal([
     { id: 'runs',        label: 'Runs',        value: 0, delta: +0 },
     { id: 'successRate', label: 'Success %',   value: 0, delta: +0 },
     { id: 'mttr',        label: 'MTTR (min)',  value: 0, delta: -0 },
@@ -31,13 +30,13 @@ export class DashboardStatsComponent {
   ]);
 
   // Time series and lists
-  timeseries = signal<{ date: string; runs: number; success: number; failed: number }[]>([]);
-  topPipelines = signal<{ id: string; name: string; runs: number; successRate: number }[]>([]);
-  topProjects = signal<{ id: string; name: string; runs: number; successRate: number }[]>([]);
-  recentFailures = signal<{ id: string; pipeline: string; when: string; reason?: string }[]>([]);
+  public timeseries = signal<{ date: string; runs: number; success: number; failed: number }[]>([]);
+  public topPipelines = signal<{ id: string; name: string; runs: number; successRate: number }[]>([]);
+  public topProjects = signal<{ id: string; name: string; runs: number; successRate: number }[]>([]);
+  public recentFailures = signal<{ id: string; pipeline: string; when: string; reason?: string }[]>([]);
 
   // Computed values
-  filteredSeries = computed(() => {
+  public filteredSeries = computed(() => {
     const data = this.timeseries();
     const range = this.range();
     const from = this.from();
@@ -62,14 +61,14 @@ export class DashboardStatsComponent {
     });
   });
 
-  filteredPipelines = computed(() => {
+  public filteredPipelines = computed(() => {
     const q = this.query().toLowerCase();
     return this.topPipelines()
       .filter(p => !q || p.name.toLowerCase().includes(q))
       .sort((a, b) => b.runs - a.runs);
   });
 
-  filteredProjects = computed(() => {
+  public filteredProjects = computed(() => {
     const q = this.query().toLowerCase();
     return this.topProjects()
       .filter(p => !q || p.name.toLowerCase().includes(q))
@@ -77,15 +76,15 @@ export class DashboardStatsComponent {
   });
 
   // Navigation
-  setRange(opt: '7d' | '30d' | '90d' | 'custom') {
+  public setRange(opt: '7d' | '30d' | '90d' | 'custom'): void {
     this.range.set(opt);
   }
 
-  openPipeline(id: string) {
+  public openPipeline(id: string): void {
     this.router.navigate(['pipeline-detail', id]);
   }
 
-  openProject(id: string) {
+  public openProject(id: string): void {
     this.router.navigate(['project-detail', id]);
   }
 

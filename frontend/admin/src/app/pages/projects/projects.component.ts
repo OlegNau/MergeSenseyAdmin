@@ -22,7 +22,7 @@ interface Project {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectsComponent {
-  readonly projects = signal<Project[]>([
+  public readonly projects = signal<Project[]>([
     {
       id: '1',
       name: 'Design System',

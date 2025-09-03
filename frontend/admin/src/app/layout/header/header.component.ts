@@ -11,11 +11,11 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppHeaderComponent {
-  @Output() menuToggle = new EventEmitter<void>();
+  @Output() public menuToggle = new EventEmitter<void>();
 
-  search = '';
+  public search = '';
 
-  onMenuClick(): void {
+  public onMenuClick(): void {
     this.menuToggle.emit();
   }
 }

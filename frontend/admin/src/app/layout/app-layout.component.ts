@@ -25,13 +25,13 @@ type NavItem = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppLayoutComponent {
-  sidebarOpen = false;
+  public sidebarOpen = false;
 
-  toggleSidebar() {
+  public toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;
   }
 
-  nav: NavItem[] = [
+  public nav: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },
     { id: 'projects', label: 'Projects', to: '/projects', icon: 'projects' },
     { id: 'pipelines', label: 'Pipelines', to: '/all-pipelines', icon: 'pipelines' },
@@ -39,7 +39,7 @@ export class AppLayoutComponent {
     { id: 'stats', label: 'Stats', to: '/dashboard-stats', icon: 'stats' },
   ];
 
-  secondary: NavItem[] = [
+  public secondary: NavItem[] = [
     { id: 'settings', label: 'Settings', to: '/settings', icon: 'settings' },
     { id: 'help', label: 'Help', to: '/help', icon: 'help' },
   ];
