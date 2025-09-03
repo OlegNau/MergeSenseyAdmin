@@ -9,9 +9,10 @@
   </div>
 
     <div class="mt-6 flex items-center justify-end">
-      <a [routerLink]="['/projects', project.id, 'pipelines', 'new']"
+      <a [routerLink]="[{ outlets: { modal: ['projects', project.id, 'pipelines', 'new'] } }]"
          class="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Create Pipeline
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Create Pipeline
       </a>
     </div>
 
