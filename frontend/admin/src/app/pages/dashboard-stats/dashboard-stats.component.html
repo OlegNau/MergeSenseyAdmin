@@ -1,0 +1,108 @@
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+      <h1 class="text-2xl font-bold" style="color:$text-main-color;">Dashboard · Stats</h1>
+      <div class="flex items-center gap-2">
+        <!-- Presets -->
+        <div class="inline-flex rounded-full bg-gray-100 p-1">
+          @for (opt of presetRanges; track opt) {
+            <button class="px-3 py-1.5 text-sm rounded-full"
+                    [ngClass]="range()===opt ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900'"
+                    (click)="setRange(opt)">
+              {{ opt }}
+            </button>
+          }
+          <button class="px-3 py-1.5 text-sm rounded-full"
+                  [ngClass]="range()==='custom' ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900'"
+                  (click)="setRange('custom')">Custom</button>
+        </div>
+        <!-- Custom dates -->
+        @if (range()==='custom') {
+          <div class="flex items-center gap-2">
+            <input type="date" class="border border-gray-200 rounded-md px-2 py-1 bg-white" [ngModel]="from()" (ngModelChange)="from.set($event)" />
+            <span class="text-gray-400">—</span>
+            <input type="date" class="border border-gray-200 rounded-md px-2 py-1 bg-white" [ngModel]="to()" (ngModelChange)="to.set($event)" />
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      @for (k of kpis(); track k.id) {
+        <div class="bg-white rounded-xl shadow-md p-5">
+          <div class="text-sm" style="color:$muted-text-color;">{{ k.label }}</div>
+          <div class="mt-1 text-2xl font-semibold text-gray-900">{{ k.value }}</div>
+          <div class="mt-1 text-xs"
+               [ngClass]="k.delta >= 0 ? 'text-green-600' : 'text-red-600'">
+            @if (k.delta >= 0) { ▲ } @else { ▼ } {{ k.delta | number:'1.0-0' }}%
+            vs prev period
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Runs over time -->
+      <section class="bg-white border border-gray-200 rounded-lg p-6">
+        <h2 class="text-lg font-semibold mb-2" style="color:$text-main-color;">Runs over time</h2>
+        <div class="h-56 bg-gray-50 border border-dashed border-gray-200 rounded-md grid place-items-center text-sm" style="color:$gray-color;">
+          Line chart placeholder · TODO: integrate charts
+        </div>
+      </section>
+
+      <!-- Success vs Failures -->
+      <section class="bg-white border border-gray-200 rounded-lg p-6">
+        <h2 class="text-lg font-semibold mb-2" style="color:$text-main-color;">Success vs Failures</h2>
+        <div class="h-56 bg-gray-50 border border-dashed border-gray-200 rounded-md grid place-items-center text-sm" style="color:$gray-color;">
+          Donut/Bar chart placeholder · TODO: integrate charts
+        </div>
+      </section>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Top Pipelines -->
+      <section class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold" style="color:$text-main-color;">Top Pipelines</h3>
+        </div>
+        <div class="divide-y divide-gray-100">
+          @if (filteredPipelines().length) {
+            @for (p of filteredPipelines(); track p.id) {
+              <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+                <div>
+                  <div class="text-gray-900 font-medium">{{ p.name }}</div>
+                  <div class="text-sm" style="color:$muted-text-color;">{{ p.runs }} runs · {{ p.successRate }}%</div>
+                </div>
+                <button (click)="openPipeline(p.id)" class="text-sm text-blue-600 hover:underline">Open</button>
+              </div>
+            }
+          } @else {
+            <div class="px-6 py-6 text-sm" style="color:$muted-text-color;">No data.</div>
+          }
+        </div>
+      </section>
+
+      <!-- Top Projects -->
+      <section class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold" style="color:$text-main-color;">Top Projects</h3>
+        </div>
+        <div class="divide-y divide-gray-100">
+          @if (filteredProjects().length) {
+            @for (p of filteredProjects(); track p.id) {
+              <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+                <div>
+                  <div class="text-gray-900 font-medium">{{ p.name }}</div>
+                  <div class="text-sm" style="color:$muted-text-color;">{{ p.runs }} runs · {{ p.successRate }}%</div>
+                </div>
+                <button (click)="openProject(p.id)" class="text-sm text-blue-600 hover:underline">Open</button>
+              </div>
+            }
+          } @else {
+            <div class="px-6 py-6 text-sm" style="color:$muted-text-color;">No data.</div>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
