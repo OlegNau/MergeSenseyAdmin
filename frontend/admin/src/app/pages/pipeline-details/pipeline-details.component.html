@@ -1,1 +1,145 @@
-<div class="p-4">Pipeline details works!</div>
+<div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="pt-6">
+    <a routerLink="/all-pipelines" class="inline-flex items-center gap-2 text-gray-300 hover:text-white">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      Back to Pipelines
+    </a>
+    <div class="mt-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold flex items-center gap-2">
+          {{ pipeline.name }}
+          <span class="rounded-full px-2 py-0.5 text-[11px]" [ngClass]="pipeline.status==='Active' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'">{{ pipeline.status }}</span>
+        </h1>
+        <p class="text-sm text-gray-400">{{ pipeline.project }} • Trigger: {{ pipeline.trigger }}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="h-9 px-4 rounded-md border border-white/10 bg-white/5 text-sm hover:bg-white/10">⚙ Configure</button>
+        <button (click)="run()" class="h-9 px-4 rounded-md bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium flex items-center gap-1">
+          <span>▶</span> Run Pipeline
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="p-4 rounded-xl border border-white/10 bg-white/[0.03]" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <p class="text-sm text-gray-400">Last Run</p>
+      <p class="mt-1 text-xl font-semibold">{{ pipeline.lastRun | date:'MM/dd/yyyy, hh:mm a' }}</p>
+    </div>
+    <div class="p-4 rounded-xl border border-white/10 bg-white/[0.03]" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <p class="text-sm text-gray-400">Success Rate</p>
+      <p class="mt-1 text-xl font-semibold text-emerald-400">{{ pipeline.stats.successRate }}%</p>
+      <p class="text-xs text-gray-400">Last 30 days</p>
+    </div>
+    <div class="p-4 rounded-xl border border-white/10 bg-white/[0.03]" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <p class="text-sm text-gray-400">Avg Duration</p>
+      <p class="mt-1 text-xl font-semibold">{{ (pipeline.stats.avgDurationSec / 60) | number:'1.0-0' }}m {{ (pipeline.stats.avgDurationSec % 60) | number:'1.0-0' }}s</p>
+    </div>
+    <div class="p-4 rounded-xl border border-white/10 bg-white/[0.03]" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <p class="text-sm text-gray-400">Total Runs</p>
+      <p class="mt-1 text-xl font-semibold">{{ pipeline.stats.totalRuns }}</p>
+      <p class="text-xs text-gray-400">All time</p>
+    </div>
+  </div>
+
+  <div class="mt-8 flex items-center gap-2">
+    <button (click)="setTab('overview')" class="px-3 py-1.5 rounded-full text-sm" [ngClass]="tab==='overview' ? 'bg-white/10 text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10'">Overview</button>
+    <button (click)="setTab('history')" class="px-3 py-1.5 rounded-full text-sm" [ngClass]="tab==='history' ? 'bg-white/10 text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10'">Run History</button>
+    <button (click)="setTab('agents')" class="px-3 py-1.5 rounded-full text-sm" [ngClass]="tab==='agents' ? 'bg-white/10 text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10'">AI Agents</button>
+    <button (click)="setTab('settings')" class="px-3 py-1.5 rounded-full text-sm" [ngClass]="tab==='settings' ? 'bg-white/10 text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10'">Settings</button>
+  </div>
+
+  @if (tab === 'overview') {
+    <section class="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-6" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <h2 class="text-lg font-semibold mb-4">Pipeline Overview</h2>
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="space-y-2 text-sm">
+          <p><span class="text-gray-400">Trigger:</span> {{ pipeline.overview.trigger }}</p>
+          <p><span class="text-gray-400">Status:</span> {{ pipeline.overview.status }}</p>
+          <p><span class="text-gray-400">Agents:</span> {{ pipeline.overview.agents }}</p>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Success Rate</span><span>{{ pipeline.stats.successRate }}%</span></div>
+            <div class="h-2 bg-white/5 rounded mt-1">
+              <div class="h-full bg-emerald-500 rounded" [style.width.%]="pipeline.stats.successRate"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs text-gray-400"><span>Average Duration</span><span>{{ pipeline.stats.avgDurationSec }}s</span></div>
+            <div class="h-2 bg-white/5 rounded mt-1">
+              <div class="h-full bg-blue-500 rounded" [style.width.%]="(pipeline.stats.avgDurationSec/300)*100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+
+  @if (tab === 'history') {
+    <div class="mt-6 rounded-xl border border-white/10 bg-white/[0.03] overflow-x-auto" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <table class="min-w-full table-auto">
+        <thead class="text-left text-xs uppercase tracking-wide text-gray-400">
+          <tr>
+            <th class="px-4 py-3">Date</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3">Duration</th>
+            <th class="px-4 py-3">Commit</th>
+            <th class="px-4 py-3">Actions</th>
+          </tr>
+          <tr><td colspan="5" class="border-b border-white/10"></td></tr>
+        </thead>
+        <tbody>
+          @for (h of history; track h.date) {
+            <tr class="border-t border-white/10 hover:bg-white/[0.04]">
+              <td class="px-4 py-3 text-sm text-gray-300">{{ h.date | date:'MM/dd/yyyy, hh:mm a' }}</td>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-2 py-0.5 text-[11px]" [ngClass]="h.status==='Success' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'">{{ h.status }}</span>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-300">{{ h.duration }}s</td>
+              <td class="px-4 py-3 text-sm text-gray-300">{{ h.ref }}</td>
+              <td class="px-4 py-3 text-sm"><a class="text-blue-400 hover:underline">View Log</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (tab === 'agents') {
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      @for (a of agents; track a.name) {
+        <div class="p-4 rounded-xl border border-white/10 bg-white/[0.03]" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+          <div class="flex items-center justify-between">
+            <span class="text-sm">{{ a.name }}</span>
+            <button (click)="a.active = !a.active" class="relative inline-flex h-5 w-9 items-center rounded-full" [ngClass]="a.active ? 'bg-blue-600' : 'bg-white/10'">
+              <span class="h-4 w-4 bg-white rounded-full transform transition" [ngClass]="a.active ? 'translate-x-4' : 'translate-x-0'"></span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (tab === 'settings') {
+    <div class="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-6" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <form class="space-y-4">
+        <div class="space-y-1">
+          <label class="block text-sm font-medium text-gray-200">Name</label>
+          <input #name type="text" class="h-11 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 focus:outline-none" [value]="pipeline.name" />
+        </div>
+        <div class="space-y-1">
+          <label class="block text-sm font-medium text-gray-200">Trigger</label>
+          <input #trigger type="text" class="h-11 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 focus:outline-none" [value]="pipeline.trigger" />
+        </div>
+        <div class="space-y-1">
+          <label class="block text-sm font-medium text-gray-200">Branch</label>
+          <input #branch type="text" class="h-11 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 focus:outline-none" value="main" />
+        </div>
+        <button type="button" (click)="saveSettings(name.value, trigger.value, branch.value)" class="h-10 px-4 rounded-md bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium">Save</button>
+      </form>
+    </div>
+  }
+
+  <div class="h-10"></div>
+</div>
