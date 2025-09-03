@@ -1,0 +1,94 @@
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-3xl mx-auto p-4 sm:p-6">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold page-title">Create Project</h1>
+      <button type="button" (click)="cancel()" class="text-sm text-gray-600 hover:text-gray-900">Cancel</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6">
+      <!-- Name -->
+      <div>
+        <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+          placeholder="my-project"
+        />
+        @if (form.get('name')?.touched && form.get('name')?.invalid) {
+          <p class="mt-1 text-xs text-red-600">Name is required.</p>
+        }
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+        <textarea
+          id="description"
+          rows="3"
+          formControlName="description"
+          class="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+        ></textarea>
+      </div>
+
+      <!-- Repository / Git URL -->
+      <div>
+        <label for="repo" class="block text-sm font-medium text-gray-700">Repository (Git URL)</label>
+        <input
+          id="repo"
+          type="text"
+          formControlName="repository"
+          class="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+          placeholder="https://github.com/org/repo.git"
+        />
+      </div>
+
+      <!-- Default Branch & Visibility -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="branch" class="block text-sm font-medium text-gray-700">Default branch</label>
+          <input
+            id="branch"
+            type="text"
+            formControlName="defaultBranch"
+            class="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+            placeholder="main"
+          />
+        </div>
+        <div>
+          <label for="visibility" class="block text-sm font-medium text-gray-700">Visibility</label>
+          <select
+            id="visibility"
+            formControlName="visibility"
+            class="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+          >
+            <option value="private">Private</option>
+            <option value="public">Public</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-end gap-3">
+        <button
+          type="button"
+          (click)="cancel()"
+          class="px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="form.invalid || form.pending"
+          class="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <span>Create</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

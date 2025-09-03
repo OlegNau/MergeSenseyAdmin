@@ -1,0 +1,9 @@
+@use 'styles/variables' as *;
+
+:host {
+  display: block;
+}
+
+.page-title {
+  color: $text-main-color;
+}
