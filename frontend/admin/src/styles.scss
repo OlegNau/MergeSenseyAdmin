@@ -1,11 +1,9 @@
-/* 1) СНАЧАЛА ваши SCSS-переменные */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @use 'styles/variables' as *;
 
-/* 2) ПОТОМ Tailwind v4 директивы (это CSS-директивы) */
-@config "../tailwind.v4.config.js";   /* путь от src/styles.scss к конфигу в корне */
-@import "tailwindcss";                /* не @use! */
-
-/* 3) В КОНЦЕ любые ваши глобальные правила */
 html, body { height: 100%; }
 body {
   background-color: $bg-page;
