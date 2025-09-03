@@ -33,10 +33,10 @@ export class PipelineCreateModalComponent {
     branch: this.fb.nonNullable.control('main'),
     schedule: this.fb.nonNullable.group({
       type: this.fb.nonNullable.control<'daily' | 'weekly' | 'cron'>('daily'),
-      cron: this.fb.control<string>(''),
+      cron: this.fb.nonNullable.control(''),
     }),
     agents: this.fb.nonNullable.array<FormControl<boolean>>([]),
-    notes: this.fb.control<string>(''),
+    notes: this.fb.nonNullable.control(''),
   });
 
   readonly agentDefs = [
@@ -68,15 +68,18 @@ export class PipelineCreateModalComponent {
       this.form.controls.name.markAsTouched();
       return;
     }
-    if (
-      this.step === 2 &&
-      this.trigger === 'schedule' &&
-      this.form.controls.schedule.controls.type.value === 'cron' &&
-      !this.form.controls.schedule.controls.cron.value
-    ) {
-      return;
+    if (this.step === 2 && this.trigger === 'schedule') {
+      const schedule = this.form.controls.schedule;
+      if (schedule.controls.type.value === 'cron') {
+        schedule.controls.cron.setValidators([Validators.required]);
+        schedule.controls.cron.updateValueAndValidity();
+        if (schedule.controls.cron.invalid) {
+          schedule.controls.cron.markAsTouched();
+          return;
+        }
+      }
     }
-    this.step = Math.min(4, this.step + 1);
+    this.step = Math.min(4, this.step + 1) as 1 | 2 | 3 | 4;
   }
 
   canNext(step: number): boolean {
