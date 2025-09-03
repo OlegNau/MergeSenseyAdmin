@@ -72,20 +72,18 @@
       }
 
       @if (step === 3) {
-        <div class="space-y-4">
-          <p class="text-sm font-medium text-gray-200">AI Agents & Rules</p>
-          <div class="space-y-2">
-            @for (a of agentOptions; let i = index; track a) {
-              <label class="flex items-center gap-2 text-sm">
-                <input type="checkbox" [formControl]="agentsArray.at(i)" class="h-4 w-4 rounded border-white/10 bg-white/5" />
-                {{ a }}
-              </label>
-            }
-          </div>
-          <div class="space-y-1">
-            <label class="block text-sm font-medium text-gray-200">Rule / Note</label>
-            <input type="text" formControlName="rule" class="h-11 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600/40" placeholder="e.g. notify on failure" />
-          </div>
+        <!-- Step 3: AI Agents -->
+        <div formArrayName="agents" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          @for (ctrl, i of agentsArray.controls; track i) {
+            <label class="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 cursor-pointer">
+              <input type="checkbox" [formControl]="ctrl" class="h-4 w-4 rounded border-white/20 bg-black/30" />
+              <span>{{ agentDefs[i].label }}</span>
+            </label>
+          }
+        </div>
+        <div class="mt-3">
+          <label class="text-sm text-gray-300">Notes / Rules (optional)</label>
+          <textarea formControlName="notes" class="mt-1 w-full min-h-[100px] rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-100"></textarea>
         </div>
       }
 
@@ -95,10 +93,10 @@
           <p><span class="text-gray-400">Trigger:</span> {{ form.value.trigger }}</p>
           @if (form.value.trigger === 'push') { <p><span class="text-gray-400">Branch:</span> {{ form.value.branch }}</p> }
           @if (form.value.trigger === 'schedule') {
-            <p><span class="text-gray-400">Schedule:</span> {{ form.value.schedule.type }} @if (form.value.schedule.type === 'cron') { ({{ form.value.schedule.cron }}) }</p>
+            <p><span class="text-gray-400">Schedule:</span> {{ form.value.schedule.type }} @if (form.value.schedule.type === 'cron') { ({{ form.value.schedule.cron }}) }}</p>
           }
           @if (selectedAgents().length) { <p><span class="text-gray-400">Agents:</span> {{ selectedAgents().join(', ') }}</p> }
-          @if (form.value.rule) { <p><span class="text-gray-400">Rule:</span> {{ form.value.rule }}</p> }
+          @if (form.value.notes) { <p><span class="text-gray-400">Notes:</span> {{ form.value.notes }}</p> }
         </div>
       }
     </form>

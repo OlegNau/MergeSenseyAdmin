@@ -1,97 +1,33 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 
-// TODO: i18n
-
-interface Pipeline {
-  id: string;
-  name: string;
-  status?: string;
-  updatedAt?: string;
-}
-
-interface Project {
-  id: string;
-  name: string;
-  pipelines: Pipeline[];
-}
+type Status = 'Active' | 'Inactive';
+type PipelineRow = { id: string; name: string; status: Status; lastRun: string };
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, DatePipe],
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectDetailComponent {
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly location = inject(Location);
+  private route = inject(ActivatedRoute);
+  readonly id = this.route.snapshot.paramMap.get('id') ?? 'unknown';
 
-  public project = signal<Project | null>(null);
-  public isWizardOpen = signal(false);
-
-  public pipelineName = '';
-  public pipelineTrigger = '';
-  public pipelineAgents = '';
-
-  constructor() {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      // TODO: load project by id
-      this.project.set({
-        id,
-        name: `Project ${id}`,
-        pipelines: [],
-      });
-    }
-  }
-
-  public goBack(): void {
-    this.location.back();
-    // or this.router.navigate(['/projects']);
-  }
-
-  public openWizard(): void {
-    this.isWizardOpen.set(true);
-  }
-
-  public closeWizard(): void {
-    this.isWizardOpen.set(false);
-  }
-
-  public onWizardSubmit(): void {
-    const data = {
-      name: this.pipelineName.trim(),
-      trigger: this.pipelineTrigger.trim(),
-      agents: this.pipelineAgents
-        .split(',')
-        .map(a => a.trim())
-        .filter(Boolean),
-    };
-    if (!data.name) {
-      return;
-    }
-    this.createPipeline(data);
-    this.closeWizard();
-    this.pipelineName = this.pipelineTrigger = this.pipelineAgents = '';
-  }
-
-  private createPipeline(data: { name: string; agents: string[]; trigger: string }): void {
-    // TODO: API create and local push in project.pipelines
-    this.project.update(p => {
-      if (!p) return p;
-      return {
-        ...p,
-        pipelines: [...p.pipelines, { id: Date.now().toString(), name: data.name }],
-      };
-    });
-  }
-
-  public openPipelineDetails(pipelineId: string): void {
-    this.router.navigate(['/pipeline-detail', pipelineId]);
-  }
+  // мок-данные (замени на сервис)
+  readonly project = {
+    id: this.id,
+    name: this.id === 'ai-review' ? 'AI Review Platform' : 'Project ' + this.id,
+    description:
+      'Core company product for automated code reviews with machine learning capabilities',
+    pipelines: <PipelineRow[]>[
+      { id: 'p-main', name: 'Main Pipeline (main branch)', status: 'Active', lastRun: '2024-01-15T14:30:00Z' },
+      { id: 'p-log', name: 'Log Analysis (staging)', status: 'Inactive', lastRun: '2024-01-14T11:00:00Z' },
+      { id: 'p-perf', name: 'Performance Testing', status: 'Active', lastRun: '2024-01-15T09:15:00Z' },
+    ],
+  };
 }
+

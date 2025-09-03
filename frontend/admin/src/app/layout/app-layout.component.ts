@@ -11,7 +11,6 @@ type NavItem = {
     | 'dashboard'
     | 'projects'
     | 'pipelines'
-    | 'runs'
     | 'stats'
     | 'settings'
     | 'help';
@@ -35,7 +34,6 @@ export class AppLayoutComponent {
     { id: 'dashboard', label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },
     { id: 'projects', label: 'Projects', to: '/projects', icon: 'projects' },
     { id: 'pipelines', label: 'Pipelines', to: '/all-pipelines', icon: 'pipelines' },
-    { id: 'runs', label: 'Runs', to: '/runs', icon: 'runs' },
     { id: 'stats', label: 'Stats', to: '/dashboard-stats', icon: 'stats' },
   ];
 
