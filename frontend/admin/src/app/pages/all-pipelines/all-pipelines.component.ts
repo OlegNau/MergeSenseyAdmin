@@ -1,75 +1,58 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
-type Pipeline = {
+type Status = 'Active'|'Inactive';
+type PipelineRow = {
   id: string;
   name: string;
-  project?: string;
-  status?: 'idle' | 'running' | 'failed' | 'success';
-  updatedAt?: string;
+  project: string;
+  status: Status;
+  trigger: string;
+  lastRun: string; // ISO
 };
 
 @Component({
   selector: 'app-all-pipelines',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './all-pipelines.component.html',
   styleUrls: ['./all-pipelines.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AllPipelinesComponent {
-  private readonly router = inject(Router);
+  search = '';
+  projectFilter: string = 'All';
+  moreOpen = false;
+  statusFilter = new Set<Status>(); // пусто = оба статуса
 
-  query = signal('');
-  status = signal<'all' | 'idle' | 'running' | 'failed' | 'success'>('all');
-  sort = signal<'updated' | 'name'>('updated');
+  projects = ['All','AI Review Platform','E-commerce Analytics','Mobile App Backend','Data Warehouse ETL'];
 
-  pipelines = signal<Pipeline[]>([
-    // TODO: mock data; replace with API
-    { id: '1', name: 'Build API', project: 'Alpha', status: 'running', updatedAt: '2024-06-01' },
-    { id: '2', name: 'Deploy Web', project: 'Beta', status: 'failed', updatedAt: '2024-05-30' },
-    { id: '3', name: 'Test Suite', project: 'Alpha', status: 'success', updatedAt: '2024-05-28' },
-    { id: '4', name: 'Analytics Data', project: 'Gamma', status: 'idle', updatedAt: '2024-05-27' },
-  ]);
-  // TODO: load pipelines from API
+  rows: PipelineRow[] = [
+    { id:'p-main',  name:'Main Pipeline (main branch)', project:'AI Review Platform', status:'Active',   trigger:'push to main',     lastRun:'2024-01-15T14:30:00Z' },
+    { id:'p-log',   name:'Log Analysis (staging)',      project:'AI Review Platform', status:'Inactive', trigger:'push to staging',  lastRun:'2024-01-14T11:00:00Z' },
+    { id:'p-perf',  name:'Performance Testing',         project:'AI Review Platform', status:'Active',   trigger:'manual',           lastRun:'2024-01-15T09:15:00Z' },
+    { id:'p-sales', name:'Daily Sales Report',          project:'E-commerce Analytics', status:'Active', trigger:'schedule daily',   lastRun:'2024-01-15T08:00:00Z' },
+    { id:'p-seg',   name:'Customer Segmentation',       project:'E-commerce Analytics', status:'Active', trigger:'data change',      lastRun:'2024-01-15T12:45:00Z' },
+    { id:'p-api',   name:'API Deployment',              project:'Mobile App Backend', status:'Active',   trigger:'push to production', lastRun:'2024-01-15T16:20:00Z' },
+    { id:'p-db',    name:'Database Migration',          project:'Mobile App Backend', status:'Inactive', trigger:'manual',           lastRun:'2024-01-13T14:30:00Z' },
+    { id:'p-push',  name:'Push Notification Service',   project:'Mobile App Backend', status:'Active',   trigger:'push to main',     lastRun:'2024-01-15T13:10:00Z' },
+    { id:'p-etl',   name:'Daily ETL Process',           project:'Data Warehouse ETL', status:'Active',   trigger:'schedule daily',   lastRun:'2024-01-15T02:00:00Z' },
+    { id:'p-clean', name:'Weekly Data Cleanup',         project:'Data Warehouse ETL', status:'Inactive', trigger:'schedule weekly',  lastRun:'2024-01-08T03:30:00Z' },
+  ];
 
-  filtered = computed(() => {
-    let list = this.pipelines();
-    const q = this.query().toLowerCase();
-    if (q) {
-      list = list.filter(p =>
-        p.name.toLowerCase().includes(q) || p.project?.toLowerCase().includes(q)
-      );
-    }
-    const status = this.status();
-    if (status !== 'all') {
-      list = list.filter(p => p.status === status);
-    }
-    const sort = this.sort();
-    return [...list].sort((a, b) => {
-      if (sort === 'name') {
-        return a.name.localeCompare(b.name);
-      }
-      return (b.updatedAt || '').localeCompare(a.updatedAt || '');
+  filtered(): PipelineRow[] {
+    const q = this.search.trim().toLowerCase();
+    return this.rows.filter(r => {
+      if (this.projectFilter !== 'All' && r.project !== this.projectFilter) return false;
+      if (this.statusFilter.size && !this.statusFilter.has(r.status)) return false;
+      if (!q) return true;
+      return r.name.toLowerCase().includes(q) || r.project.toLowerCase().includes(q);
     });
-  });
-
-  trackById = (_: number, p: Pipeline) => p.id;
-
-  runPipeline(id: string) {
-    // TODO: trigger run
-    console.log('run pipeline', id);
   }
 
-  openPipeline(id: string) {
-    this.router.navigate(['/pipeline-detail', id]);
+  toggleStatus(s: Status) {
+    this.statusFilter.has(s) ? this.statusFilter.delete(s) : this.statusFilter.add(s);
   }
-
-  openProject(projectNameOrId: string) {
-    this.router.navigate(['/project-detail', projectNameOrId]);
-  }
-
-  // TODO: i18n
 }

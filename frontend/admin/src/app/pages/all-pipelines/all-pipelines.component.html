@@ -1,110 +1,91 @@
-<div class="min-h-screen bg-gray-50">
-  <div class="max-w-6xl mx-auto p-4 sm:p-6">
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold page-title">All Pipelines</h1>
+<div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
+  <header class="pt-8">
+    <h1 class="text-3xl font-bold">All Pipelines</h1>
+    <p class="mt-1 text-sm text-gray-400">Monitor and manage all pipelines across projects</p>
+  </header>
+
+  <!-- Controls -->
+  <div class="mt-6 flex flex-col sm:flex-row sm:items-center gap-3">
+    <!-- Search -->
+    <div class="relative sm:w-96">
+      <svg class="pointer-events-none absolute left-3 top-2.5 w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input [(ngModel)]="search" placeholder="Search pipelines..."
+             class="h-9 w-full rounded-md border border-white/10 bg-white/5 pl-9 pr-3 text-sm placeholder:text-gray-400 text-gray-100 focus:outline-none focus:ring-2 focus:ring-white/20" />
     </div>
 
-    <div class="flex flex-col sm:flex-row gap-3 sm:items-center mb-4">
-      <div class="relative flex-1">
-        <input
-          [ngModel]="query()"
-          (ngModelChange)="query.set($event)"
-          type="text"
-          placeholder="Search pipelines..."
-          class="w-full border border-gray-200 rounded-md px-3 py-2 pl-9 bg-white"
-        />
-        <svg class="w-4 h-4 absolute left-3 top-2.5 text-gray-400" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28.79.79L20 20.5 21.5 19l-6-6z"
-            fill="currentColor"
-          />
-        </svg>
-      </div>
-
-      <select
-        [ngModel]="status()"
-        (ngModelChange)="status.set($event)"
-        class="border border-gray-200 rounded-md px-3 py-2 bg-white"
-      >
-        <option value="all">All statuses</option>
-        <option value="idle">Idle</option>
-        <option value="running">Running</option>
-        <option value="success">Success</option>
-        <option value="failed">Failed</option>
+    <div class="sm:ml-auto flex items-center gap-2">
+      <select [(ngModel)]="projectFilter"
+              class="h-9 rounded-md border border-white/10 bg-white/5 px-3 text-sm">
+        @for (p of projects; track p) { <option [value]="p">{{ p }}</option> }
       </select>
 
-      <select
-        [ngModel]="sort()"
-        (ngModelChange)="sort.set($event)"
-        class="border border-gray-200 rounded-md px-3 py-2 bg-white"
-      >
-        <option value="updated">Sort by: Updated</option>
-        <option value="name">Sort by: Name</option>
-      </select>
-    </div>
-
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gray-50">
-          <tr>
-            <th class="text-left py-3 px-6 font-medium text-gray-600">Name</th>
-            <th class="text-left py-3 px-6 font-medium text-gray-600">Project</th>
-            <th class="text-left py-3 px-6 font-medium text-gray-600">Status</th>
-            <th class="text-left py-3 px-6 font-medium text-gray-600">Updated</th>
-            <th class="text-right py-3 px-6 font-medium text-gray-600">Actions</th>
-          </tr>
-          </thead>
-          <tbody>
-            @if (filtered().length) {
-              @for (p of filtered(); track p.id) {
-                <tr class="border-t border-gray-100 hover:bg-gray-50">
-                  <td class="py-3 px-6 text-gray-900">
-                    <button class="text-blue-600 hover:underline" (click)="openPipeline(p.id)">{{ p.name }}</button>
-                  </td>
-                  <td class="py-3 px-6 text-gray-700">
-                    @if (p.project) {
-                      <button class="text-blue-600 hover:underline" (click)="openProject(p.project!)">{{ p.project }}</button>
-                    } @else {
-                      <span class="text-gray-400">—</span>
-                    }
-                  </td>
-                  <td class="py-3 px-6">
-                    @if (p.status === 'running') {
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Running</span>
-                    }
-                    @if (p.status === 'success') {
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">Success</span>
-                    }
-                    @if (p.status === 'failed') {
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-700">Failed</span>
-                    }
-                    @if (p.status === 'idle' || !p.status) {
-                      <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Idle</span>
-                    }
-                  </td>
-                  <td class="py-3 px-6 text-gray-600">{{ p.updatedAt || '—' }}</td>
-                  <td class="py-3 px-6 text-right">
-                    <button
-                      (click)="runPipeline(p.id)"
-                      class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border border-gray-200 hover:bg-white"
-                    >
-                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                        <path d="M8 5v14l11-7-11-7z" fill="currentColor" />
-                      </svg>
-                      <span>Run</span>
-                    </button>
-                  </td>
-                </tr>
-              }
-            } @else {
-              <tr class="border-t border-gray-100">
-                <td colspan="5" class="py-6 px-6 text-sm text-gray-500">No pipelines found.</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+      <button (click)="moreOpen=!moreOpen"
+              class="h-9 rounded-md border border-white/10 bg-white/5 px-3 text-sm inline-flex items-center gap-2 hover:bg-white/10">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        More Filters
+      </button>
     </div>
   </div>
+
+  <!-- More filters -->
+  @if (moreOpen) {
+    <div class="mt-3 flex flex-wrap items-center gap-2">
+      <span class="text-xs text-gray-400 mr-1">Status:</span>
+      <button (click)="toggleStatus('Active')"
+              class="rounded-full px-2 py-1 text-[11px] border"
+              [ngClass]="statusFilter.has('Active') ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' : 'bg-white/5 text-gray-300 border-white/10'">
+        Active
+      </button>
+      <button (click)="toggleStatus('Inactive')"
+              class="rounded-full px-2 py-1 text-[11px] border"
+              [ngClass]="statusFilter.has('Inactive') ? 'bg-rose-500/20 text-rose-300 border-rose-400/30' : 'bg-white/5 text-gray-300 border-white/10'">
+        Inactive
+      </button>
+    </div>
+  }
+
+  <!-- Table card -->
+  <div class="mt-6 rounded-xl border border-white/10 bg-white/[0.03] overflow-x-auto"
+       style="box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset">
+    <table class="min-w-full table-auto">
+      <thead class="text-left">
+        <tr class="text-xs uppercase tracking-wide text-gray-400">
+          <th class="px-4 py-3 w-8"></th>
+          <th class="px-4 py-3">Pipeline</th>
+          <th class="px-4 py-3">Project</th>
+          <th class="px-4 py-3">Status</th>
+          <th class="px-4 py-3">Trigger</th>
+          <th class="px-4 py-3 whitespace-nowrap">Last Run</th>
+          <th class="px-4 py-3">Actions</th>
+        </tr>
+        <tr><td colspan="7" class="border-b border-white/10"></td></tr>
+      </thead>
+      <tbody>
+        @for (r of filtered(); track r.id) {
+          <tr class="border-t border-white/10 hover:bg-white/[0.04]">
+            <td class="px-4 py-3">
+              <svg class="w-3.5 h-3.5 text-gray-300" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </td>
+            <td class="px-4 py-3 text-sm font-medium text-gray-200">
+              {{ r.name }}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-300">{{ r.project }}</td>
+            <td class="px-4 py-3">
+              <span class="rounded-full px-2 py-0.5 text-[11px]"
+                    [ngClass]="r.status==='Active' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'">
+                {{ r.status }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-300 whitespace-nowrap">{{ r.trigger }}</td>
+            <td class="px-4 py-3 text-sm text-gray-300 whitespace-nowrap">{{ r.lastRun | date:'MM/dd/yyyy, hh:mm a' }}</td>
+            <td class="px-4 py-3 text-sm">
+              <a [routerLink]="['/pipelines', r.id]" class="text-blue-400 hover:underline">View Details</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="h-10"></div>
 </div>
