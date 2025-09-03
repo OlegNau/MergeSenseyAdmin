@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
@@ -14,13 +14,12 @@ type Tab = 'company'|'team'|'security'|'notifications'|'language';
 })
 export class SettingsComponent {
   active: Tab = 'company';
+  private readonly fb = inject(FormBuilder);
   readonly form = this.fb.group({
     companyName: ['Acme Corporation', [Validators.required]],
     website: ['https://acme.com', [Validators.required, Validators.pattern(/^https?:\/\/.+$/)]],
     description: ['Leading technology company focused on innovative solutions.'],
   });
-
-  constructor(private fb: FormBuilder) {}
   setTab(t: Tab){ this.active = t; }
   is(t: Tab){ return this.active === t; }
   submit(){

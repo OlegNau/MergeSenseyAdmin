@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
 interface Project {
   id: string;
@@ -22,8 +22,6 @@ interface Project {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectsComponent {
-  private readonly router = inject(Router);
-
   readonly projects = signal<Project[]>([
     {
       id: '1',
@@ -67,7 +65,4 @@ export class ProjectsComponent {
     },
   ]);
 
-  createProject() {
-    this.router.navigate(['/create-project']);
-  }
 }
