@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { AppHeaderComponent } from './header/header.component';
 
 type NavItem = { id:string; label:string; to:string; icon:'home'|'folder'|'activity'|'settings'|'help'|'stats'|'runs' };
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NgOptimizedImage],
+  imports: [CommonModule, RouterModule, NgOptimizedImage, AppHeaderComponent],
   templateUrl: './app-layout.component.html',
   styleUrls: ['./app-layout.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

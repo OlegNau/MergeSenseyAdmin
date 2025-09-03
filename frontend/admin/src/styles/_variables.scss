@@ -1,18 +1,21 @@
-$gray-color: #9da1aa;
+$bg-page:        #0f1114;   // фон страницы
+$surface-1:      #16191d;   // тёмная поверхность (дропдауны/меню)
+$border-color:   #1f2329;   // тонкие границы
+$card-bg-30:     rgba(17, 19, 21, .30); // sidebar фон с blur
+$card-bg-50:     rgba(17, 19, 21, .50); // header фон с blur
+$text-main-color: #e5e7eb;
+$muted-text-color: #9da1aa;
+$accent-yellow:  #ffe100;   // если используется в брендинге
+
+// Legacy tokens
+$page-bg: $bg-page;
+$surface-bg: $surface-1;
+$gray-color: $muted-text-color;
 $dark-gray-color: #6d7179;
-$yellow-color: #ffe100;
-
-$border-color: #e5e7eb;   // instead of border-border
-$card-bg: #ffffff;        // base "card"
-$card-bg-30: rgba(255,255,255,.30); // bg-card/30
-$card-bg-50: rgba(255,255,255,.50); // bg-card/50
-
-$text-main-color: #111827;  // gray-900
-$muted-text-color: #6b7280; // gray-600
-$danger-color: #ef4444;     // red-500
-$primary-color: #2563eb;    // blue-600
-$success-color: #16a34a;    // green-600
-$surface-bg: #ffffff;
-$page-bg: #f9fafb;          // gray-50
+$yellow-color: $accent-yellow;
+$danger-color: #ef4444;
+$primary-color: #2563eb;
+$success-color: #16a34a;
 $radius-md: 0.75rem;        // 12px
 $shadow-md: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+
