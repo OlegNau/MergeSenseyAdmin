@@ -1,65 +1,51 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+
+type Stat = {
+  id: string;
+  title: string;
+  value: string | number;
+  deltaText: string;        // "+12% from last month"
+  deltaDir: 'up'|'down';    // влияет на цвет
+  icon: 'trend'|'activity'|'code'|'bug'|'team'|'time';
+};
+type Activity = {
+  id: string; title: string; project: string; status: 'Active'|'Inactive';
+};
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent {
-  private readonly router = inject(Router);
+  stats: Stat[] = [
+    { id:'total',    title:'Total Projects',  value:4,   deltaText:'+12% from last month', deltaDir:'up',   icon:'trend' },
+    { id:'pipelines',title:'Active Pipelines',value:7,   deltaText:'+8% from last month',  deltaDir:'up',   icon:'activity' },
+    { id:'loc',      title:'Lines of Code',   value:'2.4M', deltaText:'+15% from last month', deltaDir:'up', icon:'code' },
+    { id:'bugs',     title:'Bugs Solved',     value:142, deltaText:'-5% from last month',  deltaDir:'down', icon:'bug' },
+    { id:'team',     title:'Team Members',    value:24,  deltaText:'+2 from last month',   deltaDir:'up',   icon:'team' },
+    { id:'runtime',  title:'Avg Runtime',     value:'3.2m', deltaText:'-12% from last month', deltaDir:'down', icon:'time' },
+  ];
 
-  summary = signal([
-    { label: 'Projects', value: 0 },
-    { label: 'Pipelines', value: 0 },
-    { label: 'Runs', value: 0 },
-    { label: 'Failures', value: 0 },
-  ]);
+  activities: Activity[] = [
+    { id:'a1', title:'Main Pipeline (main branch)', project:'AI Review Platform', status:'Active' },
+    { id:'a2', title:'Log Analysis (staging)',      project:'AI Review Platform', status:'Inactive' },
+    { id:'a3', title:'Daily Sales Report',          project:'E-commerce Analytics', status:'Active' },
+    { id:'a4', title:'Customer Segmentation',       project:'E-commerce Analytics', status:'Active' },
+    { id:'a5', title:'API Deployment',              project:'Mobile App Backend', status:'Active' },
+    { id:'a6', title:'Database Migration',          project:'Mobile App Backend', status:'Inactive' },
+  ];
 
-  quick = signal([
-    { id: 'new-project', label: 'New Project', icon: 'plus', to: '/create-project' },
-    { id: 'pipelines', label: 'Pipelines', icon: 'pipeline', to: '/all-pipelines' },
-  ]);
-
-  recentRuns = signal<
-    { id: string; pipeline: string; status: 'success' | 'failed' | 'running'; when: string }[]
-  >([]);
-  recentProjects = signal<
-    { id: string; name: string; updatedAt?: string }[]
-  >([]);
-
-  query = signal('');
-  filteredRuns = computed(() => {
-    const q = this.query().toLowerCase();
-    return this.recentRuns().filter(r =>
-      !q || r.id.includes(q) || r.pipeline.toLowerCase().includes(q)
-    );
-  });
-
-  go(to: string) {
-    this.router.navigateByUrl(to);
-  }
-
-  openProject(id: string) {
-    this.router.navigate(['project-detail', id]);
-  }
-
-  openRun(id: string) {
-    // TODO: /runs/:id
-    this.router.navigate(['/runs', id]);
-  }
-
-  // TODO: load data from API
-  // TODO: i18n
+  performance = {
+    successRate: 94.2,   // %
+    avgDuration: 72,     // % длины полосы (визуальная метрика)
+    queueTime: 35,       // %
+    avgDurationText: '3.2 minutes',
+    queueTimeText: '12 seconds',
+  };
 }
