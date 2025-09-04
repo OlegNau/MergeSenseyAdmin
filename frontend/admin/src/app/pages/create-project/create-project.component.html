@@ -1,44 +1,43 @@
 <div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
   <div class="pt-8 flex items-center justify-between mb-6">
     <h1 class="text-2xl font-bold page-title">Create Project</h1>
-    <button type="button" (click)="cancel()" class="text-sm text-gray-600 hover:text-gray-900">Cancel</button>
+    <button type="button" (click)="cancel()" class="text-sm text-gray-300 hover:text-white">Cancel</button>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6 rounded-xl border border-white/10 bg-white/[0.03] p-6" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
       <!-- Name -->
       <div>
-        <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+        <label for="name" class="text-sm text-gray-300">Name</label>
         <input
           id="name"
           type="text"
           formControlName="name"
-          class="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+          class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
           placeholder="my-project"
         />
         @if (form.get('name')?.touched && form.get('name')?.invalid) {
-          <p class="mt-1 text-xs text-red-600">Name is required.</p>
+          <p class="mt-1 text-xs text-red-400">Name is required.</p>
         }
       </div>
 
       <!-- Description -->
       <div>
-        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+        <label for="description" class="text-sm text-gray-300">Description</label>
         <textarea
           id="description"
-          rows="3"
           formControlName="description"
-          class="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+          class="mt-1 w-full min-h-[120px] rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
         ></textarea>
       </div>
 
       <!-- Repository / Git URL -->
       <div>
-        <label for="repo" class="block text-sm font-medium text-gray-700">Repository (Git URL)</label>
+        <label for="repo" class="text-sm text-gray-300">Repository (Git URL)</label>
         <input
           id="repo"
           type="text"
           formControlName="repository"
-          class="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+          class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
           placeholder="https://github.com/org/repo.git"
         />
       </div>
@@ -46,21 +45,21 @@
       <!-- Default Branch & Visibility -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label for="branch" class="block text-sm font-medium text-gray-700">Default branch</label>
+          <label for="branch" class="text-sm text-gray-300">Default branch</label>
           <input
             id="branch"
             type="text"
             formControlName="defaultBranch"
-            class="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white"
+            class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
             placeholder="main"
           />
         </div>
         <div>
-          <label for="visibility" class="block text-sm font-medium text-gray-700">Visibility</label>
+          <label for="visibility" class="text-sm text-gray-300">Visibility</label>
           <select
             id="visibility"
             formControlName="visibility"
-            class="mt-1 w-full border border-white/10 rounded-md px-3 py-2 bg-white/5 text-gray-100"
+            class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-white/20"
           >
             <option value="private">Private</option>
             <option value="public">Public</option>
@@ -69,18 +68,18 @@
       </div>
 
       <!-- Footer -->
-      <div class="flex items-center justify-end gap-3">
+      <div class="flex items-center justify-end gap-3 pt-4">
         <button
           type="button"
           (click)="cancel()"
-          class="px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50"
+          class="h-10 px-4 rounded-md border border-white/10 bg-white/5 text-sm text-gray-100"
         >
           Cancel
         </button>
         <button
           type="submit"
           [disabled]="form.invalid || form.pending"
-          class="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+          class="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium disabled:opacity-60"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
             <path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />

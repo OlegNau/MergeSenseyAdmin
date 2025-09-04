@@ -9,12 +9,15 @@
   </div>
 
     <div class="mt-6 flex items-center justify-end">
-      <a
-        [routerLink]="[{ outlets: { modal: ['projects', project.id, 'pipelines', 'new'] } }]"
+      <button
+        type="button"
+        (click)="openCreatePipelineModal(project.id)"
         class="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-blue-600/90 hover:bg-blue-600 text-white text-sm font-medium">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
         Create Pipeline
-      </a>
+      </button>
     </div>
 
   <section class="mt-3 rounded-xl border border-white/10 bg-white/[0.03]" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
