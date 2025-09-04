@@ -15,12 +15,12 @@ type PipelineRow = { id: string; name: string; status: Status; lastRun: string }
 })
 export class ProjectDetailComponent {
   private route = inject(ActivatedRoute);
-  readonly id = this.route.snapshot.paramMap.get('id') ?? 'unknown';
+  readonly idFromRoute = this.route.snapshot.paramMap.get('id') ?? '';
 
   // мок-данные (замени на сервис)
   readonly project = {
-    id: this.id,
-    name: this.id === 'ai-review' ? 'AI Review Platform' : 'Project ' + this.id,
+    id: this.idFromRoute,
+    name: this.idFromRoute === 'ai-review' ? 'AI Review Platform' : 'Project ' + this.idFromRoute,
     description:
       'Core company product for automated code reviews with machine learning capabilities',
     pipelines: <PipelineRow[]>[

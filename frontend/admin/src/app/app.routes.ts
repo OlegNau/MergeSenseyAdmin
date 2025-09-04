@@ -79,7 +79,7 @@ export const routes: Routes = [
           ),
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-      { path: '**', redirectTo: '404' }, // catch-all
+      { path: '**', redirectTo: '404' },
     ],
   },
 ];
