@@ -1,61 +1,120 @@
-<div class="fixed inset-0 z-40" style="background:rgba(0,0,0,.65)"></div>
+<!-- Backdrop -->
+<div class="fixed inset-0 z-40" (click)="close()" style="background:rgba(0,0,0,.65)"></div>
+
+<!-- Modal -->
 <div class="fixed inset-0 z-50 grid place-items-center p-4">
   <div class="w-full max-w-3xl rounded-xl border border-white/10 bg-[#0f1114] text-gray-100"
        style="box-shadow:0 0 0 1px rgba(255,255,255,.04) inset">
-    <!-- header + stepper ... -->
+    <!-- Header -->
+    <div class="flex items-start justify-between p-6 pb-4">
+      <div>
+        <h2 class="text-lg font-semibold">Create Pipeline for <span class="text-white">Project {{ projectId }}</span></h2>
+        <!-- Stepper -->
+        <div class="mt-4 flex items-center gap-6">
+          @for (n of [1,2,3,4]; track n) {
+            <div class="flex items-center gap-3">
+              <div class="h-9 w-9 grid place-items-center rounded-full"
+                   [class.bg-blue-600]="step>=n"
+                   [class.bg-white/10]="step<n">
+                <span class="text-sm font-medium">{{ n }}</span>
+              </div>
+              @if (n<4) { <div class="w-12 h-0.5 bg-white/20"></div> }
+            </div>
+          }
+        </div>
+      </div>
+      <button (click)="close()" aria-label="Close"
+              class="h-8 w-8 grid place-items-center rounded-md hover:bg-white/5">✕</button>
+    </div>
 
-    <form class="p-6 space-y-6" [formGroup]="form" (ngSubmit)="submit()">
+    <form class="p-6 pt-2 space-y-6" [formGroup]="form" (ngSubmit)="submit()">
+      <!-- STEP 1 -->
+      @if (step === 1) {
+        <section>
+          <h3 class="text-base font-semibold">Step 1: Pipeline Name</h3>
+          <p class="mt-1 text-sm text-gray-400">Enter a descriptive name for your new pipeline</p>
+          <div class="mt-4">
+            <label class="text-sm text-gray-300">Pipeline Name</label>
+            <input formControlName="name"
+                   class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
+                   placeholder="e.g., Main Code Review Pipeline"/>
+          </div>
+        </section>
+      }
 
-      <!-- Шаг 1: name ... -->
-
-      <!-- Шаг 2: trigger + schedule -->
+      <!-- STEP 2 -->
       @if (step === 2) {
-        <div class="space-y-4">
-          <!-- радио триггеры ... -->
+        <section class="space-y-4">
+          <h3 class="text-base font-semibold">Step 2: Triggers</h3>
+          <div class="flex flex-wrap gap-2">
+            <label class="rounded-md border border-white/10 px-3 py-2 text-sm cursor-pointer"
+                   [class.bg-white/10]="trigger==='manual'">
+              <input class="sr-only" type="radio" formControlName="trigger" value="manual"> Manual
+            </label>
+            <label class="rounded-md border border-white/10 px-3 py-2 text-sm cursor-pointer"
+                   [class.bg-white/10]="trigger==='push'">
+              <input class="sr-only" type="radio" formControlName="trigger" value="push"> Push
+            </label>
+            <label class="rounded-md border border-white/10 px-3 py-2 text-sm cursor-pointer"
+                   [class.bg-white/10]="trigger==='schedule'">
+              <input class="sr-only" type="radio" formControlName="trigger" value="schedule"> Schedule
+            </label>
+          </div>
+
           @if (trigger === 'push') {
             <div>
               <label class="text-sm text-gray-300">Branch</label>
-              <input formControlName="branch" class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm" />
+              <input formControlName="branch"
+                     class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm"/>
             </div>
           }
+
           @if (trigger === 'schedule') {
             <div formGroupName="schedule" class="grid gap-3 md:grid-cols-2">
               <div>
                 <label class="text-sm text-gray-300">Schedule Type</label>
-                <select formControlName="type" class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm">
+                <select formControlName="type"
+                        class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm">
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
                   <option value="cron">Cron</option>
                 </select>
               </div>
               <div>
-                <label class="text-sm text-gray-300">Cron (если Cron)</label>
-                <input formControlName="cron" class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm" placeholder="0 2 * * *" />
+                <label class="text-sm text-gray-300">Cron (if Cron)</label>
+                <input formControlName="cron"
+                       class="mt-1 w-full h-11 rounded-md border border-white/10 bg-white/5 px-3 text-sm"
+                       placeholder="0 2 * * *"/>
               </div>
             </div>
           }
-        </div>
+        </section>
       }
 
-      <!-- Шаг 3: агенты -->
+      <!-- STEP 3 -->
       @if (step === 3) {
-        <div formArrayName="agents" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          @for (ctrl of agentsArray.controls; track $index; let i = $index) {
-            <label class="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 cursor-pointer">
-              <input type="checkbox" [formControl]="ctrl" class="h-4 w-4 rounded border-white/20 bg-black/30" />
-              <span>{{ agentDefs[i].label }}</span>
-            </label>
-          }
-        </div>
-        <div class="mt-3">
-          <label class="text-sm text-gray-300">Notes / Rules (optional)</label>
-          <textarea formControlName="notes" class="mt-1 w-full min-h-[100px] rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"></textarea>
-        </div>
+        <section>
+          <h3 class="text-base font-semibold">Step 3: AI Agents & Rules</h3>
+          <div formArrayName="agents" class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            @for (ctrl of agentsArray.controls; track $index; let i = $index) {
+              <label class="flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10 cursor-pointer">
+                <input type="checkbox" [formControl]="ctrl" class="h-4 w-4 rounded border-white/20 bg-black/30" />
+                <span>{{ agentDefs[i].label }}</span>
+              </label>
+            }
+          </div>
+          <div class="mt-3">
+            <label class="text-sm text-gray-300">Notes / Rules (optional)</label>
+            <textarea formControlName="notes"
+                      class="mt-1 w-full min-h-[100px] rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm"></textarea>
+          </div>
+        </section>
       }
 
-      <!-- Шаг 4: Summary -->
+      <!-- STEP 4 -->
       @if (step === 4) {
-        <div class="space-y-3 text-sm">
+        <section class="text-sm space-y-3">
+          <h3 class="text-base font-semibold">Step 4: Summary</h3>
           <div><span class="text-gray-400">Name:</span> <span class="text-white">{{ form.value.name }}</span></div>
           <div><span class="text-gray-400">Trigger:</span> <span class="text-white">{{ form.value.trigger }}</span></div>
           @if (form.value.trigger === 'push') {
@@ -66,7 +125,7 @@
               <span class="text-gray-400">Schedule:</span>
               <span class="text-white">{{ form.value.schedule?.type }}</span>
               @if (form.value.schedule?.type === 'cron') {
-                <span class="text-gray-400"> — Cron: </span>
+                <span class="text-gray-400"> — Cron:</span>
                 <span class="text-white">{{ form.value.schedule?.cron }}</span>
               }
             </div>
@@ -79,11 +138,11 @@
               }
             </span>
           </div>
-        </div>
+        </section>
       }
 
-      <!-- footer -->
-      <div class="flex items-center justify-between pt-4">
+      <!-- Footer -->
+      <div class="flex items-center justify-between pt-2">
         <button type="button" (click)="close()" class="h-10 px-3 rounded-md border border-white/10 bg-white/5 text-sm">Cancel</button>
         <div class="flex items-center gap-2">
           <button type="button" (click)="prev()" class="h-10 px-3 rounded-md border border-white/10 bg-white/5 text-sm" [disabled]="step===1">Previous</button>
@@ -94,3 +153,4 @@
     </form>
   </div>
 </div>
+
