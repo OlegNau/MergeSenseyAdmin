@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormArray, FormControl } from '@angular/forms';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
@@ -43,15 +43,27 @@ export class PipelineCreateModalComponent {
   get agentsArray(): FormArray<FormControl<boolean>> { return this.form.controls.agents; }
   get trigger(): Trigger { return this.form.controls.trigger.value; }
 
-  constructor() { this.agentDefs.forEach(() => this.agentsArray.push(this.fb.nonNullable.control(false))); }
+  constructor() {
+    this.agentDefs.forEach(() => this.agentsArray.push(this.fb.nonNullable.control(false)));
+  }
+
+  @HostListener('document:keydown.escape') onEsc() { this.close(); }
 
   close() { this.router.navigate([{ outlets: { modal: null } }]); }
-  prev() { this.step = Math.max(1, this.step - 1); }
+  prev()  { this.step = Math.max(1, this.step - 1); }
   next() {
-    if (this.step === 1 && this.form.controls.name.invalid) { this.form.controls.name.markAsTouched(); return; }
-    if (this.step === 2 && this.trigger === 'schedule'
-        && this.form.controls.schedule.controls.type.value === 'cron'
-        && !this.form.controls.schedule.controls.cron.value) { return; }
+    if (this.step === 1 && this.form.controls.name.invalid) {
+      this.form.controls.name.markAsTouched();
+      return;
+    }
+    if (
+      this.step === 2 &&
+      this.trigger === 'schedule' &&
+      this.form.controls.schedule.controls.type.value === 'cron' &&
+      !this.form.controls.schedule.controls.cron.value
+    ) {
+      return;
+    }
     this.step = Math.min(4, this.step + 1);
   }
   submit() {
