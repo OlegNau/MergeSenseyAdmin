@@ -51,7 +51,7 @@
           <div class="mt-5 flex items-center justify-between text-sm">
             <span>
               Active pipelines:
-              <a class="text-blue-400 hover:underline" routerLink="/all-pipelines">{{ p.active }}</a>
+              <a class="text-blue-400 hover:underline" [routerLink]="'/all-pipelines'">{{ p.active }}</a>
             </span>
             <span class="text-gray-400">{{ p.total }} total</span>
           </div>
