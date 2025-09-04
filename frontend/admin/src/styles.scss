@@ -1,18 +1,11 @@
-@use 'styles/variables' as *;
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body { height: 100%; }
-body {
-  background-color: $bg-page;
-  color: $text-main-color;
-}
+@use 'styles/variables' as *;
 
-/* полупрозрачные поверхности и бордеры как в React */
+html, body { height: 100%; }
+body { background-color: $bg-page; color: $text-main-color; }
 .app-header  { border-color: $border-color; background-color: $card-bg-50; }
 .app-sidebar { border-color: $border-color; background-color: $card-bg-30; }
-
-/* защита от растягивания иконок, если вдруг есть глобальные правила */
 svg { max-width: none; max-height: none; }
