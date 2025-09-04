@@ -8,21 +8,18 @@ using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using AICodeReview.EntityFrameworkCore.Configurations;
 
 namespace AICodeReview.EntityFrameworkCore;
 
 public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigrationsDbContext>
 {
-    public AICodeReviewMigrationsDbContext(DbContextOptions<AICodeReviewMigrationsDbContext> options)
-        : base(options)
-    {
-    }
+    public AICodeReviewMigrationsDbContext(DbContextOptions<AICodeReviewMigrationsDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        // Таблицы модулей ABP
         builder.ConfigurePermissionManagement();
         builder.ConfigureSettingManagement();
         builder.ConfigureBackgroundJobs();
@@ -32,6 +29,17 @@ public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigratio
         builder.ConfigureFeatureManagement();
         builder.ConfigureTenantManagement();
 
-        // Никаких вызовов ConfigureAICodeReview здесь не нужно.
+        builder.ApplyConfiguration(new AiModelConfiguration());
+        builder.ApplyConfiguration(new ProjectConfiguration());
+        builder.ApplyConfiguration(new RepositoryConfiguration());
+        builder.ApplyConfiguration(new BranchConfiguration());
+        builder.ApplyConfiguration(new TriggerTypeConfiguration());
+        builder.ApplyConfiguration(new TriggerConfiguration());
+        builder.ApplyConfiguration(new PipelineConfiguration());
+        builder.ApplyConfiguration(new NodeTypeConfiguration());
+        builder.ApplyConfiguration(new NodeConfiguration());
+        builder.ApplyConfiguration(new PipelineNodeConfiguration());
+        builder.ApplyConfiguration(new GroupConfiguration());
+        builder.ApplyConfiguration(new GroupProjectConfiguration());
     }
 }
