@@ -30,14 +30,14 @@ export class AppLayoutComponent {
     this.sidebarOpen = !this.sidebarOpen;
   }
 
-  public nav: NavItem[] = [
+  readonly nav: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },
     { id: 'projects', label: 'Projects', to: '/projects', icon: 'projects' },
     { id: 'pipelines', label: 'Pipelines', to: '/all-pipelines', icon: 'pipelines' },
     { id: 'stats', label: 'Stats', to: '/dashboard-stats', icon: 'stats' },
   ];
 
-  public secondary: NavItem[] = [
+  readonly secondary: NavItem[] = [
     { id: 'settings', label: 'Settings', to: '/settings', icon: 'settings' },
     { id: 'help', label: 'Help', to: '/help', icon: 'help' },
   ];

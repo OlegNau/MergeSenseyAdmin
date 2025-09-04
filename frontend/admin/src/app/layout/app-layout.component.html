@@ -88,9 +88,7 @@
     <app-header (menuToggle)="toggleSidebar()"></app-header>
     <main class="p-4 sm:p-6">
       <router-outlet></router-outlet>
+      <router-outlet name="modal"></router-outlet>
     </main>
   </div>
-
-  <!-- Modal outlet for dialogs such as Create Pipeline -->
-  <router-outlet name="modal"></router-outlet>
 </div>
