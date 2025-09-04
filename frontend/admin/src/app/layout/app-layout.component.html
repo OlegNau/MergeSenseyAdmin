@@ -88,6 +88,7 @@
     <app-header (menuToggle)="toggleSidebar()"></app-header>
     <main class="p-4 sm:p-6">
       <router-outlet></router-outlet>
+      <!-- Named outlet for modal dialogs -->
       <router-outlet name="modal"></router-outlet>
     </main>
   </div>

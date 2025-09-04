@@ -30,6 +30,7 @@ export const routes: Routes = [
             m => m.CreateProjectComponent,
           ),
       },
+      // Modal via named outlet (must stay between /projects/new and /projects/:id)
       {
         path: 'projects/:projectId/pipelines/new',
         outlet: 'modal',
