@@ -1,106 +1,121 @@
-<div class="w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-    <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-      <h1 class="text-2xl font-bold" style="color:$text-main-color;">Dashboard · Stats</h1>
-      <div class="flex items-center gap-2">
-        <!-- Presets -->
-        <div class="inline-flex rounded-full bg-gray-100 p-1">
-          @for (opt of presetRanges; track opt) {
-            <button class="px-3 py-1.5 text-sm rounded-full"
-                    [ngClass]="range()===opt ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900'"
-                    (click)="setRange(opt)">
-              {{ opt }}
-            </button>
-          }
-          <button class="px-3 py-1.5 text-sm rounded-full"
-                  [ngClass]="range()==='custom' ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900'"
-                  (click)="setRange('custom')">Custom</button>
-        </div>
-        <!-- Custom dates -->
-        @if (range()==='custom') {
-          <div class="flex items-center gap-2">
-            <input type="date" class="border border-gray-200 rounded-md px-2 py-1 bg-white" [ngModel]="from()" (ngModelChange)="from.set($event)" />
-            <span class="text-gray-400">—</span>
-            <input type="date" class="border border-gray-200 rounded-md px-2 py-1 bg-white" [ngModel]="to()" (ngModelChange)="to.set($event)" />
-          </div>
-        }
+<div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
+  <header class="pt-8">
+    <h1 class="text-3xl font-bold">Dashboard Stats</h1>
+    <p class="mt-1 text-sm text-gray-400">Агрегированная аналитика по проектам и пайплайнам</p>
+  </header>
+
+  <!-- Filters -->
+  <div class="mt-6 flex flex-col lg:flex-row lg:items-center gap-3">
+    <div class="flex gap-3 flex-1">
+      <div class="flex-1">
+        <label class="text-xs text-gray-400">Project</label>
+        <select [(ngModel)]="projectId"
+          class="mt-1 w-full h-10 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100">
+          <option value="all">All projects</option>
+          @for (p of projects; track p.id) { <option [value]="p.id">{{ p.name }}</option> }
+        </select>
+      </div>
+      <div class="flex-1">
+        <label class="text-xs text-gray-400">Pipeline</label>
+        <select [(ngModel)]="pipelineId"
+          class="mt-1 w-full h-10 rounded-md border border-white/10 bg-white/5 px-3 text-sm text-gray-100">
+          @for (pl of pipelinesForSelected(); track pl.id) { <option [value]="pl.id">{{ pl.name }}</option> }
+        </select>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      @for (k of kpis(); track k.id) {
-        <div class="bg-white rounded-xl shadow-md p-5">
-          <div class="text-sm" style="color:$muted-text-color;">{{ k.label }}</div>
-          <div class="mt-1 text-2xl font-semibold text-gray-900">{{ k.value }}</div>
-          <div class="mt-1 text-xs"
-               [ngClass]="k.delta >= 0 ? 'text-green-600' : 'text-red-600'">
-            @if (k.delta >= 0) { ▲ } @else { ▼ } {{ k.delta | number:'1.0-0' }}%
-            vs prev period
+    <div class="flex gap-2">
+      <button (click)="period.set('7d')"  class="h-10 px-3 rounded-md border border-white/10 text-sm"
+              [class.bg-white/10]="period()==='7d'">7d</button>
+      <button (click)="period.set('30d')" class="h-10 px-3 rounded-md border border-white/10 text-sm"
+              [class.bg-white/10]="period()==='30d'">30d</button>
+      <button (click)="period.set('90d')" class="h-10 px-3 rounded-md border border-white/10 text-sm"
+              [class.bg-white/10]="period()==='90d'">90d</button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <section class="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <article class="rounded-xl border border-white/10 bg-white/[0.03] p-4" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <div class="text-xs text-gray-400">Success rate</div>
+      <div class="mt-1 text-2xl font-semibold">{{ totals().rate }}%</div>
+      <div class="mt-2 h-1.5 rounded bg-white/10">
+        <div class="h-1.5 rounded bg-emerald-500" [style.width.%]="totals().rate"></div>
+      </div>
+    </article>
+
+    <article class="rounded-xl border border-white/10 bg-white/[0.03] p-4" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <div class="text-xs text-gray-400">Avg duration</div>
+      <div class="mt-1 text-2xl font-semibold">
+        {{ (totals().avg/60) | number:'1.0-0' }}m {{ (totals().avg%60) | number:'1.0-0' }}s
+      </div>
+      <div class="mt-2">
+        <svg viewBox="0 0 100 32" class="w-full h-16">
+          <path [attr.d]="sparklinePath()" fill="none" stroke="currentColor" stroke-width="1.5" class="text-blue-400"></path>
+        </svg>
+      </div>
+    </article>
+
+    <article class="rounded-xl border border-white/10 bg-white/[0.03] p-4" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <div class="text-xs text-gray-400">Total runs</div>
+      <div class="mt-1 text-2xl font-semibold">{{ totals().runs }}</div>
+      <div class="mt-2 text-xs text-gray-400">Period: {{ period() }}</div>
+    </article>
+
+    <article class="rounded-xl border border-white/10 bg-white/[0.03] p-4" style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <div class="text-xs text-gray-400">Successful</div>
+      <div class="mt-1 text-2xl font-semibold text-emerald-300">{{ totals().ok }}</div>
+      <div class="mt-2 text-xs text-gray-400">of {{ totals().runs }} total</div>
+    </article>
+  </section>
+
+  <!-- Charts -->
+  <section class="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-6 pb-12">
+    <!-- Success vs Fail (stacked bars) -->
+    <article class="xl:col-span-2 rounded-xl border border-white/10 bg-white/[0.03] p-5"
+             style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <header class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold">Success vs Fail (last {{ period() }})</h2>
+        <div class="text-xs text-gray-400">Daily breakdown</div>
+      </header>
+      <div class="h-40 w-full grid items-end gap-1"
+           [style.gridTemplateColumns]="'repeat(' + days().length + ', minmax(0,1fr))'">
+        @for (d of days(); track d.date) {
+          <!-- столбец -->
+          <div class="grid" style="grid-template-rows: 1fr auto">
+            <div class="flex flex-col justify-end h-32">
+              <!-- scale по максимальному дневному total -->
+              <div class="flex flex-col justify-end h-full">
+                <div class="bg-emerald-500/70" [style.height.%]="(d.success/(d.success+d.failed))*100"></div>
+                <div class="bg-rose-500/70"    [style.height.%]="(d.failed /(d.success+d.failed))*100"></div>
+              </div>
+            </div>
+            <div class="mt-1 text-[10px] text-gray-400 text-center">{{ d.date | date:'MM/dd' }}</div>
           </div>
-        </div>
-      }
-    </div>
+        }
+      </div>
+    </article>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Runs over time -->
-      <section class="bg-white border border-gray-200 rounded-lg p-6">
-        <h2 class="text-lg font-semibold mb-2" style="color:$text-main-color;">Runs over time</h2>
-        <div class="h-56 bg-gray-50 border border-dashed border-gray-200 rounded-md grid place-items-center text-sm" style="color:$gray-color;">
-          Line chart placeholder · TODO: integrate charts
-        </div>
-      </section>
-
-      <!-- Success vs Failures -->
-      <section class="bg-white border border-gray-200 rounded-lg p-6">
-        <h2 class="text-lg font-semibold mb-2" style="color:$text-main-color;">Success vs Failures</h2>
-        <div class="h-56 bg-gray-50 border border-dashed border-gray-200 rounded-md grid place-items-center text-sm" style="color:$gray-color;">
-          Donut/Bar chart placeholder · TODO: integrate charts
-        </div>
-      </section>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Top Pipelines -->
-      <section class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold" style="color:$text-main-color;">Top Pipelines</h3>
-        </div>
-        <div class="divide-y divide-gray-100">
-          @if (filteredPipelines().length) {
-            @for (p of filteredPipelines(); track p.id) {
-              <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
-                <div>
-                  <div class="text-gray-900 font-medium">{{ p.name }}</div>
-                  <div class="text-sm" style="color:$muted-text-color;">{{ p.runs }} runs · {{ p.successRate }}%</div>
-                </div>
-                <button (click)="openPipeline(p.id)" class="text-sm text-blue-600 hover:underline">Open</button>
-              </div>
-            }
-          } @else {
-            <div class="px-6 py-6 text-sm" style="color:$muted-text-color;">No data.</div>
-          }
-        </div>
-      </section>
-
-      <!-- Top Projects -->
-      <section class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold" style="color:$text-main-color;">Top Projects</h3>
-        </div>
-        <div class="divide-y divide-gray-100">
-          @if (filteredProjects().length) {
-            @for (p of filteredProjects(); track p.id) {
-              <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
-                <div>
-                  <div class="text-gray-900 font-medium">{{ p.name }}</div>
-                  <div class="text-sm" style="color:$muted-text-color;">{{ p.runs }} runs · {{ p.successRate }}%</div>
-                </div>
-                <button (click)="openProject(p.id)" class="text-sm text-blue-600 hover:underline">Open</button>
-              </div>
-            }
-          } @else {
-            <div class="px-6 py-6 text-sm" style="color:$muted-text-color;">No data.</div>
-          }
-        </div>
-      </section>
-    </div>
+    <!-- Avg duration (list bars) -->
+    <article class="rounded-xl border border-white/10 bg-white/[0.03] p-5"
+             style="box-shadow:0 0 0 1px rgba(255,255,255,.02) inset">
+      <header class="mb-4">
+        <h2 class="text-lg font-semibold">Average duration</h2>
+        <div class="text-xs text-gray-400">Minutes per day</div>
+      </header>
+      <div class="space-y-2">
+        @for (d of days(); track d.date) {
+          <div class="flex items-center gap-2">
+            <div class="text-[10px] w-12 text-gray-400">{{ d.date | date:'MM/dd' }}</div>
+            <div class="flex-1 h-2 rounded bg-white/10">
+              <div class="h-2 rounded bg-blue-500"
+                   [style.width.%]="(d.avgSec / (60*4)) * 100"></div>
+            </div>
+            <div class="w-14 text-right text-xs text-gray-300">{{ (d.avgSec/60) | number:'1.0-0' }}m</div>
+          </div>
+        }
+      </div>
+    </article>
+  </section>
 </div>
+
