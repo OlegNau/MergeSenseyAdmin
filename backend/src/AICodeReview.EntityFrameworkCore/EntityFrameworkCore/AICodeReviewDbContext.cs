@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -12,6 +12,15 @@ using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using AICodeReview.AiModels;
+using AICodeReview.Branches;
+using AICodeReview.Groups;
+using AICodeReview.Nodes;
+using AICodeReview.Pipelines;
+using AICodeReview.Projects;
+using AICodeReview.Repositories;
+using AICodeReview.Triggers;
+using AICodeReview.EntityFrameworkCore.Configurations;
 
 namespace AICodeReview.EntityFrameworkCore;
 
@@ -23,22 +32,20 @@ public class AICodeReviewDbContext :
     IIdentityDbContext,
     ITenantManagementDbContext
 {
-    /* Add DbSet properties for your Aggregate Roots / Entities here. */
+    public DbSet<AiModel> AiModels { get; set; }
+    public DbSet<Project> Projects { get; set; }
+    public DbSet<Repository> Repositories { get; set; }
+    public DbSet<Branch> Branches { get; set; }
+    public DbSet<TriggerType> TriggerTypes { get; set; }
+    public DbSet<Trigger> Triggers { get; set; }
+    public DbSet<Pipeline> Pipelines { get; set; }
+    public DbSet<NodeType> NodeTypes { get; set; }
+    public DbSet<Node> Nodes { get; set; }
+    public DbSet<PipelineNode> PipelineNodes { get; set; }
+    public DbSet<Group> Groups { get; set; }
+    public DbSet<GroupProject> GroupProjects { get; set; }
 
-    #region Entities from the modules
-
-    /* Notice: We only implemented IIdentityDbContext and ITenantManagementDbContext
-     * and replaced them for this DbContext. This allows you to perform JOIN
-     * queries for the entities of these modules over the repositories easily. You
-     * typically don't need that for other modules. But, if you need, you can
-     * implement the DbContext interface of the needed module and use ReplaceDbContext
-     * attribute just like IIdentityDbContext and ITenantManagementDbContext.
-     *
-     * More info: Replacing a DbContext of a module ensures that the related module
-     * uses this DbContext on runtime. Otherwise, it will use its own DbContext class.
-     */
-
-    //Identity
+    // ABP module DbSets...
     public DbSet<IdentityUser> Users { get; set; }
     public DbSet<IdentityRole> Roles { get; set; }
     public DbSet<IdentityClaimType> ClaimTypes { get; set; }
@@ -47,23 +54,14 @@ public class AICodeReviewDbContext :
     public DbSet<IdentityLinkUser> LinkUsers { get; set; }
     public DbSet<IdentityUserDelegation> UserDelegations { get; set; }
     public DbSet<IdentitySession> Sessions { get; set; }
-    // Tenant Management
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
 
-    #endregion
-
-    public AICodeReviewDbContext(DbContextOptions<AICodeReviewDbContext> options)
-        : base(options)
-    {
-
-    }
+    public AICodeReviewDbContext(DbContextOptions<AICodeReviewDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-
-        /* Include modules to your migration db context */
 
         builder.ConfigurePermissionManagement();
         builder.ConfigureSettingManagement();
@@ -74,13 +72,17 @@ public class AICodeReviewDbContext :
         builder.ConfigureFeatureManagement();
         builder.ConfigureTenantManagement();
 
-        /* Configure your own tables/entities inside here */
-
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(AICodeReviewConsts.DbTablePrefix + "YourEntities", AICodeReviewConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.ApplyConfiguration(new AiModelConfiguration());
+        builder.ApplyConfiguration(new ProjectConfiguration());
+        builder.ApplyConfiguration(new RepositoryConfiguration());
+        builder.ApplyConfiguration(new BranchConfiguration());
+        builder.ApplyConfiguration(new TriggerTypeConfiguration());
+        builder.ApplyConfiguration(new TriggerConfiguration());
+        builder.ApplyConfiguration(new PipelineConfiguration());
+        builder.ApplyConfiguration(new NodeTypeConfiguration());
+        builder.ApplyConfiguration(new NodeConfiguration());
+        builder.ApplyConfiguration(new PipelineNodeConfiguration());
+        builder.ApplyConfiguration(new GroupConfiguration());
+        builder.ApplyConfiguration(new GroupProjectConfiguration());
     }
 }
