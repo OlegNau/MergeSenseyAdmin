@@ -19,6 +19,7 @@ public class TriggerConfiguration : IEntityTypeConfiguration<Trigger>
         builder.HasIndex(x => x.RepositoryId);
         builder.HasIndex(x => x.BranchId);
         builder.HasIndex(x => x.TypeId);
+        builder.HasIndex(x => new { x.RepositoryId, x.BranchId, x.TypeId }).IsUnique();
 
         builder.HasOne<Repository>().WithMany().HasForeignKey(x => x.RepositoryId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<Branch>().WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Cascade);

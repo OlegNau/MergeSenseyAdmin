@@ -18,6 +18,7 @@ public class PipelineConfiguration : IEntityTypeConfiguration<Pipeline>
         builder.Property(x => x.IsActive).HasDefaultValue(true);
 
         builder.HasIndex(x => x.ProjectId);
+        builder.HasIndex(x => new { x.ProjectId, x.Name }).IsUnique();
         builder.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
     }
 }

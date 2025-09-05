@@ -23,7 +23,7 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(x => x.DefaultBranch).IsRequired().HasMaxLength(128);
 
         var sp = builder.GetInfrastructure<IServiceProvider>();
-        var encryption = sp.GetRequiredService<IStringEncryptionService>();
+        var encryption = sp.GetService<IStringEncryptionService>() ?? new NoopStringEncryptionService();
         builder.Property(x => x.GitAccessToken)
             .HasMaxLength(512)
             .HasConversion(
@@ -31,5 +31,7 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
                 v => v == null ? null : encryption.Decrypt(v));
 
         builder.Property(x => x.IsActive).HasDefaultValue(true);
+
+        builder.HasIndex(x => new { x.TenantId, x.Name }).IsUnique();
     }
 }
