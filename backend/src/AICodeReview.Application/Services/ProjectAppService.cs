@@ -3,27 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
-using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp;
-using Volo.Abp.Linq;
 using AICodeReview.Permissions;
 using AICodeReview.Projects;
 using AICodeReview.Projects.Dtos;
 using AICodeReview.Pipelines;
 using AICodeReview.Pipelines.Dtos;
-using AICodeReview.Mapping;
 
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Projects.Default)]
-[RemoteService]
-[Route("api/app/projects")]
 public class ProjectAppService :
     CrudAppService<Project, ProjectDto, Guid, ProjectGetListInput, ProjectCreateDto, ProjectUpdateDto>,
     IProjectAppService
@@ -48,34 +41,47 @@ public class ProjectAppService :
 
     protected override IQueryable<Project> CreateFilteredQuery(ProjectGetListInput input)
     {
-        return base.CreateFilteredQuery(input)
-            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => EF.Functions.Like(x.Name, $"%{input.Filter}%"));
+        var query = base.CreateFilteredQuery(input);
+        if (!string.IsNullOrWhiteSpace(input.Filter))
+        {
+            query = query.Where(x => x.Name.Contains(input.Filter!) || x.RepoPath.Contains(input.Filter!));
+        }
+        if (!string.IsNullOrWhiteSpace(input.Provider))
+        {
+            query = query.Where(x => x.Provider == input.Provider);
+        }
+        if (input.IsActive.HasValue)
+        {
+            query = query.Where(x => x.IsActive == input.IsActive);
+        }
+        return query;
     }
 
-    [HttpGet("{id}/summary")]
     public virtual async Task<ProjectSummaryDto> GetSummaryAsync(Guid id)
     {
-        var projectQuery = (await _projectRepository.GetQueryableAsync()).Where(p => p.Id == id);
+        var project = await Repository.GetAsync(id);
         var pipelineQuery = await _pipelineRepository.GetQueryableAsync();
+        var total = await AsyncExecuter.CountAsync(pipelineQuery.Where(x => x.ProjectId == id));
+        var active = await AsyncExecuter.CountAsync(pipelineQuery.Where(x => x.ProjectId == id && x.IsActive));
 
-        var dto = await AsyncExecuter.FirstOrDefaultAsync(
-            CicdProfiles.ProjectToSummary(projectQuery, pipelineQuery));
-
-        if (dto == null)
+        return new ProjectSummaryDto
         {
-            throw new EntityNotFoundException(typeof(Project), id);
-        }
-
-        return dto;
+            Id = project.Id,
+            Name = project.Name,
+            Provider = project.Provider,
+            RepoPath = project.RepoPath,
+            DefaultBranch = project.DefaultBranch,
+            ActivePipelinesCount = active,
+            TotalPipelinesCount = total
+        };
     }
 
-    [HttpGet("{id}/pipelines")]
     public virtual async Task<List<PipelineListItemDto>> GetPipelinesAsync(Guid id)
     {
         var pipelineQuery = await _pipelineRepository.GetQueryableAsync();
         var projectQuery = await _projectRepository.GetQueryableAsync();
 
-        var query = from pl in pipelineQuery.AsNoTracking().Where(x => x.ProjectId == id)
+        var query = from pl in pipelineQuery.Where(x => x.ProjectId == id)
                     join pr in projectQuery on pl.ProjectId equals pr.Id
                     orderby pl.CreationTime descending
                     select new PipelineListItemDto

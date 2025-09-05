@@ -2,9 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
-using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -17,8 +15,6 @@ using Volo.Abp.Linq;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Pipelines.Default)]
-[RemoteService]
-[Route("api/app/pipelines")]
 public class PipelineAppService :
     CrudAppService<Pipeline, PipelineDto, Guid, PipelineGetListInput, PipelineCreateDto, PipelineUpdateDto>,
     IPipelineAppService
@@ -41,18 +37,17 @@ public class PipelineAppService :
     {
         return base.CreateFilteredQuery(input)
             .WhereIf(input.ProjectId.HasValue, x => x.ProjectId == input.ProjectId)
-            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => EF.Functions.Like(x.Name, $"%{input.Filter}%"));
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!));
     }
 
-    [HttpGet("all")]
     public virtual async Task<PagedResultDto<PipelineListItemDto>> GetAllAsync(PipelineGetListInput input)
     {
-        var pipelineQuery = (await Repository.GetQueryableAsync()).AsNoTracking();
+        var pipelineQuery = await Repository.GetQueryableAsync();
         var projectQuery = await _projectRepository.GetQueryableAsync();
         var query = from pl in pipelineQuery
                     join pr in projectQuery on pl.ProjectId equals pr.Id
                     where (!input.ProjectId.HasValue || pl.ProjectId == input.ProjectId)
-                       && (string.IsNullOrWhiteSpace(input.Filter) || EF.Functions.Like(pl.Name, $"%{input.Filter}%"))
+                       && (string.IsNullOrWhiteSpace(input.Filter) || pl.Name.Contains(input.Filter!))
                     select new PipelineListItemDto
                     {
                         Id = pl.Id,

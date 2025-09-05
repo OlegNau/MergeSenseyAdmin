@@ -79,4 +79,6 @@ public class ProjectSummaryDto : EntityDto<Guid>
 public class ProjectGetListInput : PagedAndSortedResultRequestDto
 {
     public string? Filter { get; set; }
+    public string? Provider { get; set; }
+    public bool? IsActive { get; set; }
 }

@@ -1,13 +1,11 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Linq;
-using Microsoft.EntityFrameworkCore;
 using AICodeReview.Permissions;
 using AICodeReview.Repositories;
 using AICodeReview.Repositories.Dtos;
@@ -15,8 +13,6 @@ using AICodeReview.Repositories.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Repositories.Default)]
-[RemoteService]
-[Route("api/app/repositories")]
 public class RepositoryAppService :
     CrudAppService<Repository, RepositoryDto, Guid, RepositoryGetListInput, RepositoryCreateDto, RepositoryUpdateDto>,
     IRepositoryAppService
@@ -36,6 +32,6 @@ public class RepositoryAppService :
     {
         return base.CreateFilteredQuery(input)
             .WhereIf(input.ProjectId.HasValue, x => x.ProjectId == input.ProjectId)
-            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => EF.Functions.Like(x.Name, $"%{input.Filter}%"));
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!));
     }
 }

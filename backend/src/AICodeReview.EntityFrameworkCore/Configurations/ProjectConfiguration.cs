@@ -3,6 +3,7 @@ namespace AICodeReview.EntityFrameworkCore.Configurations;
 using AICodeReview.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore.Modeling;
 
 public class ProjectConfiguration : IEntityTypeConfiguration<Project>
@@ -18,9 +19,12 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(x => x.RepoPath).IsRequired().HasMaxLength(512);
         builder.Property(x => x.DefaultBranch).IsRequired().HasMaxLength(128);
 
+        var tokenConverter = new ValueConverter<string?, string?> (
+            v => EfEncryption.Encrypt(v),
+            v => EfEncryption.Decrypt(v));
         builder.Property(x => x.GitAccessToken)
             .HasMaxLength(512)
-            .HasConversion(EfEncryption.Encrypt, EfEncryption.Decrypt);
+            .HasConversion(tokenConverter);
 
         builder.Property(x => x.IsActive).HasDefaultValue(true);
 

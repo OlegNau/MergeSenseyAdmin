@@ -60,3 +60,10 @@ public class AiModelUpdateDto
 
     public bool IsActive { get; set; }
 }
+
+public class AiModelGetListInput : PagedAndSortedResultRequestDto
+{
+    public string? Filter { get; set; }
+    public string? Provider { get; set; }
+    public bool? IsActive { get; set; }
+}

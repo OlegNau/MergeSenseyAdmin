@@ -4,6 +4,6 @@ using Volo.Abp.Application.Services;
 
 namespace AICodeReview.Nodes.Dtos;
 
-public interface INodeAppService : ICrudAppService<NodeDto, Guid, PagedAndSortedResultRequestDto, NodeCreateDto>
+public interface INodeAppService : ICrudAppService<NodeDto, Guid, NodeGetListInput, NodeCreateDto>
 {
 }

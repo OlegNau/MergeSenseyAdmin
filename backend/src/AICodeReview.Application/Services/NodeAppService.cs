@@ -1,6 +1,5 @@
 using System;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -12,10 +11,8 @@ using AICodeReview.Nodes.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Nodes.Default)]
-[RemoteService]
-[Route("api/app/nodes")]
 public class NodeAppService :
-    CrudAppService<Node, NodeDto, Guid, PagedAndSortedResultRequestDto, NodeCreateDto, NodeCreateDto>,
+    CrudAppService<Node, NodeDto, Guid, NodeGetListInput, NodeCreateDto>,
     INodeAppService
 {
     protected override string GetPolicyName { get; set; } = AICodeReviewPermissions.Nodes.Default;
