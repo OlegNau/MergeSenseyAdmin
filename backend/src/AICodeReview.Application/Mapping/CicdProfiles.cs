@@ -75,12 +75,9 @@ public class CicdProfiles : Profile
         CreateMap<NodeCreateDto, Node>()
             .ForMember(d => d.Id, o => o.Ignore())
             .ForMember(d => d.ExtraProperties, o => o.MapFrom(s =>
-                s.ExtraProperties != null
-                    ? new ExtraPropertyDictionary(
-                        s.ExtraProperties.ToDictionary(kv => kv.Key, kv => (object?)kv.Value)
-                      )
-                    : new ExtraPropertyDictionary()
-            ));
+                s.ExtraProperties == null
+                    ? new ExtraPropertyDictionary()
+                    : new ExtraPropertyDictionary(s.ExtraProperties)));
 
         CreateMap<PipelineNode, PipelineNodeDto>();
         CreateMap<PipelineNodeCreateDto, PipelineNode>()
@@ -101,7 +98,18 @@ public class CicdProfiles : Profile
             .ForMember(d => d.Id, o => o.Ignore());
     }
 
-    // Выражение без использования навигации Pipelines (счётчики выставляются позже в сервисе)
+    public static Expression<Func<Project, ProjectSummaryDto>> ProjectToSummaryWithNavigation =>
+        p => new ProjectSummaryDto
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Provider = p.Provider,
+            RepoPath = p.RepoPath,
+            DefaultBranch = p.DefaultBranch,
+            ActivePipelinesCount = p.Pipelines.Count(x => x.IsActive),
+            TotalPipelinesCount  = p.Pipelines.Count()
+        };
+
     public static Expression<Func<Project, ProjectSummaryDto>> ProjectToSummary =>
         p => new ProjectSummaryDto
         {

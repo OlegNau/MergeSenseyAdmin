@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -17,6 +20,7 @@ using AICodeReview.Pipelines.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Projects.Default)]
+[Route("api/app/projects")]
 public class ProjectAppService :
     CrudAppService<Project, ProjectDto, Guid, ProjectGetListInput, ProjectCreateDto, ProjectUpdateDto>,
     IProjectAppService
@@ -57,25 +61,29 @@ public class ProjectAppService :
         return query;
     }
 
-    public virtual async Task<ProjectSummaryDto> GetSummaryAsync(Guid id)
+    [HttpGet]
+    [SwaggerOperation(Summary = "Get project summaries")]
+    [ProducesResponseType(typeof(PagedResultDto<ProjectSummaryDto>), StatusCodes.Status200OK)]
+    public new virtual async Task<PagedResultDto<ProjectSummaryDto>> GetListAsync(ProjectGetListInput input)
     {
-        var project = await Repository.GetAsync(id);
-        var pipelineQuery = await _pipelineRepository.GetQueryableAsync();
-        var total = await AsyncExecuter.CountAsync(pipelineQuery.Where(x => x.ProjectId == id));
-        var active = await AsyncExecuter.CountAsync(pipelineQuery.Where(x => x.ProjectId == id && x.IsActive));
+        var query = await CreateFilteredQueryAsync(input);
+        var totalCount = await AsyncExecuter.CountAsync(query);
+        query = ApplySorting(query, input);
+        query = query.Skip(input.SkipCount).Take(input.MaxResultCount);
 
-        return new ProjectSummaryDto
-        {
-            Id = project.Id,
-            Name = project.Name,
-            Provider = project.Provider,
-            RepoPath = project.RepoPath,
-            DefaultBranch = project.DefaultBranch,
-            ActivePipelinesCount = active,
-            TotalPipelinesCount = total
-        };
+        var items = await AsyncExecuter.ToListAsync(
+            query.Select(CicdProfiles.ProjectToSummaryWithNavigation));
+
+        return new PagedResultDto<ProjectSummaryDto>(totalCount, items);
     }
 
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(ProjectDto), StatusCodes.Status200OK)]
+    public override Task<ProjectDto> GetAsync(Guid id) => base.GetAsync(id);
+
+    [HttpGet("{id}/pipelines")]
+    [SwaggerOperation(Summary = "Get project pipelines")]
+    [ProducesResponseType(typeof(List<PipelineListItemDto>), StatusCodes.Status200OK)]
     public virtual async Task<List<PipelineListItemDto>> GetPipelinesAsync(Guid id)
     {
         var pipelineQuery = await _pipelineRepository.GetQueryableAsync();

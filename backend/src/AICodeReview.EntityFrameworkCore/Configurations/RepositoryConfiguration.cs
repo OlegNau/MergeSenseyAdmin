@@ -21,6 +21,10 @@ public class RepositoryConfiguration : IEntityTypeConfiguration<Repository>
         builder.HasIndex(x => x.ProjectId);
         builder.HasIndex(x => new { x.ProjectId, x.Name }).IsUnique();
         builder.HasIndex(x => new { x.TenantId, x.Url }).IsUnique();
-        builder.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Project)
+            .WithMany()
+            .HasForeignKey(x => x.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

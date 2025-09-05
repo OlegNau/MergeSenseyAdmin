@@ -3,6 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Dynamic.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -16,6 +19,7 @@ using Volo.Abp.Linq;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Pipelines.Default)]
+[Route("api/app/pipelines")]
 public class PipelineAppService :
     CrudAppService<Pipeline, PipelineDto, Guid, PipelineGetListInput, PipelineCreateDto, PipelineUpdateDto>,
     IPipelineAppService
@@ -42,6 +46,9 @@ public class PipelineAppService :
             .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!));
     }
 
+    [HttpGet("all")]
+    [SwaggerOperation(Summary = "Get pipelines" )]
+    [ProducesResponseType(typeof(PagedResultDto<PipelineListItemDto>), StatusCodes.Status200OK)]
     public virtual async Task<PagedResultDto<PipelineListItemDto>> GetAllAsync(PipelineGetListInput input)
     {
         var pipelineQuery = await Repository.GetQueryableAsync();

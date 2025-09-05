@@ -13,6 +13,10 @@ public class NodeConfiguration : IEntityTypeConfiguration<Node>
         builder.ConfigureByConvention();
 
         builder.HasIndex(x => x.TypeId);
-        builder.HasOne<NodeType>().WithMany().HasForeignKey(x => x.TypeId).OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Type)
+            .WithMany()
+            .HasForeignKey(x => x.TypeId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
