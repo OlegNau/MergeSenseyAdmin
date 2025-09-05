@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -20,7 +17,6 @@ using AICodeReview.Pipelines.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Projects.Default)]
-[Route("api/app/projects")]
 public class ProjectAppService :
     CrudAppService<Project, ProjectDto, Guid, ProjectGetListInput, ProjectCreateDto, ProjectUpdateDto>,
     IProjectAppService
@@ -61,9 +57,6 @@ public class ProjectAppService :
         return query;
     }
 
-    [HttpGet]
-    [SwaggerOperation(Summary = "Get project summaries")]
-    [ProducesResponseType(typeof(PagedResultDto<ProjectSummaryDto>), StatusCodes.Status200OK)]
     public new virtual async Task<PagedResultDto<ProjectSummaryDto>> GetListAsync(ProjectGetListInput input)
     {
         var query = await CreateFilteredQueryAsync(input);
@@ -77,13 +70,8 @@ public class ProjectAppService :
         return new PagedResultDto<ProjectSummaryDto>(totalCount, items);
     }
 
-    [HttpGet("{id}")]
-    [ProducesResponseType(typeof(ProjectDto), StatusCodes.Status200OK)]
     public override Task<ProjectDto> GetAsync(Guid id) => base.GetAsync(id);
 
-    [HttpGet("{id}/pipelines")]
-    [SwaggerOperation(Summary = "Get project pipelines")]
-    [ProducesResponseType(typeof(List<PipelineListItemDto>), StatusCodes.Status200OK)]
     public virtual async Task<List<PipelineListItemDto>> GetPipelinesAsync(Guid id)
     {
         var pipelineQuery = await _pipelineRepository.GetQueryableAsync();

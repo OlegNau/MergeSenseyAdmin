@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Linq;
@@ -16,7 +13,6 @@ using AICodeReview.Nodes.Dtos;
 namespace AICodeReview.Services
 {
     [Authorize(AICodeReviewPermissions.Nodes.Default)]
-    [Route("api/app/pipelines/{pipelineId}/nodes")]
     public class PipelineNodeAppService : ApplicationService, IPipelineNodeAppService
     {
         private readonly IRepository<PipelineNode, Guid> _repository;
@@ -26,9 +22,6 @@ namespace AICodeReview.Services
             _repository = repository;
         }
 
-        [HttpGet]
-        [SwaggerOperation(Summary = "Get pipeline nodes" )]
-        [ProducesResponseType(typeof(List<PipelineNodeDto>), StatusCodes.Status200OK)]
         public async Task<List<PipelineNodeDto>> GetAsync(Guid pipelineId)
         {
             var query = (await _repository.GetQueryableAsync())
@@ -44,9 +37,6 @@ namespace AICodeReview.Services
             }));
         }
 
-        [HttpPost("reorder")]
-        [SwaggerOperation(Summary = "Reorder pipeline nodes" )]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task ReorderAsync(Guid pipelineId, List<PipelineNodeReorderDto> input)
         {
             var nodes = await _repository.GetListAsync(x => x.PipelineId == pipelineId);
