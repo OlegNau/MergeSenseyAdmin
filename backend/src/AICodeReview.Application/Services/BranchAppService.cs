@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -12,6 +14,8 @@ using AICodeReview.Branches.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Branches.Default)]
+[RemoteService]
+[Route("api/app/branches")]
 public class BranchAppService :
     CrudAppService<Branch, BranchDto, Guid, BranchGetListInput, BranchCreateDto, BranchUpdateDto>,
     IBranchAppService

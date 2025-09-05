@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -14,6 +16,8 @@ using AICodeReview.Projects;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Pipelines.Default)]
+[RemoteService]
+[Route("api/app/pipelines")]
 public class PipelineAppService :
     CrudAppService<Pipeline, PipelineDto, Guid, PagedAndSortedResultRequestDto, PipelineCreateDto, PipelineUpdateDto>,
     IPipelineAppService

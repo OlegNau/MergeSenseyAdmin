@@ -1,5 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -10,6 +12,8 @@ using AICodeReview.Groups.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Groups.Default)]
+[RemoteService]
+[Route("api/app/group-projects")]
 public class GroupProjectAppService :
     CrudAppService<GroupProject, GroupProjectDto, Guid, PagedAndSortedResultRequestDto, GroupProjectCreateDto, GroupProjectUpdateDto>,
     IGroupProjectAppService

@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -12,6 +14,8 @@ using AICodeReview.Repositories.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Repositories.Default)]
+[RemoteService]
+[Route("api/app/repositories")]
 public class RepositoryAppService :
     CrudAppService<Repository, RepositoryDto, Guid, RepositoryGetListInput, RepositoryCreateDto, RepositoryUpdateDto>,
     IRepositoryAppService
