@@ -6,6 +6,8 @@ using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement;
 using Volo.Abp.SettingManagement;
 using Volo.Abp.TenantManagement;
+using Volo.Abp.Authorization.Permissions;
+using AICodeReview.Permissions;
 
 namespace AICodeReview;
 
@@ -26,6 +28,11 @@ public class AICodeReviewApplicationModule : AbpModule
         Configure<AbpAutoMapperOptions>(options =>
         {
             options.AddMaps<AICodeReviewApplicationModule>();
+        });
+
+        Configure<AbpPermissionOptions>(options =>
+        {
+            options.DefinitionProviders.Add<AICodeReviewPermissionDefinitionProvider>();
         });
     }
 }

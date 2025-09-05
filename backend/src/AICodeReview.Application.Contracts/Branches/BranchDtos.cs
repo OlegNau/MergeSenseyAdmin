@@ -24,3 +24,8 @@ public class BranchUpdateDto
     public string Name { get; set; } = default!;
     public bool IsDefault { get; set; }
 }
+
+public class BranchGetListInput : PagedAndSortedResultRequestDto
+{
+    public Guid? RepositoryId { get; set; }
+}

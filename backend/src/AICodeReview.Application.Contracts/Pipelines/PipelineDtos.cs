@@ -23,6 +23,13 @@ public class PipelineCreateDto
     public bool IsActive { get; set; } = true;
 }
 
+public class PipelineUpdateDto
+{
+    public string Name { get; set; } = default!;
+    public string Status { get; set; } = default!;
+    public bool IsActive { get; set; }
+}
+
 public class PipelineListItemDto : EntityDto<Guid>
 {
     public string Name { get; set; } = default!;

@@ -19,3 +19,17 @@ public class TriggerCreateDto
     public Guid BranchId { get; set; }
     public string? ScheduleJson { get; set; }
 }
+
+public class TriggerUpdateDto
+{
+    public long TypeId { get; set; }
+    public Guid RepositoryId { get; set; }
+    public Guid BranchId { get; set; }
+    public string? ScheduleJson { get; set; }
+}
+
+public class TriggerGetListInput : PagedAndSortedResultRequestDto
+{
+    public Guid? RepositoryId { get; set; }
+    public Guid? BranchId { get; set; }
+}
