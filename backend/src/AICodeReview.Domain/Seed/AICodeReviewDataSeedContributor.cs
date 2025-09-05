@@ -19,8 +19,7 @@ namespace AICodeReview.Seed;
 
 public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientDependency
 {
-    private readonly IRepository<TriggerType, long> _triggerTypeRepository;
-    private readonly IRepository<NodeType, long> _nodeTypeRepository;
+    // ВНИМАНИЕ: TriggerType и NodeType сидируются через EF .HasData() — здесь их не трогаем.
     private readonly IRepository<Project, Guid> _projectRepository;
     private readonly IRepository<Repository, Guid> _repositoryRepository;
     private readonly IRepository<Branch, Guid> _branchRepository;
@@ -33,8 +32,6 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
     private readonly IRepository<AiModel, Guid> _aiModelRepository;
 
     public AICodeReviewDataSeedContributor(
-        IRepository<TriggerType, long> triggerTypeRepository,
-        IRepository<NodeType, long> nodeTypeRepository,
         IRepository<Project, Guid> projectRepository,
         IRepository<Repository, Guid> repositoryRepository,
         IRepository<Branch, Guid> branchRepository,
@@ -46,8 +43,6 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
         IRepository<GroupProject, Guid> groupProjectRepository,
         IRepository<AiModel, Guid> aiModelRepository)
     {
-        _triggerTypeRepository = triggerTypeRepository;
-        _nodeTypeRepository = nodeTypeRepository;
         _projectRepository = projectRepository;
         _repositoryRepository = repositoryRepository;
         _branchRepository = branchRepository;
@@ -63,45 +58,10 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
     [UnitOfWork]
     public async Task SeedAsync(DataSeedContext context)
     {
-        await SeedTriggerTypesAsync();
-        await SeedNodeTypesAsync();
+        // TriggerType & NodeType — уже вставлены миграцией (HasData).
         await SeedProjectsAsync();
         await SeedGroupsAsync();
         await SeedAiModelAsync();
-    }
-
-    private async Task SeedTriggerTypesAsync()
-    {
-        if (await _triggerTypeRepository.GetCountAsync() > 0)
-        {
-            return;
-        }
-
-        var seedTime = DateTime.UtcNow;
-        await _triggerTypeRepository.InsertManyAsync(new List<TriggerType>
-        {
-            new TriggerType { Id = 1, Name = "manual",   CreationTime = seedTime, ConcurrencyStamp = "manual" },
-            new TriggerType { Id = 2, Name = "push",     CreationTime = seedTime, ConcurrencyStamp = "push" },
-            new TriggerType { Id = 3, Name = "schedule", CreationTime = seedTime, ConcurrencyStamp = "schedule" }
-        }, true);
-    }
-
-    private async Task SeedNodeTypesAsync()
-    {
-        if (await _nodeTypeRepository.GetCountAsync() > 0)
-        {
-            return;
-        }
-
-        var seedTime = DateTime.UtcNow;
-        await _nodeTypeRepository.InsertManyAsync(new List<NodeType>
-        {
-            new NodeType { Id = 1, Name = "lint",   CreationTime = seedTime, ConcurrencyStamp = "lint" },
-            new NodeType { Id = 2, Name = "test",   CreationTime = seedTime, ConcurrencyStamp = "test" },
-            new NodeType { Id = 3, Name = "build",  CreationTime = seedTime, ConcurrencyStamp = "build" },
-            new NodeType { Id = 4, Name = "deploy", CreationTime = seedTime, ConcurrencyStamp = "deploy" },
-            new NodeType { Id = 5, Name = "custom", CreationTime = seedTime, ConcurrencyStamp = "custom" }
-        }, true);
     }
 
     private async Task SeedProjectsAsync()
@@ -122,7 +82,7 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             RepoPath = "sample/project",
             DefaultBranch = "main",
             IsActive = true
-        }, true);
+        }, autoSave: true);
 
         var repo1 = await _repositoryRepository.InsertAsync(new Repository
         {
@@ -130,28 +90,28 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             Name = "sample-repo",
             Url = "https://github.com/example/sample-repo.git",
             IsActive = true
-        }, true);
+        }, autoSave: true);
 
         var repo1Main = await _branchRepository.InsertAsync(new Branch
         {
             RepositoryId = repo1.Id,
             Name = "main",
             IsDefault = true
-        }, true);
+        }, autoSave: true);
 
         var repo1Dev = await _branchRepository.InsertAsync(new Branch
         {
             RepositoryId = repo1.Id,
             Name = "dev",
             IsDefault = false
-        }, true);
+        }, autoSave: true);
 
         await _triggerRepository.InsertAsync(new Trigger
         {
             RepositoryId = repo1.Id,
             BranchId = repo1Main.Id,
-            TypeId = 2 // push
-        }, true);
+            TypeId = 2 // push (сидируется миграцией)
+        }, autoSave: true);
 
         var pipeline1 = await _pipelineRepository.InsertAsync(new Pipeline
         {
@@ -162,7 +122,7 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             FinishedAt = now.AddDays(-2).AddMinutes(5),
             DurationSeconds = 300,
             IsActive = true
-        }, true);
+        }, autoSave: true);
 
         var pipeline2 = await _pipelineRepository.InsertAsync(new Pipeline
         {
@@ -170,12 +130,12 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             Name = "Deploy",
             Status = "Running",
             StartedAt = now.AddDays(-1)
-        }, true);
+        }, autoSave: true);
 
-        var node1 = await _nodeRepository.InsertAsync(new Node { TypeId = 1 }, true); // lint
-        var node2 = await _nodeRepository.InsertAsync(new Node { TypeId = 2 }, true); // test
-        var node3 = await _nodeRepository.InsertAsync(new Node { TypeId = 3 }, true); // build
-        var node4 = await _nodeRepository.InsertAsync(new Node { TypeId = 4 }, true); // deploy
+        var node1 = await _nodeRepository.InsertAsync(new Node { TypeId = 1 }, autoSave: true); // lint
+        var node2 = await _nodeRepository.InsertAsync(new Node { TypeId = 2 }, autoSave: true); // test
+        var node3 = await _nodeRepository.InsertAsync(new Node { TypeId = 3 }, autoSave: true); // build
+        var node4 = await _nodeRepository.InsertAsync(new Node { TypeId = 4 }, autoSave: true); // deploy
 
         await _pipelineNodeRepository.InsertManyAsync(new List<PipelineNode>
         {
@@ -184,7 +144,7 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             new PipelineNode { PipelineId = pipeline1.Id, NodeId = node3.Id, Order = 3 },
             new PipelineNode { PipelineId = pipeline2.Id, NodeId = node3.Id, Order = 1 },
             new PipelineNode { PipelineId = pipeline2.Id, NodeId = node4.Id, Order = 2 }
-        }, true);
+        }, autoSave: true);
 
         // Project 2
         var project2 = await _projectRepository.InsertAsync(new Project
@@ -195,7 +155,7 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             RepoPath = "company/backend",
             DefaultBranch = "main",
             IsActive = true
-        }, true);
+        }, autoSave: true);
 
         var repo2 = await _repositoryRepository.InsertAsync(new Repository
         {
@@ -203,28 +163,28 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             Name = "backend-repo",
             Url = "https://gitlab.com/company/backend.git",
             IsActive = true
-        }, true);
+        }, autoSave: true);
 
         var repo2Main = await _branchRepository.InsertAsync(new Branch
         {
             RepositoryId = repo2.Id,
             Name = "main",
             IsDefault = true
-        }, true);
+        }, autoSave: true);
 
         var repo2Dev = await _branchRepository.InsertAsync(new Branch
         {
             RepositoryId = repo2.Id,
             Name = "dev",
             IsDefault = false
-        }, true);
+        }, autoSave: true);
 
         await _triggerRepository.InsertAsync(new Trigger
         {
             RepositoryId = repo2.Id,
             BranchId = repo2Main.Id,
             TypeId = 2 // push
-        }, true);
+        }, autoSave: true);
 
         var pipeline3 = await _pipelineRepository.InsertAsync(new Pipeline
         {
@@ -235,18 +195,18 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             FinishedAt = now.AddDays(-3).AddMinutes(7),
             DurationSeconds = 420,
             IsActive = true
-        }, true);
+        }, autoSave: true);
 
-        var node5 = await _nodeRepository.InsertAsync(new Node { TypeId = 1 }, true); // lint
-        var node6 = await _nodeRepository.InsertAsync(new Node { TypeId = 2 }, true); // test
-        var node7 = await _nodeRepository.InsertAsync(new Node { TypeId = 3 }, true); // build
+        var node5 = await _nodeRepository.InsertAsync(new Node { TypeId = 1 }, autoSave: true); // lint
+        var node6 = await _nodeRepository.InsertAsync(new Node { TypeId = 2 }, autoSave: true); // test
+        var node7 = await _nodeRepository.InsertAsync(new Node { TypeId = 3 }, autoSave: true); // build
 
         await _pipelineNodeRepository.InsertManyAsync(new List<PipelineNode>
         {
             new PipelineNode { PipelineId = pipeline3.Id, NodeId = node5.Id, Order = 1 },
             new PipelineNode { PipelineId = pipeline3.Id, NodeId = node6.Id, Order = 2 },
             new PipelineNode { PipelineId = pipeline3.Id, NodeId = node7.Id, Order = 3 }
-        }, true);
+        }, autoSave: true);
     }
 
     private async Task SeedGroupsAsync()
@@ -256,27 +216,38 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             return;
         }
 
-        var projectIds = await _projectRepository.GetListAsync();
-        var project1Id = projectIds.First().Id;
-        var project2Id = projectIds.Last().Id;
+        var projects = await _projectRepository.GetListAsync();
+        if (projects.Count == 0)
+        {
+            return;
+        }
+
+        var firstProjectId = projects.First().Id;
+        var lastProjectId  = projects.Last().Id;
 
         var group1 = await _groupRepository.InsertAsync(new Group
         {
             Name = "Core Team",
             Description = "Main development team"
-        }, true);
+        }, autoSave: true);
 
         var group2 = await _groupRepository.InsertAsync(new Group
         {
             Name = "Services",
             Description = "Service group"
-        }, true);
+        }, autoSave: true);
 
-        await _groupProjectRepository.InsertManyAsync(new List<GroupProject>
+        var links = new List<GroupProject>
         {
-            new GroupProject { GroupId = group1.Id, ProjectId = project1Id },
-            new GroupProject { GroupId = group2.Id, ProjectId = project2Id }
-        }, true);
+            new GroupProject { GroupId = group1.Id, ProjectId = firstProjectId }
+        };
+
+        if (projects.Count > 1)
+        {
+            links.Add(new GroupProject { GroupId = group2.Id, ProjectId = lastProjectId });
+        }
+
+        await _groupProjectRepository.InsertManyAsync(links, autoSave: true);
     }
 
     private async Task SeedAiModelAsync()
@@ -294,7 +265,6 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             ApiBaseUrl = "https://api.openai.com/v1",
             ApiKey = "demo",
             IsActive = true
-        }, true);
+        }, autoSave: true);
     }
 }
-
