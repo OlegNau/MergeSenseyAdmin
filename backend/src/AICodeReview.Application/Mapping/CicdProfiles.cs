@@ -48,10 +48,12 @@ public class CicdProfiles : Profile
         // Triggers
         CreateMap<Trigger, TriggerDto>();
         CreateMap<TriggerCreateDto, Trigger>();
+        CreateMap<TriggerUpdateDto, Trigger>();
 
         // Pipelines
         CreateMap<Pipeline, PipelineDto>();
         CreateMap<PipelineCreateDto, Pipeline>();
+        CreateMap<PipelineUpdateDto, Pipeline>();
 
         // Для списков в админке: ProjectName/Trigger наполняем на уровне AppService
         CreateMap<Pipeline, PipelineListItemDto>()
@@ -71,6 +73,8 @@ public class CicdProfiles : Profile
         CreateMap<GroupCreateDto, Group>();
         CreateMap<GroupUpdateDto, Group>();
         CreateMap<GroupProject, GroupProjectDto>();
+        CreateMap<GroupProjectCreateDto, GroupProject>();
+        CreateMap<GroupProjectUpdateDto, GroupProject>();
 
         // AiModels
         CreateMap<AiModel, AiModelDto>();
@@ -89,7 +93,7 @@ public class CicdProfiles : Profile
             Provider             = p.Provider,
             RepoPath             = p.RepoPath,
             DefaultBranch        = p.DefaultBranch,
-            ActivePipelinesCount = p.Pipelines.Where(x => x.IsActive).Count(),
+            ActivePipelinesCount = p.Pipelines.Where(x => x.IsActive && (x.Status == "Active" || x.Status == "Running")).Count(),
             TotalPipelinesCount  = p.Pipelines.Count()
         };
 
@@ -109,7 +113,7 @@ public class CicdProfiles : Profile
             {
                 ProjectId = g.Key,
                 Total     = g.Count(),
-                Active    = g.Count(x => x.IsActive)
+                Active    = g.Count(x => x.IsActive && (x.Status == "Active" || x.Status == "Running"))
             };
 
         var query =

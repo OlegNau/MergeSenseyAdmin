@@ -29,3 +29,8 @@ public class RepositoryUpdateDto
     public string? WebhookUrl { get; set; }
     public bool IsActive { get; set; }
 }
+
+public class RepositoryGetListInput : PagedAndSortedResultRequestDto
+{
+    public Guid? ProjectId { get; set; }
+}

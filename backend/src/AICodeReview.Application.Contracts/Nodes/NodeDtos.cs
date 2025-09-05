@@ -27,3 +27,9 @@ public class PipelineNodeCreateDto
     public Guid NodeId { get; set; }
     public int Order { get; set; }
 }
+
+public class PipelineNodeReorderDto
+{
+    public Guid NodeId { get; set; }
+    public int Order { get; set; }
+}

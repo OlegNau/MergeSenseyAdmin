@@ -27,3 +27,13 @@ public class GroupProjectDto : EntityDto<Guid>
     public Guid GroupId { get; set; }
     public Guid ProjectId { get; set; }
 }
+
+public class GroupProjectCreateDto
+{
+    public Guid GroupId { get; set; }
+    public Guid ProjectId { get; set; }
+}
+
+public class GroupProjectUpdateDto : GroupProjectCreateDto
+{
+}
