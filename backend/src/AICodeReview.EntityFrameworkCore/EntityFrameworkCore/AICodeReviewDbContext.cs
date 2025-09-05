@@ -12,7 +12,7 @@ using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
-using Volo.Abp.Security.Encryption;
+
 using AICodeReview.AiModels;
 using AICodeReview.Branches;
 using AICodeReview.Groups;
@@ -46,7 +46,7 @@ public class AICodeReviewDbContext :
     public DbSet<Group> Groups { get; set; }
     public DbSet<GroupProject> GroupProjects { get; set; }
 
-    // ABP module DbSets...
+    // ABP module DbSets
     public DbSet<IdentityUser> Users { get; set; }
     public DbSet<IdentityRole> Roles { get; set; }
     public DbSet<IdentityClaimType> ClaimTypes { get; set; }
@@ -60,9 +60,7 @@ public class AICodeReviewDbContext :
 
     public AICodeReviewDbContext(DbContextOptions<AICodeReviewDbContext> options)
         : base(options)
-    {
-        EfEncryption.Service = LazyServiceProvider.LazyGetService<IStringEncryptionService>();
-    }
+    {}
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

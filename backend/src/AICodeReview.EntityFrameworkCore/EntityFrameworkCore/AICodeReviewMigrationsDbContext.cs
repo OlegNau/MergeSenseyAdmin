@@ -19,13 +19,18 @@ public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigratio
     public AICodeReviewMigrationsDbContext(DbContextOptions<AICodeReviewMigrationsDbContext> options)
         : base(options)
     {
-        EfEncryption.Service = LazyServiceProvider.LazyGetService<IStringEncryptionService>();
+        // В design-time LazyServiceProvider = null, поэтому защищаемся
+        if (LazyServiceProvider != null)
+        {
+            EfEncryption.Service ??= LazyServiceProvider.LazyGetService<IStringEncryptionService>();
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
+        // ABP модули
         builder.ConfigurePermissionManagement();
         builder.ConfigureSettingManagement();
         builder.ConfigureBackgroundJobs();
@@ -35,6 +40,7 @@ public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigratio
         builder.ConfigureFeatureManagement();
         builder.ConfigureTenantManagement();
 
+        // ВАШИ сущности (важно для миграций)
         builder.ApplyConfiguration(new AiModelConfiguration());
         builder.ApplyConfiguration(new ProjectConfiguration());
         builder.ApplyConfiguration(new RepositoryConfiguration());

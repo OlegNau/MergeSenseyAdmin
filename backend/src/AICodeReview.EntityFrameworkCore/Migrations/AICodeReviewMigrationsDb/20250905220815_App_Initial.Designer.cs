@@ -3,18 +3,21 @@ using System;
 using AICodeReview.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
 
 #nullable disable
 
-namespace AICodeReview.Migrations
+namespace AICodeReview.Migrations.AICodeReviewMigrationsDb
 {
-    [DbContext(typeof(AICodeReviewDbContext))]
-    partial class AICodeReviewDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(AICodeReviewMigrationsDbContext))]
+    [Migration("20250905220815_App_Initial")]
+    partial class App_Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -27,6 +30,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("AICodeReview.AiModels.AiModel", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ApiBaseUrl")
@@ -111,6 +115,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("AICodeReview.Branches.Branch", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -191,6 +196,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("AICodeReview.Groups.Group", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -256,6 +262,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("AICodeReview.Groups.GroupProject", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -325,6 +332,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("AICodeReview.Nodes.Node", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -453,6 +461,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("AICodeReview.Nodes.PipelineNode", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -525,6 +534,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("AICodeReview.Pipelines.Pipeline", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -613,6 +623,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("AICodeReview.Projects.Project", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -705,6 +716,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("AICodeReview.Repositories.Repository", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -791,6 +803,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("AICodeReview.Triggers.Trigger", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("BranchId")
@@ -1411,6 +1424,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentityClaimType", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -1463,6 +1477,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentityLinkUser", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("SourceTenantId")
@@ -1488,6 +1503,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentityRole", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -1573,6 +1589,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentitySecurityLog", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Action")
@@ -1649,6 +1666,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentitySession", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ClientId")
@@ -1704,6 +1722,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentityUser", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<int>("AccessFailedCount")
@@ -1898,6 +1917,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.IdentityUserDelegation", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("EndTime")
@@ -2024,6 +2044,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("Volo.Abp.Identity.OrganizationUnit", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Code")
@@ -2623,6 +2644,7 @@ namespace AICodeReview.Migrations
             modelBuilder.Entity("Volo.Abp.TenantManagement.Tenant", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")

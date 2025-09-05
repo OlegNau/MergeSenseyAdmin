@@ -30,6 +30,8 @@ using Volo.Abp.Swashbuckle;
 using Volo.Abp.UI.Navigation.Urls;
 using Volo.Abp.VirtualFileSystem;
 using Volo.Abp.Data;
+using Volo.Abp.Timing;           // ⬅️ добавлено
+using Volo.Abp.BackgroundJobs;   // ⬅️ добавлено
 
 namespace AICodeReview;
 
@@ -64,6 +66,15 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         var configuration = context.Services.GetConfiguration();
         var hostingEnvironment = context.Services.GetHostingEnvironment();
 
+        // ⬇️ Ключевая фиксация: все DateTime — в UTC
+        Configure<AbpClockOptions>(o => o.Kind = DateTimeKind.Utc);
+
+        // ⬇️ В dev отключаем выполнение фоновых задач, чтобы они не трогали БД во время старта
+        if (hostingEnvironment.IsDevelopment())
+        {
+            Configure<AbpBackgroundJobOptions>(o => o.IsJobExecutionEnabled = false);
+        }
+
         ConfigureAuthentication(context);
         ConfigureBundles();
         ConfigureUrls(configuration);
@@ -71,7 +82,7 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         ConfigureVirtualFileSystem(context);
         ConfigureCors(context, configuration);
         ConfigureSwaggerServices(context, configuration);
-        
+
         // context.Services.AddHostedService<Development.DevelopmentSeederHostedService>();
     }
 
@@ -90,10 +101,7 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         {
             options.StyleBundles.Configure(
                 LeptonXLiteThemeBundles.Styles.Global,
-                bundle =>
-                {
-                    bundle.AddFiles("/global-styles.css");
-                }
+                bundle => { bundle.AddFiles("/global-styles.css"); }
             );
         });
     }
@@ -119,17 +127,13 @@ public class AICodeReviewHttpApiHostModule : AbpModule
             Configure<AbpVirtualFileSystemOptions>(options =>
             {
                 options.FileSets.ReplaceEmbeddedByPhysical<AICodeReviewDomainSharedModule>(
-                    Path.Combine(hostingEnvironment.ContentRootPath,
-                        $"..{Path.DirectorySeparatorChar}AICodeReview.Domain.Shared"));
+                    Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}AICodeReview.Domain.Shared"));
                 options.FileSets.ReplaceEmbeddedByPhysical<AICodeReviewDomainModule>(
-                    Path.Combine(hostingEnvironment.ContentRootPath,
-                        $"..{Path.DirectorySeparatorChar}AICodeReview.Domain"));
+                    Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}AICodeReview.Domain"));
                 options.FileSets.ReplaceEmbeddedByPhysical<AICodeReviewApplicationContractsModule>(
-                    Path.Combine(hostingEnvironment.ContentRootPath,
-                        $"..{Path.DirectorySeparatorChar}AICodeReview.Application.Contracts"));
+                    Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}AICodeReview.Application.Contracts"));
                 options.FileSets.ReplaceEmbeddedByPhysical<AICodeReviewApplicationModule>(
-                    Path.Combine(hostingEnvironment.ContentRootPath,
-                        $"..{Path.DirectorySeparatorChar}AICodeReview.Application"));
+                    Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}AICodeReview.Application"));
             });
         }
     }
@@ -146,14 +150,11 @@ public class AICodeReviewHttpApiHostModule : AbpModule
     {
         context.Services.AddAbpSwaggerGenWithOAuth(
             configuration["AuthServer:Authority"]!,
-            new Dictionary<string, string>
-            {
-                {"AICodeReview", "AICodeReview API"}
-            },
+            new Dictionary<string, string> { { "AICodeReview", "AICodeReview API" } },
             options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "AICodeReview API", Version = "v1" });
-                options.DocInclusionPredicate((docName, description) => true);
+                options.DocInclusionPredicate((_, __) => true);
                 options.CustomSchemaIds(type => type.FullName);
             });
     }
@@ -219,17 +220,17 @@ public class AICodeReviewHttpApiHostModule : AbpModule
             var configuration = context.ServiceProvider.GetRequiredService<IConfiguration>();
             c.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
             c.OAuthScopes("AICodeReview");
+            c.OAuthUsePkce(); // чуть безопаснее для SPA
         });
 
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
 
-        // Seed initial demo data
+        // Seed initial demo data (использует IClock — теперь это UTC)
         context.ServiceProvider
             .GetRequiredService<IDataSeeder>()
             .SeedAsync()
             .GetAwaiter().GetResult();
     }
 }
-   
