@@ -8,13 +8,19 @@ using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using Volo.Abp.DependencyInjection;
+using Volo.Abp.Security.Encryption;
 using AICodeReview.EntityFrameworkCore.Configurations;
 
 namespace AICodeReview.EntityFrameworkCore;
 
 public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigrationsDbContext>
 {
-    public AICodeReviewMigrationsDbContext(DbContextOptions<AICodeReviewMigrationsDbContext> options) : base(options) { }
+    public AICodeReviewMigrationsDbContext(DbContextOptions<AICodeReviewMigrationsDbContext> options)
+        : base(options)
+    {
+        EfEncryption.Service = LazyServiceProvider.LazyGetService<IStringEncryptionService>();
+    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
