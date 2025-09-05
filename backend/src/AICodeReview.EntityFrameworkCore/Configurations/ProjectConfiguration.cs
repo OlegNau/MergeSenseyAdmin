@@ -1,13 +1,9 @@
 namespace AICodeReview.EntityFrameworkCore.Configurations;
 
-using System;
 using AICodeReview.Projects;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore.Modeling;
-using Volo.Abp.Security.Encryption;
 
 public class ProjectConfiguration : IEntityTypeConfiguration<Project>
 {
@@ -22,13 +18,9 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(x => x.RepoPath).IsRequired().HasMaxLength(512);
         builder.Property(x => x.DefaultBranch).IsRequired().HasMaxLength(128);
 
-        var sp = builder.GetInfrastructure<IServiceProvider>();
-        var encryption = sp.GetService<IStringEncryptionService>() ?? new NoopStringEncryptionService();
         builder.Property(x => x.GitAccessToken)
             .HasMaxLength(512)
-            .HasConversion(
-                v => v == null ? null : encryption.Encrypt(v),
-                v => v == null ? null : encryption.Decrypt(v));
+            .HasConversion(EfEncryption.Encrypt, EfEncryption.Decrypt);
 
         builder.Property(x => x.IsActive).HasDefaultValue(true);
 
