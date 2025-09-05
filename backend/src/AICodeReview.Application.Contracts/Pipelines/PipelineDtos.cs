@@ -1,7 +1,6 @@
 using System;
-using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 using Volo.Abp.Application.Dtos;
-using AICodeReview.Consts;
 
 namespace AICodeReview.Pipelines.Dtos;
 
@@ -20,26 +19,13 @@ public class PipelineDto : EntityDto<Guid>
 public class PipelineCreateDto
 {
     public Guid ProjectId { get; set; }
-    [Required]
-    [StringLength(CicdConsts.Lengths.NameLong)]
     public string Name { get; set; } = default!;
-
-    [Required]
-    [StringLength(CicdConsts.Lengths.PipelineStatus)]
     public string Status { get; set; } = default!;
     public bool IsActive { get; set; } = true;
-}
-
-public class PipelineUpdateDto
-{
-    [Required]
-    [StringLength(CicdConsts.Lengths.NameLong)]
-    public string Name { get; set; } = default!;
-
-    [Required]
-    [StringLength(CicdConsts.Lengths.PipelineStatus)]
-    public string Status { get; set; } = default!;
-    public bool IsActive { get; set; }
+    
+    public AICodeReview.Triggers.Dtos.TriggerCreateDto? Trigger { get; set; }
+    
+    public List<PipelineCreateNodeItemDto>? Nodes { get; set; }
 }
 
 public class PipelineListItemDto : EntityDto<Guid>
@@ -51,8 +37,15 @@ public class PipelineListItemDto : EntityDto<Guid>
     public DateTime? LastRun { get; set; }
 }
 
-public class PipelineGetListInput : PagedAndSortedResultRequestDto
+public class PipelineCreateNodeItemDto
 {
-    public Guid? ProjectId { get; set; }
-    public string? Filter { get; set; }
+    public long TypeId { get; set; }
+    public int Order { get; set; }
+    public Dictionary<string, object>? ExtraProperties { get; set; }
+}
+
+public class PipelineNodeReorderDto
+{
+    public Guid NodeId { get; set; }
+    public int Order { get; set; }
 }
