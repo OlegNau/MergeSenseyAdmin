@@ -17,7 +17,14 @@ public class PipelineNodeConfiguration : IEntityTypeConfiguration<PipelineNode>
         builder.HasIndex(x => x.NodeId);
         builder.HasIndex(x => new { x.PipelineId, x.Order }).IsUnique();
 
-        builder.HasOne<Pipeline>().WithMany().HasForeignKey(x => x.PipelineId).OnDelete(DeleteBehavior.Cascade);
-        builder.HasOne<Node>().WithMany().HasForeignKey(x => x.NodeId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.Pipeline)
+            .WithMany()
+            .HasForeignKey(x => x.PipelineId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Node)
+            .WithMany()
+            .HasForeignKey(x => x.NodeId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

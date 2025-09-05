@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Volo.Abp;
-using Volo.Abp.Application.Dtos;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Linq;
@@ -15,24 +16,22 @@ using AICodeReview.Nodes.Dtos;
 namespace AICodeReview.Services
 {
     [Authorize(AICodeReviewPermissions.Nodes.Default)]
-    public class PipelineNodeAppService :
-        CrudAppService<PipelineNode, PipelineNodeDto, Guid, PipelineNodeGetListInput, PipelineNodeCreateDto>,
-        IPipelineNodeAppService
+    [Route("api/app/pipelines/{pipelineId}/nodes")]
+    public class PipelineNodeAppService : ApplicationService, IPipelineNodeAppService
     {
-        protected override string GetPolicyName { get; set; } = AICodeReviewPermissions.Nodes.Default;
-        protected override string GetListPolicyName { get; set; } = AICodeReviewPermissions.Nodes.Default;
-        protected override string CreatePolicyName { get; set; } = AICodeReviewPermissions.Nodes.Create;
-        protected override string UpdatePolicyName { get; set; } = AICodeReviewPermissions.Nodes.Update;
-        protected override string DeletePolicyName { get; set; } = AICodeReviewPermissions.Nodes.Delete;
+        private readonly IRepository<PipelineNode, Guid> _repository;
 
         public PipelineNodeAppService(IRepository<PipelineNode, Guid> repository)
-            : base(repository)
         {
+            _repository = repository;
         }
 
-        public virtual async Task<List<PipelineNodeDto>> GetPipelineNodesAsync(Guid pipelineId)
+        [HttpGet]
+        [SwaggerOperation(Summary = "Get pipeline nodes" )]
+        [ProducesResponseType(typeof(List<PipelineNodeDto>), StatusCodes.Status200OK)]
+        public async Task<List<PipelineNodeDto>> GetAsync(Guid pipelineId)
         {
-            var query = (await Repository.GetQueryableAsync())
+            var query = (await _repository.GetQueryableAsync())
                 .Where(x => x.PipelineId == pipelineId)
                 .OrderBy(x => x.Order);
 
@@ -45,9 +44,12 @@ namespace AICodeReview.Services
             }));
         }
 
-        public virtual async Task ReorderAsync(Guid pipelineId, List<PipelineNodeReorderDto> input)
+        [HttpPost("reorder")]
+        [SwaggerOperation(Summary = "Reorder pipeline nodes" )]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task ReorderAsync(Guid pipelineId, List<PipelineNodeReorderDto> input)
         {
-            var nodes = await Repository.GetListAsync(x => x.PipelineId == pipelineId);
+            var nodes = await _repository.GetListAsync(x => x.PipelineId == pipelineId);
 
             foreach (var item in input)
             {
@@ -58,19 +60,7 @@ namespace AICodeReview.Services
                 }
             }
 
-            await Repository.UpdateManyAsync(nodes);
-        }
-
-        protected override async Task<IQueryable<PipelineNode>> CreateFilteredQueryAsync(PipelineNodeGetListInput input)
-        {
-            var q = await base.CreateFilteredQueryAsync(input);
-
-            if (input.PipelineId.HasValue)
-            {
-                q = q.Where(x => x.PipelineId == input.PipelineId);
-            }
-
-            return q;
+            await _repository.UpdateManyAsync(nodes);
         }
     }
 }

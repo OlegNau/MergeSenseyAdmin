@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using AICodeReview.Pipelines;
+
 namespace AICodeReview.Projects;
 
 public class Project : CiCdAggregateRoot
@@ -9,4 +12,6 @@ public class Project : CiCdAggregateRoot
     public virtual string DefaultBranch { get; set; } = string.Empty;
     public virtual string? GitAccessToken { get; set; }
     public virtual bool IsActive { get; set; } = true;
+
+    public virtual ICollection<Pipeline> Pipelines { get; set; } = new List<Pipeline>();
 }
