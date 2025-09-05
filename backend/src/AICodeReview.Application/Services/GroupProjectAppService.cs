@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -24,5 +25,15 @@ public class GroupProjectAppService :
     public GroupProjectAppService(IRepository<GroupProject, Guid> repository)
         : base(repository)
     {
+    }
+
+    protected override IQueryable<GroupProject> CreateFilteredQuery(GroupProjectGetListInput input)
+    {
+        var q = base.CreateFilteredQuery(input);
+        if (input.GroupId.HasValue)
+            q = q.Where(x => x.GroupId == input.GroupId.Value);
+        if (input.ProjectId.HasValue)
+            q = q.Where(x => x.ProjectId == input.ProjectId.Value);
+        return q;
     }
 }

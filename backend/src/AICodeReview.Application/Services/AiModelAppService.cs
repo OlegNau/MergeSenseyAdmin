@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -24,5 +25,20 @@ public class AiModelAppService :
     public AiModelAppService(IRepository<AiModel, Guid> repository)
         : base(repository)
     {
+    }
+
+    protected override IQueryable<AiModel> CreateFilteredQuery(AiModelGetListInput input)
+    {
+        var q = base.CreateFilteredQuery(input);
+        if (!input.Filter.IsNullOrWhiteSpace())
+        {
+            q = q.Where(x => x.Name.Contains(input.Filter!) || x.Model.Contains(input.Filter!));
+        }
+        if (!input.Provider.IsNullOrWhiteSpace())
+        {
+            q = q.Where(x => x.Provider == input.Provider);
+        }
+        if (input.IsActive.HasValue) q = q.Where(x => x.IsActive == input.IsActive);
+        return q;
     }
 }

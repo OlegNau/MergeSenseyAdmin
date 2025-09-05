@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -24,5 +25,12 @@ public class GroupAppService :
     public GroupAppService(IRepository<Group, Guid> repository)
         : base(repository)
     {
+    }
+
+    protected override IQueryable<Group> CreateFilteredQuery(GroupGetListInput input)
+    {
+        var q = base.CreateFilteredQuery(input);
+        if (!input.Filter.IsNullOrWhiteSpace()) q = q.Where(x => x.Name.Contains(input.Filter!));
+        return q;
     }
 }

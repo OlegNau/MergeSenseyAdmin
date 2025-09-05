@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -24,5 +25,12 @@ public class NodeAppService :
     public NodeAppService(IRepository<Node, Guid> repository)
         : base(repository)
     {
+    }
+
+    protected override IQueryable<Node> CreateFilteredQuery(NodeGetListInput input)
+    {
+        var q = base.CreateFilteredQuery(input);
+        if (input.TypeId.HasValue) q = q.Where(x => x.TypeId == input.TypeId.Value);
+        return q;
     }
 }

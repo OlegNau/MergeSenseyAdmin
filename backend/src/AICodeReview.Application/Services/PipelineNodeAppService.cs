@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
@@ -28,6 +29,18 @@ public class PipelineNodeAppService :
     public PipelineNodeAppService(IRepository<PipelineNode, Guid> repository)
         : base(repository)
     {
+    }
+
+    protected override IQueryable<PipelineNode> CreateFilteredQuery(PipelineNodeGetListInput input)
+    {
+        var q = base.CreateFilteredQuery(input);
+        if (input.PipelineId.HasValue)
+        {
+            q = q.Where(x => x.PipelineId == input.PipelineId.Value);
+        }
+        // удобная сортировка по порядку выполнения
+        q = q.OrderBy(nameof(PipelineNode.Order));
+        return q;
     }
 
     public virtual async Task<List<PipelineNodeDto>> GetPipelineNodesAsync(Guid pipelineId)
