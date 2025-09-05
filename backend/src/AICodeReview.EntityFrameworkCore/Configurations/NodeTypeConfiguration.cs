@@ -15,6 +15,7 @@ public class NodeTypeConfiguration : IEntityTypeConfiguration<NodeType>
         builder.ConfigureByConvention();
 
         builder.Property(x => x.Name).IsRequired().HasMaxLength(64);
+        builder.HasIndex(x => x.Name).IsUnique();
 
         var seedTime = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         builder.HasData(

@@ -22,7 +22,7 @@ public class AiModelConfiguration : IEntityTypeConfiguration<AiModel>
         builder.Property(x => x.ApiBaseUrl).HasMaxLength(256);
 
         var sp = builder.GetInfrastructure<IServiceProvider>();
-        var encryption = sp.GetRequiredService<IStringEncryptionService>();
+        var encryption = sp.GetService<IStringEncryptionService>() ?? new NoopStringEncryptionService();
         builder.Property(x => x.ApiKey)
             .HasMaxLength(512)
             .HasConversion(
