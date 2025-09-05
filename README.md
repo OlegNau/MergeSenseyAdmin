@@ -31,7 +31,7 @@ dotnet run --project .\backend\src\AICodeReview.HttpApi.Host\AICodeReview.HttpAp
 GET https://localhost:44300/api/app/projects?SkipCount=0&MaxResultCount=20&Sorting=Name
 GET https://localhost:44300/api/app/projects/{id}
 GET https://localhost:44300/api/app/projects/{id}/pipelines
-GET https://localhost:44300/api/app/pipelines/all?SkipCount=0&MaxResultCount=20&Sorting=StartedAt%20desc
+GET https://localhost:44300/api/app/pipelines/all?SkipCount=0&MaxResultCount=20&Sorting=LastRun%20desc
 POST https://localhost:44300/api/app/pipelines
 # body = PipelineCreateDto
 GET https://localhost:44300/api/app/pipelines/{pipelineId}/nodes

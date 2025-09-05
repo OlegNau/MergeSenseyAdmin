@@ -52,26 +52,40 @@ public class PipelineAppService :
     public virtual async Task<PagedResultDto<PipelineListItemDto>> GetAllAsync(PipelineGetListInput input)
     {
         var pipelineQuery = await Repository.GetQueryableAsync();
-        var projectQuery = await _projectRepository.GetQueryableAsync();
-        var query = from pl in pipelineQuery
-                    join pr in projectQuery on pl.ProjectId equals pr.Id
-                    where (!input.ProjectId.HasValue || pl.ProjectId == input.ProjectId)
-                       && (string.IsNullOrWhiteSpace(input.Filter) || pl.Name.Contains(input.Filter!))
-                    select new PipelineListItemDto
-                    {
-                        Id = pl.Id,
-                        Name = pl.Name,
-                        ProjectName = pr.Name,
-                        Status = pl.Status,
-                        LastRun = pl.FinishedAt ?? pl.StartedAt
-                    };
+        var projectQuery  = await _projectRepository.GetQueryableAsync();
 
-        var total = await AsyncExecuter.CountAsync(query);
+        var filtered = from pl in pipelineQuery
+                       join pr in projectQuery on pl.ProjectId equals pr.Id
+                       where (!input.ProjectId.HasValue || pl.ProjectId == input.ProjectId)
+                          && (string.IsNullOrWhiteSpace(input.Filter) || pl.Name.Contains(input.Filter!))
+                       select new { pl, pr };
+
+        var total = await AsyncExecuter.CountAsync(filtered);
+
+        // Поддерживаем дружелюбные поля сортировки: LastRun/Name/Status (+fallback CreationTime)
+        var sorting = (input.Sorting ?? "LastRun desc").Trim();
+        string sortExpression;
+        if (sorting.StartsWith("LastRun", StringComparison.OrdinalIgnoreCase))
+        {
+            sortExpression = sorting.EndsWith("desc", StringComparison.OrdinalIgnoreCase)
+                ? "pl.FinishedAt ?? pl.StartedAt desc"
+                : "pl.FinishedAt ?? pl.StartedAt";
+        }
+        else if (sorting.StartsWith("Name", StringComparison.OrdinalIgnoreCase))
+        {
+            sortExpression = sorting.EndsWith("desc", StringComparison.OrdinalIgnoreCase) ? "pl.Name desc" : "pl.Name";
+        }
+        else if (sorting.StartsWith("Status", StringComparison.OrdinalIgnoreCase))
+        {
+            sortExpression = sorting.EndsWith("desc", StringComparison.OrdinalIgnoreCase) ? "pl.Status desc" : "pl.Status";
+        }
+        else
+        {
+            sortExpression = "pl.CreationTime desc";
+        }
+
         var items = await AsyncExecuter.ToListAsync(
-            query.OrderBy(input.Sorting ?? nameof(Pipeline.CreationTime))
-                 .Skip(input.SkipCount)
-                 .Take(input.MaxResultCount));
-
-        return new PagedResultDto<PipelineListItemDto>(total, items);
+            filtered.OrderBy(sortExpression)
+                    .Skip(input.SkipCount)
     }
 }
