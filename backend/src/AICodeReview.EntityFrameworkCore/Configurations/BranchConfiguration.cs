@@ -18,7 +18,7 @@ public class BranchConfiguration : IEntityTypeConfiguration<Branch>
 
         builder.HasIndex(x => x.RepositoryId);
         builder.HasIndex(x => new { x.RepositoryId, x.Name }).IsUnique();
-        builder.HasIndex(x => new { x.RepositoryId, x.IsDefault }).HasFilter("IsDefault = 1").IsUnique();
+        builder.HasIndex(x => new { x.RepositoryId, x.IsDefault }).HasFilter("\"IsDefault\" = TRUE").IsUnique();
 
         builder.HasOne(x => x.Repository)
             .WithMany()

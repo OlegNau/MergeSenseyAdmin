@@ -3,23 +3,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Dynamic.Core;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
-using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Linq;
 using AICodeReview.Permissions;
 using AICodeReview.Pipelines;
 using AICodeReview.Pipelines.Dtos;
 using AICodeReview.Projects;
-using Volo.Abp.Linq;
 
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Pipelines.Default)]
-[Route("api/app/pipelines")]
 public class PipelineAppService :
     CrudAppService<Pipeline, PipelineDto, Guid, PipelineGetListInput, PipelineCreateDto, PipelineUpdateDto>,
     IPipelineAppService
@@ -32,7 +27,9 @@ public class PipelineAppService :
 
     private readonly IRepository<Project, Guid> _projectRepository;
 
-    public PipelineAppService(IRepository<Pipeline, Guid> repository, IRepository<Project, Guid> projectRepository)
+    public PipelineAppService(
+        IRepository<Pipeline, Guid> repository,
+        IRepository<Project, Guid> projectRepository)
         : base(repository)
     {
         _projectRepository = projectRepository;
@@ -41,51 +38,60 @@ public class PipelineAppService :
     protected override async Task<IQueryable<Pipeline>> CreateFilteredQueryAsync(PipelineGetListInput input)
     {
         var query = await base.CreateFilteredQueryAsync(input);
-        return query
-            .WhereIf(input.ProjectId.HasValue, x => x.ProjectId == input.ProjectId)
-            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!));
+
+        if (input.ProjectId.HasValue)
+        {
+            var pid = input.ProjectId.Value;
+            query = query.Where(x => x.ProjectId == pid);
+        }
+
+        if (!string.IsNullOrWhiteSpace(input.Filter))
+        {
+            var filter = input.Filter!;
+            query = query.Where(x => x.Name.Contains(filter));
+        }
+
+        return query;
     }
 
-    [HttpGet("all")]
-    [SwaggerOperation(Summary = "Get pipelines" )]
-    [ProducesResponseType(typeof(PagedResultDto<PipelineListItemDto>), StatusCodes.Status200OK)]
     public virtual async Task<PagedResultDto<PipelineListItemDto>> GetAllAsync(PipelineGetListInput input)
     {
         var pipelineQuery = await Repository.GetQueryableAsync();
         var projectQuery  = await _projectRepository.GetQueryableAsync();
 
-        var filtered = from pl in pipelineQuery
-                       join pr in projectQuery on pl.ProjectId equals pr.Id
-                       where (!input.ProjectId.HasValue || pl.ProjectId == input.ProjectId)
-                          && (string.IsNullOrWhiteSpace(input.Filter) || pl.Name.Contains(input.Filter!))
-                       select new { pl, pr };
+        var listQuery =
+            from pl in pipelineQuery
+            join pr in projectQuery on pl.ProjectId equals pr.Id
+            where (!input.ProjectId.HasValue || pl.ProjectId == input.ProjectId.Value)
+               && (string.IsNullOrWhiteSpace(input.Filter) || pl.Name.Contains(input.Filter!))
+            select new PipelineListItemDto
+            {
+                Id          = pl.Id,
+                Name        = pl.Name,
+                ProjectName = pr.Name,
+                Status      = pl.Status,
+                LastRun     = pl.FinishedAt ?? pl.StartedAt
+            };
 
-        var total = await AsyncExecuter.CountAsync(filtered);
+        var total = await AsyncExecuter.CountAsync(listQuery);
 
-        // Поддерживаем дружелюбные поля сортировки: LastRun/Name/Status (+fallback CreationTime)
         var sorting = (input.Sorting ?? "LastRun desc").Trim();
-        string sortExpression;
-        if (sorting.StartsWith("LastRun", StringComparison.OrdinalIgnoreCase))
-        {
-            sortExpression = sorting.EndsWith("desc", StringComparison.OrdinalIgnoreCase)
-                ? "pl.FinishedAt ?? pl.StartedAt desc"
-                : "pl.FinishedAt ?? pl.StartedAt";
-        }
-        else if (sorting.StartsWith("Name", StringComparison.OrdinalIgnoreCase))
-        {
-            sortExpression = sorting.EndsWith("desc", StringComparison.OrdinalIgnoreCase) ? "pl.Name desc" : "pl.Name";
-        }
-        else if (sorting.StartsWith("Status", StringComparison.OrdinalIgnoreCase))
-        {
-            sortExpression = sorting.EndsWith("desc", StringComparison.OrdinalIgnoreCase) ? "pl.Status desc" : "pl.Status";
-        }
-        else
-        {
-            sortExpression = "pl.CreationTime desc";
-        }
+        string sortExpression =
+            sorting.StartsWith("LastRun", StringComparison.OrdinalIgnoreCase) ? sorting :
+            sorting.StartsWith("Name",    StringComparison.OrdinalIgnoreCase) ? sorting :
+            sorting.StartsWith("Status",  StringComparison.OrdinalIgnoreCase) ? sorting :
+            "LastRun desc";
 
         var items = await AsyncExecuter.ToListAsync(
-            filtered.OrderBy(sortExpression)
-                    .Skip(input.SkipCount)
+            listQuery
+                .OrderBy(sortExpression)
+                .Skip(input.SkipCount)
+                .Take(input.MaxResultCount)
+        );
+
+        return new PagedResultDto<PipelineListItemDto>(total, items);
     }
+
+    public override Task<PipelineDto> CreateAsync(PipelineCreateDto input)
+        => base.CreateAsync(input);
 }

@@ -85,7 +85,7 @@ namespace AICodeReview.Migrations
                 b.HasKey("Id");
                 b.HasIndex("RepositoryId");
                 b.HasIndex("RepositoryId", "Name").IsUnique();
-                b.HasIndex("RepositoryId", "IsDefault").IsUnique().HasFilter("IsDefault = 1");
+                b.HasIndex("RepositoryId", "IsDefault").IsUnique().HasFilter("\"IsDefault\" = TRUE");
                 b.ToTable("AppBranches", (string)null);
             });
 

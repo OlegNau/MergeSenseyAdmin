@@ -405,11 +405,11 @@ namespace AICodeReview.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_AppBranches_RepositoryId_IsDefault",
+                name: "IX_AppBranches_RepositoryId_IsDefault", 
                 table: "AppBranches",
                 columns: new[] { "RepositoryId", "IsDefault" },
                 unique: true,
-                filter: "IsDefault = 1");
+                filter: "\"IsDefault\" = TRUE");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AppPipelines_ProjectId",
