@@ -4,7 +4,7 @@ using Volo.Abp.Uow;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
-using Volo.Abp.EntityFrameworkCore.Sqlite;
+using Volo.Abp.EntityFrameworkCore.PostgreSql;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.Modularity;
@@ -21,7 +21,7 @@ namespace AICodeReview.EntityFrameworkCore;
     typeof(AbpOpenIddictEntityFrameworkCoreModule),
     typeof(AbpPermissionManagementEntityFrameworkCoreModule),
     typeof(AbpSettingManagementEntityFrameworkCoreModule),
-    typeof(AbpEntityFrameworkCoreSqliteModule),
+    typeof(AbpEntityFrameworkCorePostgreSqlModule),
     typeof(AbpBackgroundJobsEntityFrameworkCoreModule),
     typeof(AbpAuditLoggingEntityFrameworkCoreModule),
     typeof(AbpTenantManagementEntityFrameworkCoreModule),
@@ -47,7 +47,7 @@ public class AICodeReviewEntityFrameworkCoreModule : AbpModule
         {
                 /* The main point to change your DBMS.
                  * See also AICodeReviewMigrationsDbContextFactory for EF Core tooling. */
-            options.UseSqlite();
+            options.UseNpgsql();
         });
 
         Configure<AbpUnitOfWorkDefaultOptions>(options =>

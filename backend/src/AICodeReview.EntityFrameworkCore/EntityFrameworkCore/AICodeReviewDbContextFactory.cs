@@ -13,14 +13,14 @@ public class AICodeReviewMigrationsDbContextFactory
         var configuration = BuildConfiguration();
 
         var builder = new DbContextOptionsBuilder<AICodeReviewMigrationsDbContext>()
-            .UseSqlite(configuration.GetConnectionString("Default"));
+            .UseNpgsql(configuration.GetConnectionString("Default"));
 
         return new AICodeReviewMigrationsDbContext(builder.Options);
     }
 
     private static IConfigurationRoot BuildConfiguration()
     {
-        // читаем connection string из Host (там у тебя абсолютный путь к SQLite)
+        // читаем connection string из Host
         var basePath = Path.Combine(Directory.GetCurrentDirectory(), "../AICodeReview.HttpApi.Host");
         return new ConfigurationBuilder()
             .SetBasePath(basePath)
