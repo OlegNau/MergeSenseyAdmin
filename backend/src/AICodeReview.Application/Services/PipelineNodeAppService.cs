@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -15,6 +17,8 @@ using AICodeReview.Nodes.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Nodes.Default)]
+[RemoteService]
+[Route("api/app/pipeline-nodes")]
 public class PipelineNodeAppService :
     CrudAppService<PipelineNode, PipelineNodeDto, Guid, PagedAndSortedResultRequestDto, PipelineNodeCreateDto, PipelineNodeCreateDto>,
     IPipelineNodeAppService

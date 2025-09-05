@@ -1,5 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -10,6 +12,8 @@ using AICodeReview.AiModels.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.AiModels.Default)]
+[RemoteService]
+[Route("api/app/ai-models")]
 public class AiModelAppService :
     CrudAppService<AiModel, AiModelDto, Guid, PagedAndSortedResultRequestDto, AiModelCreateDto, AiModelUpdateDto>,
     IAiModelAppService

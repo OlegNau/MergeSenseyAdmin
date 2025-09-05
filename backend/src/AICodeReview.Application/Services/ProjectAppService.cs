@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -19,6 +21,8 @@ using AICodeReview.Mapping;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Projects.Default)]
+[RemoteService]
+[Route("api/app/projects")]
 public class ProjectAppService :
     CrudAppService<Project, ProjectDto, Guid, PagedAndSortedResultRequestDto, ProjectCreateDto, ProjectUpdateDto>,
     IProjectAppService
