@@ -7,7 +7,7 @@ using AICodeReview.Pipelines.Dtos;
 
 namespace AICodeReview.Projects.Dtos;
 
-public interface IProjectAppService : ICrudAppService<ProjectDto, Guid, PagedAndSortedResultRequestDto, ProjectCreateDto, ProjectUpdateDto>
+public interface IProjectAppService : ICrudAppService<ProjectDto, Guid, ProjectGetListInput, ProjectCreateDto, ProjectUpdateDto>
 {
     Task<ProjectSummaryDto> GetSummaryAsync(Guid id);
     Task<List<PipelineListItemDto>> GetPipelinesAsync(Guid id);

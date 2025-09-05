@@ -11,6 +11,7 @@ using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp;
+using Volo.Abp.Linq;
 using AICodeReview.Permissions;
 using AICodeReview.Projects;
 using AICodeReview.Projects.Dtos;
@@ -24,7 +25,7 @@ namespace AICodeReview.Services;
 [RemoteService]
 [Route("api/app/projects")]
 public class ProjectAppService :
-    CrudAppService<Project, ProjectDto, Guid, PagedAndSortedResultRequestDto, ProjectCreateDto, ProjectUpdateDto>,
+    CrudAppService<Project, ProjectDto, Guid, ProjectGetListInput, ProjectCreateDto, ProjectUpdateDto>,
     IProjectAppService
 {
     protected override string GetPolicyName { get; set; } = AICodeReviewPermissions.Projects.Default;
@@ -43,6 +44,12 @@ public class ProjectAppService :
     {
         _pipelineRepository = pipelineRepository;
         _projectRepository = repository;
+    }
+
+    protected override IQueryable<Project> CreateFilteredQuery(ProjectGetListInput input)
+    {
+        return base.CreateFilteredQuery(input)
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => EF.Functions.Like(x.Name, $"%{input.Filter}%"));
     }
 
     [HttpGet("{id}/summary")]

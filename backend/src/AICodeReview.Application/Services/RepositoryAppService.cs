@@ -7,6 +7,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Linq;
+using Microsoft.EntityFrameworkCore;
 using AICodeReview.Permissions;
 using AICodeReview.Repositories;
 using AICodeReview.Repositories.Dtos;
@@ -34,6 +35,7 @@ public class RepositoryAppService :
     protected override IQueryable<Repository> CreateFilteredQuery(RepositoryGetListInput input)
     {
         return base.CreateFilteredQuery(input)
-            .WhereIf(input.ProjectId.HasValue, x => x.ProjectId == input.ProjectId);
+            .WhereIf(input.ProjectId.HasValue, x => x.ProjectId == input.ProjectId)
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => EF.Functions.Like(x.Name, $"%{input.Filter}%"));
     }
 }

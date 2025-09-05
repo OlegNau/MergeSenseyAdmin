@@ -12,6 +12,7 @@ using AICodeReview.Permissions;
 using AICodeReview.Pipelines;
 using AICodeReview.Pipelines.Dtos;
 using AICodeReview.Projects;
+using Volo.Abp.Linq;
 
 namespace AICodeReview.Services;
 
@@ -19,7 +20,7 @@ namespace AICodeReview.Services;
 [RemoteService]
 [Route("api/app/pipelines")]
 public class PipelineAppService :
-    CrudAppService<Pipeline, PipelineDto, Guid, PagedAndSortedResultRequestDto, PipelineCreateDto, PipelineUpdateDto>,
+    CrudAppService<Pipeline, PipelineDto, Guid, PipelineGetListInput, PipelineCreateDto, PipelineUpdateDto>,
     IPipelineAppService
 {
     protected override string GetPolicyName { get; set; } = AICodeReviewPermissions.Pipelines.Default;
@@ -36,14 +37,22 @@ public class PipelineAppService :
         _projectRepository = projectRepository;
     }
 
+    protected override IQueryable<Pipeline> CreateFilteredQuery(PipelineGetListInput input)
+    {
+        return base.CreateFilteredQuery(input)
+            .WhereIf(input.ProjectId.HasValue, x => x.ProjectId == input.ProjectId)
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => EF.Functions.Like(x.Name, $"%{input.Filter}%"));
+    }
+
     [HttpGet("all")]
-    public virtual async Task<PagedResultDto<PipelineListItemDto>> GetAllAsync(PagedAndSortedResultRequestDto input)
+    public virtual async Task<PagedResultDto<PipelineListItemDto>> GetAllAsync(PipelineGetListInput input)
     {
         var pipelineQuery = (await Repository.GetQueryableAsync()).AsNoTracking();
         var projectQuery = await _projectRepository.GetQueryableAsync();
-
         var query = from pl in pipelineQuery
                     join pr in projectQuery on pl.ProjectId equals pr.Id
+                    where (!input.ProjectId.HasValue || pl.ProjectId == input.ProjectId)
+                       && (string.IsNullOrWhiteSpace(input.Filter) || EF.Functions.Like(pl.Name, $"%{input.Filter}%"))
                     select new PipelineListItemDto
                     {
                         Id = pl.Id,
