@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -28,9 +29,10 @@ public class TriggerAppService :
     {
     }
 
-    protected override IQueryable<Trigger> CreateFilteredQuery(TriggerGetListInput input)
+    protected override async Task<IQueryable<Trigger>> CreateFilteredQueryAsync(TriggerGetListInput input)
     {
-        return base.CreateFilteredQuery(input)
+        var query = await base.CreateFilteredQueryAsync(input);
+        return query
             .WhereIf(input.RepositoryId.HasValue, x => x.RepositoryId == input.RepositoryId)
             .WhereIf(input.BranchId.HasValue, x => x.BranchId == input.BranchId);
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -28,9 +29,10 @@ public class BranchAppService :
     {
     }
 
-    protected override IQueryable<Branch> CreateFilteredQuery(BranchGetListInput input)
+    protected override async Task<IQueryable<Branch>> CreateFilteredQueryAsync(BranchGetListInput input)
     {
-        return base.CreateFilteredQuery(input)
+        var query = await base.CreateFilteredQueryAsync(input);
+        return query
             .WhereIf(input.RepositoryId.HasValue, x => x.RepositoryId == input.RepositoryId)
             .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!));
     }

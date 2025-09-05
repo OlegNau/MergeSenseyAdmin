@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -27,13 +28,12 @@ public class GroupProjectAppService :
     {
     }
 
-    protected override IQueryable<GroupProject> CreateFilteredQuery(GroupProjectGetListInput input)
+    protected override async Task<IQueryable<GroupProject>> CreateFilteredQueryAsync(GroupProjectGetListInput input)
     {
-        var q = base.CreateFilteredQuery(input);
-        if (input.GroupId.HasValue)
-            q = q.Where(x => x.GroupId == input.GroupId.Value);
-        if (input.ProjectId.HasValue)
-            q = q.Where(x => x.ProjectId == input.ProjectId.Value);
-        return q;
+        var query = await base.CreateFilteredQueryAsync(input);
+        return query
+            .WhereIf(input.GroupId.HasValue, x => x.GroupId == input.GroupId)
+            .WhereIf(input.ProjectId.HasValue, x => x.ProjectId == input.ProjectId);
     }
+
 }

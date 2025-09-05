@@ -39,9 +39,9 @@ public class ProjectAppService :
         _projectRepository = repository;
     }
 
-    protected override IQueryable<Project> CreateFilteredQuery(ProjectGetListInput input)
+    protected override async Task<IQueryable<Project>> CreateFilteredQueryAsync(ProjectGetListInput input)
     {
-        var query = base.CreateFilteredQuery(input);
+        var query = await base.CreateFilteredQueryAsync(input);
         if (!string.IsNullOrWhiteSpace(input.Filter))
         {
             query = query.Where(x => x.Name.Contains(input.Filter!) || x.RepoPath.Contains(input.Filter!));

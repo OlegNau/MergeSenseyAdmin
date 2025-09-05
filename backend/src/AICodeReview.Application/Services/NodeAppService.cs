@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -27,10 +28,11 @@ public class NodeAppService :
     {
     }
 
-    protected override IQueryable<Node> CreateFilteredQuery(NodeGetListInput input)
+    protected override async Task<IQueryable<Node>> CreateFilteredQueryAsync(NodeGetListInput input)
     {
-        var q = base.CreateFilteredQuery(input);
-        if (input.TypeId.HasValue) q = q.Where(x => x.TypeId == input.TypeId.Value);
-        return q;
+        var query = await base.CreateFilteredQueryAsync(input);
+        return query
+            .WhereIf(input.TypeId.HasValue, x => x.TypeId == input.TypeId);
     }
+
 }

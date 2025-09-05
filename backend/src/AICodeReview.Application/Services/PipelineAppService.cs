@@ -34,9 +34,10 @@ public class PipelineAppService :
         _projectRepository = projectRepository;
     }
 
-    protected override IQueryable<Pipeline> CreateFilteredQuery(PipelineGetListInput input)
+    protected override async Task<IQueryable<Pipeline>> CreateFilteredQueryAsync(PipelineGetListInput input)
     {
-        return base.CreateFilteredQuery(input)
+        var query = await base.CreateFilteredQueryAsync(input);
+        return query
             .WhereIf(input.ProjectId.HasValue, x => x.ProjectId == input.ProjectId)
             .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!));
     }

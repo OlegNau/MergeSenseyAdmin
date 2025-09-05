@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -27,10 +28,14 @@ public class GroupAppService :
     {
     }
 
-    protected override IQueryable<Group> CreateFilteredQuery(GroupGetListInput input)
+    protected override async Task<IQueryable<Group>> CreateFilteredQueryAsync(GroupGetListInput input)
     {
-        var q = base.CreateFilteredQuery(input);
-        if (!input.Filter.IsNullOrWhiteSpace()) q = q.Where(x => x.Name.Contains(input.Filter!));
-        return q;
+        var query = await base.CreateFilteredQueryAsync(input);
+        if (!string.IsNullOrWhiteSpace(input.Filter))
+        {
+            query = query.Where(x => x.Name.Contains(input.Filter!));
+        }
+        return query;
     }
+
 }

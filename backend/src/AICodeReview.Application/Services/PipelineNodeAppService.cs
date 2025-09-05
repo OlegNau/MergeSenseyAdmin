@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
@@ -13,62 +12,65 @@ using AICodeReview.Permissions;
 using AICodeReview.Nodes;
 using AICodeReview.Nodes.Dtos;
 
-namespace AICodeReview.Services;
-
-[Authorize(AICodeReviewPermissions.Nodes.Default)]
-public class PipelineNodeAppService :
-    CrudAppService<PipelineNode, PipelineNodeDto, Guid, PipelineNodeGetListInput, PipelineNodeCreateDto>,
-    IPipelineNodeAppService
+namespace AICodeReview.Services
 {
-    protected override string GetPolicyName { get; set; } = AICodeReviewPermissions.Nodes.Default;
-    protected override string GetListPolicyName { get; set; } = AICodeReviewPermissions.Nodes.Default;
-    protected override string CreatePolicyName { get; set; } = AICodeReviewPermissions.Nodes.Create;
-    protected override string UpdatePolicyName { get; set; } = AICodeReviewPermissions.Nodes.Update;
-    protected override string DeletePolicyName { get; set; } = AICodeReviewPermissions.Nodes.Delete;
-
-    public PipelineNodeAppService(IRepository<PipelineNode, Guid> repository)
-        : base(repository)
+    [Authorize(AICodeReviewPermissions.Nodes.Default)]
+    public class PipelineNodeAppService :
+        CrudAppService<PipelineNode, PipelineNodeDto, Guid, PipelineNodeGetListInput, PipelineNodeCreateDto>,
+        IPipelineNodeAppService
     {
-    }
+        protected override string GetPolicyName { get; set; } = AICodeReviewPermissions.Nodes.Default;
+        protected override string GetListPolicyName { get; set; } = AICodeReviewPermissions.Nodes.Default;
+        protected override string CreatePolicyName { get; set; } = AICodeReviewPermissions.Nodes.Create;
+        protected override string UpdatePolicyName { get; set; } = AICodeReviewPermissions.Nodes.Update;
+        protected override string DeletePolicyName { get; set; } = AICodeReviewPermissions.Nodes.Delete;
 
-    protected override IQueryable<PipelineNode> CreateFilteredQuery(PipelineNodeGetListInput input)
-    {
-        var q = base.CreateFilteredQuery(input);
-        if (input.PipelineId.HasValue)
+        public PipelineNodeAppService(IRepository<PipelineNode, Guid> repository)
+            : base(repository)
         {
-            q = q.Where(x => x.PipelineId == input.PipelineId.Value);
         }
-        // удобная сортировка по порядку выполнения
-        q = q.OrderBy(nameof(PipelineNode.Order));
-        return q;
-    }
 
-    public virtual async Task<List<PipelineNodeDto>> GetPipelineNodesAsync(Guid pipelineId)
-    {
-        var query = (await Repository.GetQueryableAsync())
-            .Where(x => x.PipelineId == pipelineId)
-            .OrderBy(x => x.Order);
-
-        return await AsyncExecuter.ToListAsync(query.Select(x => new PipelineNodeDto
+        public virtual async Task<List<PipelineNodeDto>> GetPipelineNodesAsync(Guid pipelineId)
         {
-            Id = x.Id,
-            PipelineId = x.PipelineId,
-            NodeId = x.NodeId,
-            Order = x.Order
-        }));
-    }
+            var query = (await Repository.GetQueryableAsync())
+                .Where(x => x.PipelineId == pipelineId)
+                .OrderBy(x => x.Order);
 
-    public virtual async Task ReorderAsync(Guid pipelineId, List<PipelineNodeReorderDto> input)
-    {
-        var nodes = await Repository.GetListAsync(x => x.PipelineId == pipelineId);
-        foreach (var item in input)
-        {
-            var node = nodes.FirstOrDefault(x => x.Id == item.NodeId);
-            if (node != null)
+            return await AsyncExecuter.ToListAsync(query.Select(x => new PipelineNodeDto
             {
-                node.Order = item.Order;
-            }
+                Id = x.Id,
+                PipelineId = x.PipelineId,
+                NodeId = x.NodeId,
+                Order = x.Order
+            }));
         }
-        await Repository.UpdateManyAsync(nodes);
+
+        public virtual async Task ReorderAsync(Guid pipelineId, List<PipelineNodeReorderDto> input)
+        {
+            var nodes = await Repository.GetListAsync(x => x.PipelineId == pipelineId);
+
+            foreach (var item in input)
+            {
+                var node = nodes.FirstOrDefault(x => x.Id == item.NodeId);
+                if (node != null)
+                {
+                    node.Order = item.Order;
+                }
+            }
+
+            await Repository.UpdateManyAsync(nodes);
+        }
+
+        protected override async Task<IQueryable<PipelineNode>> CreateFilteredQueryAsync(PipelineNodeGetListInput input)
+        {
+            var q = await base.CreateFilteredQueryAsync(input);
+
+            if (input.PipelineId.HasValue)
+            {
+                q = q.Where(x => x.PipelineId == input.PipelineId);
+            }
+
+            return q;
+        }
     }
 }

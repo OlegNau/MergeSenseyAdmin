@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -27,18 +28,18 @@ public class AiModelAppService :
     {
     }
 
-    protected override IQueryable<AiModel> CreateFilteredQuery(AiModelGetListInput input)
+    protected override async Task<IQueryable<AiModel>> CreateFilteredQueryAsync(AiModelGetListInput input)
     {
-        var q = base.CreateFilteredQuery(input);
-        if (!input.Filter.IsNullOrWhiteSpace())
+        var query = await base.CreateFilteredQueryAsync(input);
+        if (!string.IsNullOrWhiteSpace(input.Filter))
         {
-            q = q.Where(x => x.Name.Contains(input.Filter!) || x.Model.Contains(input.Filter!));
+            query = query.Where(x => x.Name.Contains(input.Filter!) || x.Model.Contains(input.Filter!));
         }
-        if (!input.Provider.IsNullOrWhiteSpace())
+        if (!string.IsNullOrWhiteSpace(input.Provider))
         {
-            q = q.Where(x => x.Provider == input.Provider);
+            query = query.Where(x => x.Provider == input.Provider);
         }
-        if (input.IsActive.HasValue) q = q.Where(x => x.IsActive == input.IsActive);
-        return q;
+        return input.IsActive.HasValue ? query.Where(x => x.IsActive == input.IsActive) : query;
     }
+
 }
