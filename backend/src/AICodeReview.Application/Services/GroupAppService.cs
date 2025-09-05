@@ -1,6 +1,5 @@
 using System;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -12,10 +11,8 @@ using AICodeReview.Groups.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Groups.Default)]
-[RemoteService]
-[Route("api/app/groups")]
 public class GroupAppService :
-    CrudAppService<Group, GroupDto, Guid, PagedAndSortedResultRequestDto, GroupCreateDto, GroupUpdateDto>,
+    CrudAppService<Group, GroupDto, Guid, GroupGetListInput, GroupCreateDto, GroupUpdateDto>,
     IGroupAppService
 {
     protected override string GetPolicyName { get; set; } = AICodeReviewPermissions.Groups.Default;

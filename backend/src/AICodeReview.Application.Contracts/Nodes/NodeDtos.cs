@@ -29,3 +29,13 @@ public class PipelineNodeCreateDto
     public Guid NodeId { get; set; }
     public int Order { get; set; }
 }
+
+public class NodeGetListInput : PagedAndSortedResultRequestDto
+{
+    public long? TypeId { get; set; }
+}
+
+public class PipelineNodeGetListInput : PagedAndSortedResultRequestDto
+{
+    public Guid? PipelineId { get; set; }
+}

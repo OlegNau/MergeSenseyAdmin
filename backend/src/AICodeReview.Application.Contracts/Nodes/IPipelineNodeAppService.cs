@@ -6,7 +6,7 @@ using Volo.Abp.Application.Services;
 
 namespace AICodeReview.Nodes.Dtos;
 
-public interface IPipelineNodeAppService : ICrudAppService<PipelineNodeDto, Guid, PagedAndSortedResultRequestDto, PipelineNodeCreateDto>
+public interface IPipelineNodeAppService : ICrudAppService<PipelineNodeDto, Guid, PipelineNodeGetListInput, PipelineNodeCreateDto>
 {
     Task<List<PipelineNodeDto>> GetPipelineNodesAsync(Guid pipelineId);
     Task ReorderAsync(Guid pipelineId, List<PipelineNodeReorderDto> input);

@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
-using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -17,10 +15,8 @@ using AICodeReview.Nodes.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Nodes.Default)]
-[RemoteService]
-[Route("api/app/pipeline-nodes")]
 public class PipelineNodeAppService :
-    CrudAppService<PipelineNode, PipelineNodeDto, Guid, PagedAndSortedResultRequestDto, PipelineNodeCreateDto, PipelineNodeCreateDto>,
+    CrudAppService<PipelineNode, PipelineNodeDto, Guid, PipelineNodeGetListInput, PipelineNodeCreateDto>,
     IPipelineNodeAppService
 {
     protected override string GetPolicyName { get; set; } = AICodeReviewPermissions.Nodes.Default;
@@ -34,11 +30,9 @@ public class PipelineNodeAppService :
     {
     }
 
-    [HttpGet("/api/app/pipelines/{pipelineId}/nodes")]
     public virtual async Task<List<PipelineNodeDto>> GetPipelineNodesAsync(Guid pipelineId)
     {
         var query = (await Repository.GetQueryableAsync())
-            .AsNoTracking()
             .Where(x => x.PipelineId == pipelineId)
             .OrderBy(x => x.Order);
 
@@ -51,7 +45,6 @@ public class PipelineNodeAppService :
         }));
     }
 
-    [HttpPost("/api/app/pipelines/{pipelineId}/nodes/reorder")]
     public virtual async Task ReorderAsync(Guid pipelineId, List<PipelineNodeReorderDto> input)
     {
         var nodes = await Repository.GetListAsync(x => x.PipelineId == pipelineId);

@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -14,8 +13,6 @@ using AICodeReview.Triggers.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Triggers.Default)]
-[RemoteService]
-[Route("api/app/triggers")]
 public class TriggerAppService :
     CrudAppService<Trigger, TriggerDto, Guid, TriggerGetListInput, TriggerCreateDto, TriggerUpdateDto>,
     ITriggerAppService

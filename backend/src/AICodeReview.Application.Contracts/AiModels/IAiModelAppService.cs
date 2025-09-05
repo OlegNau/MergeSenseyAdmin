@@ -4,6 +4,6 @@ using Volo.Abp.Application.Services;
 
 namespace AICodeReview.AiModels.Dtos;
 
-public interface IAiModelAppService : ICrudAppService<AiModelDto, Guid, PagedAndSortedResultRequestDto, AiModelCreateDto, AiModelUpdateDto>
+public interface IAiModelAppService : ICrudAppService<AiModelDto, Guid, AiModelGetListInput, AiModelCreateDto, AiModelUpdateDto>
 {
 }

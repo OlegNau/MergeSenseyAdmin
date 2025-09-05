@@ -47,3 +47,14 @@ public class GroupProjectCreateDto
 public class GroupProjectUpdateDto : GroupProjectCreateDto
 {
 }
+
+public class GroupGetListInput : PagedAndSortedResultRequestDto
+{
+    public string? Filter { get; set; }
+}
+
+public class GroupProjectGetListInput : PagedAndSortedResultRequestDto
+{
+    public Guid? GroupId { get; set; }
+    public Guid? ProjectId { get; set; }
+}

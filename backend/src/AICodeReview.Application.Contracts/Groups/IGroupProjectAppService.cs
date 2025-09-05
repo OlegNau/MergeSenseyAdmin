@@ -4,6 +4,6 @@ using Volo.Abp.Application.Services;
 
 namespace AICodeReview.Groups.Dtos;
 
-public interface IGroupProjectAppService : ICrudAppService<GroupProjectDto, Guid, PagedAndSortedResultRequestDto, GroupProjectCreateDto, GroupProjectUpdateDto>
+public interface IGroupProjectAppService : ICrudAppService<GroupProjectDto, Guid, GroupProjectGetListInput, GroupProjectCreateDto, GroupProjectUpdateDto>
 {
 }

@@ -1,13 +1,11 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Linq;
-using Microsoft.EntityFrameworkCore;
 using AICodeReview.Permissions;
 using AICodeReview.Branches;
 using AICodeReview.Branches.Dtos;
@@ -15,8 +13,6 @@ using AICodeReview.Branches.Dtos;
 namespace AICodeReview.Services;
 
 [Authorize(AICodeReviewPermissions.Branches.Default)]
-[RemoteService]
-[Route("api/app/branches")]
 public class BranchAppService :
     CrudAppService<Branch, BranchDto, Guid, BranchGetListInput, BranchCreateDto, BranchUpdateDto>,
     IBranchAppService
@@ -36,6 +32,6 @@ public class BranchAppService :
     {
         return base.CreateFilteredQuery(input)
             .WhereIf(input.RepositoryId.HasValue, x => x.RepositoryId == input.RepositoryId)
-            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => EF.Functions.Like(x.Name, $"%{input.Filter}%"));
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => x.Name.Contains(input.Filter!));
     }
 }
