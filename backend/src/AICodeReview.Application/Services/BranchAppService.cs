@@ -7,6 +7,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Linq;
+using Microsoft.EntityFrameworkCore;
 using AICodeReview.Permissions;
 using AICodeReview.Branches;
 using AICodeReview.Branches.Dtos;
@@ -34,6 +35,7 @@ public class BranchAppService :
     protected override IQueryable<Branch> CreateFilteredQuery(BranchGetListInput input)
     {
         return base.CreateFilteredQuery(input)
-            .WhereIf(input.RepositoryId.HasValue, x => x.RepositoryId == input.RepositoryId);
+            .WhereIf(input.RepositoryId.HasValue, x => x.RepositoryId == input.RepositoryId)
+            .WhereIf(!string.IsNullOrWhiteSpace(input.Filter), x => EF.Functions.Like(x.Name, $"%{input.Filter}%"));
     }
 }

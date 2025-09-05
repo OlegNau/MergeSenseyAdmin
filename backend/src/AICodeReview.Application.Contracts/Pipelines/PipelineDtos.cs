@@ -1,5 +1,7 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using Volo.Abp.Application.Dtos;
+using AICodeReview.Consts;
 
 namespace AICodeReview.Pipelines.Dtos;
 
@@ -18,14 +20,24 @@ public class PipelineDto : EntityDto<Guid>
 public class PipelineCreateDto
 {
     public Guid ProjectId { get; set; }
+    [Required]
+    [StringLength(CicdConsts.Lengths.NameLong)]
     public string Name { get; set; } = default!;
+
+    [Required]
+    [StringLength(CicdConsts.Lengths.PipelineStatus)]
     public string Status { get; set; } = default!;
     public bool IsActive { get; set; } = true;
 }
 
 public class PipelineUpdateDto
 {
+    [Required]
+    [StringLength(CicdConsts.Lengths.NameLong)]
     public string Name { get; set; } = default!;
+
+    [Required]
+    [StringLength(CicdConsts.Lengths.PipelineStatus)]
     public string Status { get; set; } = default!;
     public bool IsActive { get; set; }
 }
@@ -37,4 +49,10 @@ public class PipelineListItemDto : EntityDto<Guid>
     public string Status { get; set; } = default!;
     public string? Trigger { get; set; }
     public DateTime? LastRun { get; set; }
+}
+
+public class PipelineGetListInput : PagedAndSortedResultRequestDto
+{
+    public Guid? ProjectId { get; set; }
+    public string? Filter { get; set; }
 }

@@ -1,5 +1,7 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using Volo.Abp.Application.Dtos;
+using AICodeReview.Consts;
 
 namespace AICodeReview.Groups.Dtos;
 
@@ -12,13 +14,21 @@ public class GroupDto : EntityDto<Guid>
 
 public class GroupCreateDto
 {
+    [Required]
+    [StringLength(CicdConsts.Lengths.NameLong)]
     public string Name { get; set; } = default!;
+
+    [StringLength(CicdConsts.Lengths.Description)]
     public string? Description { get; set; }
 }
 
 public class GroupUpdateDto
 {
+    [Required]
+    [StringLength(CicdConsts.Lengths.NameLong)]
     public string Name { get; set; } = default!;
+
+    [StringLength(CicdConsts.Lengths.Description)]
     public string? Description { get; set; }
 }
 

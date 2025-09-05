@@ -5,7 +5,7 @@ using Volo.Abp.Application.Services;
 
 namespace AICodeReview.Pipelines.Dtos;
 
-public interface IPipelineAppService : ICrudAppService<PipelineDto, Guid, PagedAndSortedResultRequestDto, PipelineCreateDto, PipelineUpdateDto>
+public interface IPipelineAppService : ICrudAppService<PipelineDto, Guid, PipelineGetListInput, PipelineCreateDto, PipelineUpdateDto>
 {
-    Task<PagedResultDto<PipelineListItemDto>> GetAllAsync(PagedAndSortedResultRequestDto input);
+    Task<PagedResultDto<PipelineListItemDto>> GetAllAsync(PipelineGetListInput input);
 }

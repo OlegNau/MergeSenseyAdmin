@@ -1,5 +1,7 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using Volo.Abp.Application.Dtos;
+using AICodeReview.Consts;
 
 namespace AICodeReview.Triggers.Dtos;
 
@@ -17,6 +19,7 @@ public class TriggerCreateDto
     public long TypeId { get; set; }
     public Guid RepositoryId { get; set; }
     public Guid BranchId { get; set; }
+    [StringLength(CicdConsts.Lengths.Description)]
     public string? ScheduleJson { get; set; }
 }
 
@@ -25,6 +28,7 @@ public class TriggerUpdateDto
     public long TypeId { get; set; }
     public Guid RepositoryId { get; set; }
     public Guid BranchId { get; set; }
+    [StringLength(CicdConsts.Lengths.Description)]
     public string? ScheduleJson { get; set; }
 }
 
