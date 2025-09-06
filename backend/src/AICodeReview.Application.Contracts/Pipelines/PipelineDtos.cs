@@ -4,23 +4,15 @@ using Volo.Abp.Application.Dtos;
 
 namespace AICodeReview.Pipelines.Dtos;
 
-
-public class PipelineDto : AuditedEntityDto<Guid>
-{
-    public string Name { get; set; } = default!;
-
-    public string? Description { get; set; }
-}
-
 public class PipelineCreateDto
 {
     public Guid ProjectId { get; set; }
     public string Name { get; set; } = default!;
     public string Status { get; set; } = default!;
     public bool IsActive { get; set; } = true;
-    
+
     public AICodeReview.Triggers.Dtos.TriggerCreateDto? Trigger { get; set; }
-    
+
     public List<PipelineCreateNodeItemDto>? Nodes { get; set; }
 }
 

@@ -15,7 +15,7 @@ public class PipelineConfiguration : IEntityTypeConfiguration<Pipeline>
 
         builder.Property(x => x.Name).IsRequired().HasMaxLength(256);
         builder.Property(x => x.Status).IsRequired().HasMaxLength(32);
-        builder.Property(x => x.IsActive).HasDefaultValue(true);
+        builder.Property(x => x.IsActive).IsRequired().HasDefaultValue(true);
 
         builder.HasIndex(x => x.ProjectId);
         builder.HasIndex(x => new { x.ProjectId, x.Name }).IsUnique();
