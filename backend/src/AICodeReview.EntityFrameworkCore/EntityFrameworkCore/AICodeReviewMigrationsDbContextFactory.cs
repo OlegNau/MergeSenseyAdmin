@@ -1,41 +1,26 @@
-﻿using System.IO;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 
 namespace AICodeReview.EntityFrameworkCore;
 
-public class AICodeReviewMigrationsDbContextFactory
+/// <summary>
+/// Design-time фабрика только для MIGRATIONS DbContext.
+/// Никаких DbContext'ов здесь не объявляем, только фабрика.
+/// </summary>
+public sealed class AICodeReviewMigrationsDbContextFactory
     : IDesignTimeDbContextFactory<AICodeReviewMigrationsDbContext>
 {
     public AICodeReviewMigrationsDbContext CreateDbContext(string[] args)
     {
-        var configuration = BuildConfiguration();
+        var builder = new DbContextOptionsBuilder<AICodeReviewMigrationsDbContext>();
 
-        // Берём ту же строку, что использует DbMigrator
-        var cs = configuration.GetConnectionString("Default")
-                 ?? "localhost;Port=5432;Database=aicodereview;Username=postgres;Password=password;Timezone=UTC";
+        // Берём строку подключения из переменной окружения, иначе дефолт на локальный Postgres
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__Default")
+                               ?? "Host=127.0.0.1;Port=5432;Database=aicodereview;Username=postgres;Password=password";
 
-        var builder = new DbContextOptionsBuilder<AICodeReviewMigrationsDbContext>()
-            .UseNpgsql(cs, o =>
-            {
-                // опционально: история миграций в public
-                o.MigrationsHistoryTable("__EFMigrationsHistory", "public");
-            });
+        builder.UseNpgsql(connectionString);
 
         return new AICodeReviewMigrationsDbContext(builder.Options);
-    }
-
-    private static IConfigurationRoot BuildConfiguration()
-    {
-        // Базовый путь — на проект DbMigrator (чтобы считывать его appsettings)
-        var basePath = Path.Combine(Directory.GetCurrentDirectory(), "../AICodeReview.DbMigrator");
-
-        return new ConfigurationBuilder()
-            .SetBasePath(basePath)
-            .AddJsonFile("appsettings.json", optional: false)
-            .AddJsonFile("appsettings.Development.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
     }
 }

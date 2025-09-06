@@ -1,41 +1,35 @@
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Serilog;
-using Serilog.Events;
+using Volo.Abp;
+using Volo.Abp.Autofac;
 
 namespace AICodeReview.DbMigrator;
 
-class Program
+public class Program
 {
-    static async Task Main(string[] args)
+    public static async Task Main(string[] args)
     {
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Information()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-            .MinimumLevel.Override("Volo.Abp", LogEventLevel.Warning)
-#if DEBUG
-                .MinimumLevel.Override("AICodeReview", LogEventLevel.Debug)
-#else
-                .MinimumLevel.Override("AICodeReview", LogEventLevel.Information)
-#endif
-                .Enrich.FromLogContext()
-            .WriteTo.Async(c => c.File("Logs/logs.txt"))
-            .WriteTo.Async(c => c.Console())
-            .CreateLogger();
+        var host = Host.CreateDefaultBuilder(args)
+            .ConfigureLogging(l => l.AddSimpleConsole())
+            .Build();
 
-        await CreateHostBuilder(args).RunConsoleAsync();
+        var configuration = host.Services.GetRequiredService<IConfiguration>();
+
+        using var app = await AbpApplicationFactory.CreateAsync<AICodeReviewDbMigratorModule>(options =>
+        {
+            options.UseAutofac();
+            options.Services.ReplaceConfiguration(configuration); // важно
+            options.Services.AddLogging(c => c.AddSimpleConsole());
+        });
+
+        await app.InitializeAsync();
+
+        var migrator = app.ServiceProvider.GetRequiredService<AICodeReview.Data.AICodeReviewDbMigrationService>();
+        await migrator.MigrateAsync();
+
+        await app.ShutdownAsync();
     }
-
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .AddAppSettingsSecretsJson()
-            .ConfigureLogging((context, logging) => logging.ClearProviders())
-            .ConfigureServices((hostContext, services) =>
-            {
-                services.AddHostedService<DbMigratorHostedService>();
-            });
 }

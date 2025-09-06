@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Security.Encryption;
 using AICodeReview.EntityFrameworkCore.Configurations;
+using AICodeReview.EntityFrameworkCore.Design;
 
 namespace AICodeReview.EntityFrameworkCore;
 
@@ -19,10 +21,18 @@ public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigratio
     public AICodeReviewMigrationsDbContext(DbContextOptions<AICodeReviewMigrationsDbContext> options)
         : base(options)
     {
-        // В design-time LazyServiceProvider = null, поэтому защищаемся
-        if (LazyServiceProvider != null)
+        // Design-time безопасная инициализация шифратора EF (нужен для value-converters)
+        try
         {
-            EfEncryption.Service ??= LazyServiceProvider.LazyGetService<IStringEncryptionService>();
+            if (EfEncryption.Service == null)
+            {
+                EfEncryption.Service = LazyServiceProvider?.LazyGetService<IStringEncryptionService>()
+                                       ?? new NoopStringEncryptionService();
+            }
+        }
+        catch
+        {
+            EfEncryption.Service ??= new NoopStringEncryptionService();
         }
     }
 
@@ -30,7 +40,7 @@ public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigratio
     {
         base.OnModelCreating(builder);
 
-        // ABP модули
+        // ABP-модули
         builder.ConfigurePermissionManagement();
         builder.ConfigureSettingManagement();
         builder.ConfigureBackgroundJobs();
@@ -40,7 +50,7 @@ public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigratio
         builder.ConfigureFeatureManagement();
         builder.ConfigureTenantManagement();
 
-        // ВАШИ сущности (важно для миграций)
+        // Ваши прикладные сущности (таблицы App*)
         builder.ApplyConfiguration(new AiModelConfiguration());
         builder.ApplyConfiguration(new ProjectConfiguration());
         builder.ApplyConfiguration(new RepositoryConfiguration());

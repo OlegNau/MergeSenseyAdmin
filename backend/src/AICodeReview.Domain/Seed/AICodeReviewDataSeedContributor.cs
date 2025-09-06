@@ -19,13 +19,14 @@ namespace AICodeReview.Seed;
 
 public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientDependency
 {
-    // ВНИМАНИЕ: TriggerType и NodeType сидируются через EF .HasData() — здесь их не трогаем.
     private readonly IRepository<Project, Guid> _projectRepository;
     private readonly IRepository<Repository, Guid> _repositoryRepository;
     private readonly IRepository<Branch, Guid> _branchRepository;
     private readonly IRepository<Trigger, Guid> _triggerRepository;
+    private readonly IRepository<TriggerType, long> _triggerTypeRepository;
     private readonly IRepository<Pipeline, Guid> _pipelineRepository;
     private readonly IRepository<Node, Guid> _nodeRepository;
+    private readonly IRepository<NodeType, long> _nodeTypeRepository;
     private readonly IRepository<PipelineNode, Guid> _pipelineNodeRepository;
     private readonly IRepository<Group, Guid> _groupRepository;
     private readonly IRepository<GroupProject, Guid> _groupProjectRepository;
@@ -36,8 +37,10 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
         IRepository<Repository, Guid> repositoryRepository,
         IRepository<Branch, Guid> branchRepository,
         IRepository<Trigger, Guid> triggerRepository,
+        IRepository<TriggerType, long> triggerTypeRepository,
         IRepository<Pipeline, Guid> pipelineRepository,
         IRepository<Node, Guid> nodeRepository,
+        IRepository<NodeType, long> nodeTypeRepository,
         IRepository<PipelineNode, Guid> pipelineNodeRepository,
         IRepository<Group, Guid> groupRepository,
         IRepository<GroupProject, Guid> groupProjectRepository,
@@ -47,8 +50,10 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
         _repositoryRepository = repositoryRepository;
         _branchRepository = branchRepository;
         _triggerRepository = triggerRepository;
+        _triggerTypeRepository = triggerTypeRepository;
         _pipelineRepository = pipelineRepository;
         _nodeRepository = nodeRepository;
+        _nodeTypeRepository = nodeTypeRepository;
         _pipelineNodeRepository = pipelineNodeRepository;
         _groupRepository = groupRepository;
         _groupProjectRepository = groupProjectRepository;
@@ -58,213 +63,166 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
     [UnitOfWork]
     public async Task SeedAsync(DataSeedContext context)
     {
-        // TriggerType & NodeType — уже вставлены миграцией (HasData).
-        await SeedProjectsAsync();
-        await SeedGroupsAsync();
-        await SeedAiModelAsync();
-    }
+        // 1) Базовые справочники (если их нет — создаём)
+        await EnsureTriggerTypesAsync();
+        await EnsureNodeTypesAsync();
 
-    private async Task SeedProjectsAsync()
-    {
+        // 2) Если уже есть проекты — сидить ничего не будем
         if (await _projectRepository.GetCountAsync() > 0)
-        {
             return;
-        }
 
-        var now = DateTime.UtcNow;
-
-        // Project 1
-        var project1 = await _projectRepository.InsertAsync(new Project
+        // 3) Демонстрационный проект
+        var project = await _projectRepository.InsertAsync(new Project
         {
-            Name = "Sample Project",
-            Description = "Demo project for CI/CD",
+            Name = "Demo Project",
             Provider = "GitHub",
-            RepoPath = "sample/project",
+            RepoPath = "example/sample-repo",
             DefaultBranch = "main",
             IsActive = true
         }, autoSave: true);
 
-        var repo1 = await _repositoryRepository.InsertAsync(new Repository
+        // 4) Репозиторий проекта
+        var repo = await _repositoryRepository.InsertAsync(new Repository
         {
-            ProjectId = project1.Id,
+            ProjectId = project.Id,
             Name = "sample-repo",
             Url = "https://github.com/example/sample-repo.git",
             IsActive = true
         }, autoSave: true);
 
-        var repo1Main = await _branchRepository.InsertAsync(new Branch
+        // 5) Ветки
+        var mainBranch = await _branchRepository.InsertAsync(new Branch
         {
-            RepositoryId = repo1.Id,
+            RepositoryId = repo.Id,
             Name = "main",
-            IsDefault = true
+            IsDefault = true,
+            LastCommitSha = null
         }, autoSave: true);
 
-        var repo1Dev = await _branchRepository.InsertAsync(new Branch
+        var devBranch = await _branchRepository.InsertAsync(new Branch
         {
-            RepositoryId = repo1.Id,
+            RepositoryId = repo.Id,
             Name = "dev",
-            IsDefault = false
+            IsDefault = false,
+            LastCommitSha = null
         }, autoSave: true);
 
-        await _triggerRepository.InsertAsync(new Trigger
-        {
-            RepositoryId = repo1.Id,
-            BranchId = repo1Main.Id,
-            TypeId = 2 // push (сидируется миграцией)
-        }, autoSave: true);
+        // 6) Триггеры
+        var manualType = await _triggerTypeRepository.FirstOrDefaultAsync(t => t.Name == "Manual");
+        var scheduleType = await _triggerTypeRepository.FirstOrDefaultAsync(t => t.Name == "Schedule");
 
-        var pipeline1 = await _pipelineRepository.InsertAsync(new Pipeline
+        if (manualType != null)
         {
-            ProjectId = project1.Id,
-            Name = "CI",
-            Status = "Succeeded",
-            StartedAt = now.AddDays(-2),
-            FinishedAt = now.AddDays(-2).AddMinutes(5),
-            DurationSeconds = 300,
+            await _triggerRepository.InsertAsync(new Trigger
+            {
+                RepositoryId = repo.Id,
+                BranchId = mainBranch.Id,
+                TypeId = manualType.Id,
+                ScheduleJson = null
+            }, autoSave: true);
+        }
+
+        if (scheduleType != null)
+        {
+            await _triggerRepository.InsertAsync(new Trigger
+            {
+                RepositoryId = repo.Id,
+                BranchId = devBranch.Id,
+                TypeId = scheduleType.Id,
+                ScheduleJson = """{ "cron": "0 9 * * *" }"""
+            }, autoSave: true);
+        }
+
+        // 7) Пайплайн и этапы
+        var pipeline = await _pipelineRepository.InsertAsync(new Pipeline
+        {
+            ProjectId = project.Id,
+            Name = "Default CI",
+            Status = "Idle",
             IsActive = true
         }, autoSave: true);
 
-        var pipeline2 = await _pipelineRepository.InsertAsync(new Pipeline
+        var checkoutType = await _nodeTypeRepository.FirstOrDefaultAsync(x => x.Name == "Checkout");
+        var testType = await _nodeTypeRepository.FirstOrDefaultAsync(x => x.Name == "Test");
+        var deployType = await _nodeTypeRepository.FirstOrDefaultAsync(x => x.Name == "Deploy");
+
+        var checkoutNode = checkoutType != null
+            ? await _nodeRepository.InsertAsync(new Node { TypeId = checkoutType.Id }, autoSave: true)
+            : null;
+
+        var testNode = testType != null
+            ? await _nodeRepository.InsertAsync(new Node { TypeId = testType.Id }, autoSave: true)
+            : null;
+
+        var deployNode = deployType != null
+            ? await _nodeRepository.InsertAsync(new Node { TypeId = deployType.Id }, autoSave: true)
+            : null;
+
+        var order = 1;
+        if (checkoutNode != null)
+            await _pipelineNodeRepository.InsertAsync(new PipelineNode { PipelineId = pipeline.Id, NodeId = checkoutNode.Id, Order = order++ }, autoSave: true);
+        if (testNode != null)
+            await _pipelineNodeRepository.InsertAsync(new PipelineNode { PipelineId = pipeline.Id, NodeId = testNode.Id, Order = order++ }, autoSave: true);
+        if (deployNode != null)
+            await _pipelineNodeRepository.InsertAsync(new PipelineNode { PipelineId = pipeline.Id, NodeId = deployNode.Id, Order = order++ }, autoSave: true);
+
+        // 8) Группа и привязка к проекту
+        var group = await _groupRepository.InsertAsync(new Group
         {
-            ProjectId = project1.Id,
-            Name = "Deploy",
-            Status = "Running",
-            StartedAt = now.AddDays(-1)
+            Name = "Default Group",
+            Description = "Demo group"
         }, autoSave: true);
 
-        var node1 = await _nodeRepository.InsertAsync(new Node { TypeId = 1 }, autoSave: true); // lint
-        var node2 = await _nodeRepository.InsertAsync(new Node { TypeId = 2 }, autoSave: true); // test
-        var node3 = await _nodeRepository.InsertAsync(new Node { TypeId = 3 }, autoSave: true); // build
-        var node4 = await _nodeRepository.InsertAsync(new Node { TypeId = 4 }, autoSave: true); // deploy
-
-        await _pipelineNodeRepository.InsertManyAsync(new List<PipelineNode>
+        await _groupProjectRepository.InsertAsync(new GroupProject
         {
-            new PipelineNode { PipelineId = pipeline1.Id, NodeId = node1.Id, Order = 1 },
-            new PipelineNode { PipelineId = pipeline1.Id, NodeId = node2.Id, Order = 2 },
-            new PipelineNode { PipelineId = pipeline1.Id, NodeId = node3.Id, Order = 3 },
-            new PipelineNode { PipelineId = pipeline2.Id, NodeId = node3.Id, Order = 1 },
-            new PipelineNode { PipelineId = pipeline2.Id, NodeId = node4.Id, Order = 2 }
+            GroupId = group.Id,
+            ProjectId = project.Id
         }, autoSave: true);
 
-        // Project 2
-        var project2 = await _projectRepository.InsertAsync(new Project
-        {
-            Name = "Backend Api",
-            Description = "Backend service",
-            Provider = "GitLab",
-            RepoPath = "company/backend",
-            DefaultBranch = "main",
-            IsActive = true
-        }, autoSave: true);
-
-        var repo2 = await _repositoryRepository.InsertAsync(new Repository
-        {
-            ProjectId = project2.Id,
-            Name = "backend-repo",
-            Url = "https://gitlab.com/company/backend.git",
-            IsActive = true
-        }, autoSave: true);
-
-        var repo2Main = await _branchRepository.InsertAsync(new Branch
-        {
-            RepositoryId = repo2.Id,
-            Name = "main",
-            IsDefault = true
-        }, autoSave: true);
-
-        var repo2Dev = await _branchRepository.InsertAsync(new Branch
-        {
-            RepositoryId = repo2.Id,
-            Name = "dev",
-            IsDefault = false
-        }, autoSave: true);
-
-        await _triggerRepository.InsertAsync(new Trigger
-        {
-            RepositoryId = repo2.Id,
-            BranchId = repo2Main.Id,
-            TypeId = 2 // push
-        }, autoSave: true);
-
-        var pipeline3 = await _pipelineRepository.InsertAsync(new Pipeline
-        {
-            ProjectId = project2.Id,
-            Name = "CI",
-            Status = "Failed",
-            StartedAt = now.AddDays(-3),
-            FinishedAt = now.AddDays(-3).AddMinutes(7),
-            DurationSeconds = 420,
-            IsActive = true
-        }, autoSave: true);
-
-        var node5 = await _nodeRepository.InsertAsync(new Node { TypeId = 1 }, autoSave: true); // lint
-        var node6 = await _nodeRepository.InsertAsync(new Node { TypeId = 2 }, autoSave: true); // test
-        var node7 = await _nodeRepository.InsertAsync(new Node { TypeId = 3 }, autoSave: true); // build
-
-        await _pipelineNodeRepository.InsertManyAsync(new List<PipelineNode>
-        {
-            new PipelineNode { PipelineId = pipeline3.Id, NodeId = node5.Id, Order = 1 },
-            new PipelineNode { PipelineId = pipeline3.Id, NodeId = node6.Id, Order = 2 },
-            new PipelineNode { PipelineId = pipeline3.Id, NodeId = node7.Id, Order = 3 }
-        }, autoSave: true);
-    }
-
-    private async Task SeedGroupsAsync()
-    {
-        if (await _groupRepository.GetCountAsync() > 0)
-        {
-            return;
-        }
-
-        var projects = await _projectRepository.GetListAsync();
-        if (projects.Count == 0)
-        {
-            return;
-        }
-
-        var firstProjectId = projects.First().Id;
-        var lastProjectId  = projects.Last().Id;
-
-        var group1 = await _groupRepository.InsertAsync(new Group
-        {
-            Name = "Core Team",
-            Description = "Main development team"
-        }, autoSave: true);
-
-        var group2 = await _groupRepository.InsertAsync(new Group
-        {
-            Name = "Services",
-            Description = "Service group"
-        }, autoSave: true);
-
-        var links = new List<GroupProject>
-        {
-            new GroupProject { GroupId = group1.Id, ProjectId = firstProjectId }
-        };
-
-        if (projects.Count > 1)
-        {
-            links.Add(new GroupProject { GroupId = group2.Id, ProjectId = lastProjectId });
-        }
-
-        await _groupProjectRepository.InsertManyAsync(links, autoSave: true);
-    }
-
-    private async Task SeedAiModelAsync()
-    {
-        if (await _aiModelRepository.GetCountAsync() > 0)
-        {
-            return;
-        }
-
+        // 9) AI-модель (пустой ключ, по умолчанию не активна)
         await _aiModelRepository.InsertAsync(new AiModel
         {
-            Name = "Default Model",
+            Name = "OpenAI GPT-4o-mini",
             Provider = "OpenAI",
-            Model = "gpt-4",
-            ApiBaseUrl = "https://api.openai.com/v1",
-            ApiKey = "demo",
-            IsActive = true
+            Model = "gpt-4o-mini",
+            ApiBaseUrl = null,
+            ApiKey = null,
+            IsActive = false
         }, autoSave: true);
     }
+
+    private async Task EnsureTriggerTypesAsync()
+    {
+        if (await _triggerTypeRepository.GetCountAsync() > 0)
+            return;
+
+        var items = new[]
+        {
+            new TriggerType { Name = "Manual" },
+            new TriggerType { Name = "Schedule" },
+            new TriggerType { Name = "Push" },
+            new TriggerType { Name = "PullRequest" }
+        };
+
+        foreach (var t in items)
+            await _triggerTypeRepository.InsertAsync(t, autoSave: true);
+    }
+
+    private async Task EnsureNodeTypesAsync()
+    {
+        if (await _nodeTypeRepository.GetCountAsync() > 0)
+            return;
+
+        var items = new[]
+        {
+            new NodeType { Name = "Checkout" },
+            new NodeType { Name = "Build" },
+            new NodeType { Name = "Test" },
+            new NodeType { Name = "Deploy" }
+        };
+
+        foreach (var n in items)
+            await _nodeTypeRepository.InsertAsync(n, autoSave: true);
+    }
 }
+
