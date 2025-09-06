@@ -6,14 +6,12 @@ using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
-using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
 using AICodeReview.Permissions;
 using AICodeReview.Projects;
 using AICodeReview.Projects.Dtos;
 using AICodeReview.Pipelines;
 using AICodeReview.Pipelines.Dtos;
-using AICodeReview.Application.Mapping;
 
 namespace AICodeReview.Services;
 
@@ -22,14 +20,14 @@ public class ProjectAppService :
     CrudAppService<Project, ProjectDto, Guid, ProjectGetListInput, ProjectCreateDto, ProjectUpdateDto>,
     IProjectAppService
 {
-    protected override string GetPolicyName { get; set; } = AICodeReviewPermissions.Projects.Default;
-    protected override string GetListPolicyName { get; set; } = AICodeReviewPermissions.Projects.Default;
-    protected override string CreatePolicyName { get; set; } = AICodeReviewPermissions.Projects.Create;
-    protected override string UpdatePolicyName { get; set; } = AICodeReviewPermissions.Projects.Update;
-    protected override string DeletePolicyName { get; set; } = AICodeReviewPermissions.Projects.Delete;
+    protected override string GetPolicyName       { get; set; } = AICodeReviewPermissions.Projects.Default;
+    protected override string GetListPolicyName   { get; set; } = AICodeReviewPermissions.Projects.Default;
+    protected override string CreatePolicyName    { get; set; } = AICodeReviewPermissions.Projects.Create;
+    protected override string UpdatePolicyName    { get; set; } = AICodeReviewPermissions.Projects.Update;
+    protected override string DeletePolicyName    { get; set; } = AICodeReviewPermissions.Projects.Delete;
 
     private readonly IRepository<Pipeline, Guid> _pipelineRepository;
-    private readonly IRepository<Project, Guid> _projectRepository;
+    private readonly IRepository<Project, Guid>  _projectRepository;
 
     public ProjectAppService(
         IRepository<Project, Guid> repository,
@@ -37,36 +35,60 @@ public class ProjectAppService :
         : base(repository)
     {
         _pipelineRepository = pipelineRepository;
-        _projectRepository = repository;
+        _projectRepository  = repository;
     }
 
     protected override async Task<IQueryable<Project>> CreateFilteredQueryAsync(ProjectGetListInput input)
     {
         var query = await base.CreateFilteredQueryAsync(input);
+
         if (!string.IsNullOrWhiteSpace(input.Filter))
         {
-            query = query.Where(x => x.Name.Contains(input.Filter!) || x.RepoPath.Contains(input.Filter!));
+            var f = input.Filter!;
+            query = query.Where(x => x.Name.Contains(f) || x.RepoPath.Contains(f));
         }
+
         if (!string.IsNullOrWhiteSpace(input.Provider))
         {
             query = query.Where(x => x.Provider == input.Provider);
         }
+
         if (input.IsActive.HasValue)
         {
+            // Если у Project нет поля IsActive — убери этот блок.
             query = query.Where(x => x.IsActive == input.IsActive);
         }
+
         return query;
     }
 
-    public new virtual async Task<PagedResultDto<ProjectSummaryDto>> GetListAsync(ProjectGetListInput input)
+    // Отдельный метод для сводки, чтобы не конфликтовать с Crud GetListAsync.
+    public virtual async Task<PagedResultDto<ProjectSummaryDto>> GetSummariesAsync(ProjectGetListInput input)
     {
-        var query = await CreateFilteredQueryAsync(input);
-        var totalCount = await AsyncExecuter.CountAsync(query);
-        query = ApplySorting(query, input);
-        query = query.Skip(input.SkipCount).Take(input.MaxResultCount);
+        var baseQuery   = await CreateFilteredQueryAsync(input);
+        var totalCount  = await AsyncExecuter.CountAsync(baseQuery);
 
-        var items = await AsyncExecuter.ToListAsync(
-            query.Select(CicdProfiles.ProjectToSummaryWithNavigation));
+        baseQuery = ApplySorting(baseQuery, input)
+                    .Skip(input.SkipCount)
+                    .Take(input.MaxResultCount);
+
+        var pipelines = await _pipelineRepository.GetQueryableAsync();
+
+        // Строго типизированная проекция в IQueryable<ProjectSummaryDto> без Select(...IQueryable...)
+        var itemsQuery =
+            from pr in baseQuery
+            select new ProjectSummaryDto
+            {
+                Id                    = pr.Id,
+                Name                  = pr.Name,
+                Provider              = pr.Provider,
+                RepoPath              = pr.RepoPath,
+                IsActive              = pr.IsActive, // убери, если поля нет в сущности
+                TotalPipelinesCount   = pipelines.Count(pl => pl.ProjectId == pr.Id),
+                ActivePipelinesCount  = pipelines.Count(pl => pl.ProjectId == pr.Id && pl.IsActive)
+            };
+
+        var items = await AsyncExecuter.ToListAsync(itemsQuery);
 
         return new PagedResultDto<ProjectSummaryDto>(totalCount, items);
     }
@@ -76,19 +98,20 @@ public class ProjectAppService :
     public virtual async Task<List<PipelineListItemDto>> GetPipelinesAsync(Guid id)
     {
         var pipelineQuery = await _pipelineRepository.GetQueryableAsync();
-        var projectQuery = await _projectRepository.GetQueryableAsync();
+        var projectQuery  = await _projectRepository.GetQueryableAsync();
 
-        var query = from pl in pipelineQuery.Where(x => x.ProjectId == id)
-                    join pr in projectQuery on pl.ProjectId equals pr.Id
-                    orderby pl.CreationTime descending
-                    select new PipelineListItemDto
-                    {
-                        Id = pl.Id,
-                        Name = pl.Name,
-                        ProjectName = pr.Name,
-                        Status = pl.Status,
-                        LastRun = pl.FinishedAt ?? pl.StartedAt
-                    };
+        var query =
+            from pl in pipelineQuery.Where(x => x.ProjectId == id)
+            join pr in projectQuery on pl.ProjectId equals pr.Id
+            orderby pl.CreationTime descending
+            select new PipelineListItemDto
+            {
+                Id         = pl.Id,
+                Name       = pl.Name,
+                ProjectName= pr.Name,
+                Status     = pl.Status,
+                LastRun    = pl.FinishedAt ?? pl.StartedAt
+            };
 
         return await AsyncExecuter.ToListAsync(query);
     }

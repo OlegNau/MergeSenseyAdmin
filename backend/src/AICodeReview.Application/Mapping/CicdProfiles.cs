@@ -1,29 +1,32 @@
 using System;
 using System.Linq;
-using System.Linq.Expressions;
 using AutoMapper;
-using Volo.Abp.Application.Dtos;
+using Volo.Abp.AutoMapper;
 using Volo.Abp.Data;
 
-// Domain entities
-using AICodeReview.AiModels;
-using AICodeReview.Branches;
-using AICodeReview.Groups;
-using AICodeReview.Nodes;
-using AICodeReview.Pipelines;
 using AICodeReview.Projects;
-using AICodeReview.Repositories;
-using AICodeReview.Triggers;
-
-// DTOs
-using AICodeReview.AiModels.Dtos;
-using AICodeReview.Branches.Dtos;
-using AICodeReview.Groups.Dtos;
-using AICodeReview.Nodes.Dtos;
-using AICodeReview.Pipelines.Dtos;
 using AICodeReview.Projects.Dtos;
+
+using AICodeReview.Repositories;
 using AICodeReview.Repositories.Dtos;
+
+using AICodeReview.Branches;
+using AICodeReview.Branches.Dtos;
+
+using AICodeReview.Triggers;
 using AICodeReview.Triggers.Dtos;
+
+using AICodeReview.Pipelines;
+using AICodeReview.Pipelines.Dtos;
+
+using AICodeReview.Nodes;
+using AICodeReview.Nodes.Dtos;
+
+using AICodeReview.Groups;
+using AICodeReview.Groups.Dtos;
+
+using AICodeReview.AiModels;
+using AICodeReview.AiModels.Dtos;
 
 namespace AICodeReview.Application.Mapping;
 
@@ -31,93 +34,171 @@ public class CicdProfiles : Profile
 {
     public CicdProfiles()
     {
+        // ===== Projects =====
         CreateMap<Project, ProjectDto>();
-        CreateMap<ProjectCreateDto, Project>()
-            .ForMember(d => d.Id, o => o.Ignore());
-        CreateMap<ProjectUpdateDto, Project>()
-            .ForMember(d => d.Id, o => o.Ignore());
 
-        // Счётчики пайплайнов считаются в ProjectAppService.GetSummaryAsync
+        // Сводка: счётчики считаются в ProjectAppService.GetSummaryAsync
         CreateMap<Project, ProjectSummaryDto>()
-            .ForMember(d => d.TotalPipelinesCount,  opt => opt.Ignore())
-            .ForMember(d => d.ActivePipelinesCount, opt => opt.Ignore());
+            .ForMember(d => d.TotalPipelinesCount,  o => o.Ignore())
+            .ForMember(d => d.ActivePipelinesCount, o => o.Ignore());
 
+        CreateMap<ProjectCreateDto, Project>()
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.Pipelines,        o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
+
+        CreateMap<ProjectUpdateDto, Project>()
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.Pipelines,        o => o.Ignore())
+            .ForMember(d => d.Provider,         o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
+
+        // ===== Repositories =====
         CreateMap<Repository, RepositoryDto>();
+
         CreateMap<RepositoryCreateDto, Repository>()
-            .ForMember(d => d.Id, o => o.Ignore());
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.Project,          o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
+
         CreateMap<RepositoryUpdateDto, Repository>()
-            .ForMember(d => d.Id, o => o.Ignore());
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.Project,          o => o.Ignore())
+            .ForMember(d => d.ProjectId,        o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
 
+        // ===== Branches =====
         CreateMap<Branch, BranchDto>();
+
         CreateMap<BranchCreateDto, Branch>()
-            .ForMember(d => d.Id, o => o.Ignore());
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.Repository,       o => o.Ignore())
+            .ForMember(d => d.LastCommitSha,    o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
+
         CreateMap<BranchUpdateDto, Branch>()
-            .ForMember(d => d.Id, o => o.Ignore());
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.Repository,       o => o.Ignore())
+            .ForMember(d => d.RepositoryId,     o => o.Ignore())
+            .ForMember(d => d.LastCommitSha,    o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
 
+        // ===== Triggers =====
         CreateMap<Trigger, TriggerDto>();
+
         CreateMap<TriggerCreateDto, Trigger>()
-            .ForMember(d => d.Id, o => o.Ignore());
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.Repository,       o => o.Ignore())
+            .ForMember(d => d.Branch,           o => o.Ignore())
+            .ForMember(d => d.Type,             o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
 
-        CreateMap<PipelineCreateDto, Pipeline>()
-            .ForMember(d => d.Id, o => o.Ignore())
-            .ForMember(d => d.StartedAt, o => o.Ignore())
-            .ForMember(d => d.FinishedAt, o => o.Ignore())
-            .ForMember(d => d.DurationSeconds, o => o.Ignore());
-
+        // ===== Pipelines =====
         CreateMap<Pipeline, PipelineListItemDto>()
             .ForMember(d => d.ProjectName, o => o.Ignore())
             .ForMember(d => d.Trigger,     o => o.Ignore())
             .ForMember(d => d.LastRun,     o => o.MapFrom(s => s.FinishedAt ?? s.StartedAt));
 
+        CreateMap<PipelineCreateDto, Pipeline>()
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.Project,          o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.StartedAt,        o => o.Ignore())
+            .ForMember(d => d.FinishedAt,       o => o.Ignore())
+            .ForMember(d => d.DurationSeconds,  o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
+
+        // ===== Nodes =====
         CreateMap<Node, NodeDto>();
 
         CreateMap<NodeCreateDto, Node>()
-            .ForMember(d => d.Id, o => o.Ignore())
-            .ForMember(d => d.ExtraProperties, o => o.MapFrom(s =>
-                s.ExtraProperties == null
-                    ? new ExtraPropertyDictionary()
-                    : new ExtraPropertyDictionary(s.ExtraProperties)));
+                .IgnoreFullAuditedObjectProperties()
+                .ForMember(d => d.Id, o => o.Ignore())
+                .ForMember(d => d.TenantId,          o => o.Ignore())
+                .ForMember(d => d.ConcurrencyStamp,  o => o.Ignore()) // <-- новый игнор
+                .ForMember(d => d.Type,              o => o.Ignore()) // <-- новый игнор (навигация)
+                .ForMember(d => d.ExtraProperties,   o => o.MapFrom(s =>
+                    s.ExtraProperties == null 
+                        ? new ExtraPropertyDictionary()
+                        : new ExtraPropertyDictionary(s.ExtraProperties)));
 
         CreateMap<PipelineNode, PipelineNodeDto>();
+
         CreateMap<PipelineNodeCreateDto, PipelineNode>()
-            .ForMember(d => d.Id, o => o.Ignore());
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.Pipeline,         o => o.Ignore())
+            .ForMember(d => d.Node,             o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
 
+        // ===== Groups =====
         CreateMap<Group, GroupDto>();
+
         CreateMap<GroupCreateDto, Group>()
-            .ForMember(d => d.Id, o => o.Ignore());
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
+
         CreateMap<GroupUpdateDto, Group>()
-            .ForMember(d => d.Id, o => o.Ignore());
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
 
-        CreateMap<GroupProject, GroupProjectDto>();
-
+        // ===== AI Models =====
         CreateMap<AiModel, AiModelDto>();
+
         CreateMap<AiModelCreateDto, AiModel>()
-            .ForMember(d => d.Id, o => o.Ignore());
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
+
         CreateMap<AiModelUpdateDto, AiModel>()
-            .ForMember(d => d.Id, o => o.Ignore());
+            .IgnoreFullAuditedObjectProperties()
+            .ForMember(d => d.Id,               o => o.Ignore())
+            .ForMember(d => d.TenantId,         o => o.Ignore())
+            .ForMember(d => d.ConcurrencyStamp, o => o.Ignore())
+            .ForMember(d => d.ExtraProperties,  o => o.Ignore());
     }
 
-    public static Expression<Func<Project, ProjectSummaryDto>> ProjectToSummaryWithNavigation =>
-        p => new ProjectSummaryDto
+    // === Статический helper, на который ссылается ProjectAppService ===
+    public static IQueryable<ProjectSummaryDto> ProjectToSummaryWithNavigation(IQueryable<Project> query)
+        => query.Select(p => new ProjectSummaryDto
         {
             Id = p.Id,
             Name = p.Name,
-            Provider = p.Provider,
-            RepoPath = p.RepoPath,
-            DefaultBranch = p.DefaultBranch,
-            ActivePipelinesCount = p.Pipelines.Count(x => x.IsActive),
-            TotalPipelinesCount  = p.Pipelines.Count()
-        };
-
-    public static Expression<Func<Project, ProjectSummaryDto>> ProjectToSummary =>
-        p => new ProjectSummaryDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Provider = p.Provider,
-            RepoPath = p.RepoPath,
-            DefaultBranch = p.DefaultBranch,
-            ActivePipelinesCount = 0,
-            TotalPipelinesCount  = 0
-        };
+            // Счётчики задаются позже в сервисе
+            TotalPipelinesCount  = 0,
+            ActivePipelinesCount = 0
+        });
 }

@@ -66,19 +66,20 @@ public class ProjectUpdateDto
     public string? GitAccessToken { get; set; }
 }
 
+
 public class ProjectSummaryDto : EntityDto<Guid>
 {
     public string Name { get; set; } = default!;
-    public string Provider { get; set; } = default!;
     public string RepoPath { get; set; } = default!;
-    public string DefaultBranch { get; set; } = default!;
-    public int ActivePipelinesCount { get; set; }
+    public string Provider { get; set; } = default!;
+    public bool IsActive { get; set; }                 // <- добавили
     public int TotalPipelinesCount { get; set; }
+    public int ActivePipelinesCount { get; set; }
 }
 
 public class ProjectGetListInput : PagedAndSortedResultRequestDto
 {
     public string? Filter { get; set; }
     public string? Provider { get; set; }
-    public bool? IsActive { get; set; }
+    public bool? IsActive { get; set; }   
 }

@@ -33,6 +33,10 @@ using AICodeReview.Projects;
 using AICodeReview.Repositories;
 using AICodeReview.Triggers;
 using AICodeReview.EntityFrameworkCore.Configurations;
+using Volo.Abp.OpenIddict.Applications;
+using Volo.Abp.OpenIddict.Authorizations;
+using Volo.Abp.OpenIddict.Scopes;
+using Volo.Abp.OpenIddict.Tokens;
 
 namespace AICodeReview.EntityFrameworkCore;
 

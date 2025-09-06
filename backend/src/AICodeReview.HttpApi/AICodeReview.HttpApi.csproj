@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\\..\\common.props" />
+  <Import Project="..\..\common.props" />
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -7,10 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\\AICodeReview.Application.Contracts\\AICodeReview.Application.Contracts.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AICodeReview.Application.Contracts\AICodeReview.Application.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="9.3.2" />
     <PackageReference Include="Volo.Abp.Account.HttpApi" Version="9.3.2" />
     <PackageReference Include="Volo.Abp.Identity.HttpApi" Version="9.3.2" />
     <PackageReference Include="Volo.Abp.PermissionManagement.HttpApi" Version="9.3.2" />
