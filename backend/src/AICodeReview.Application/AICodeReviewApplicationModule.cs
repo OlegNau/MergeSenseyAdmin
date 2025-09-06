@@ -6,6 +6,8 @@ using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement;
 using Volo.Abp.SettingManagement;
 using Volo.Abp.TenantManagement;
+
+// опционально, если регистрируешь провайдер прав здесь
 using Volo.Abp.Authorization.Permissions;
 using AICodeReview.Permissions;
 
@@ -13,26 +15,30 @@ namespace AICodeReview;
 
 [DependsOn(
     typeof(AICodeReviewDomainModule),
-    typeof(AbpAccountApplicationModule),
     typeof(AICodeReviewApplicationContractsModule),
+    typeof(AbpAccountApplicationModule),
     typeof(AbpIdentityApplicationModule),
     typeof(AbpPermissionManagementApplicationModule),
     typeof(AbpTenantManagementApplicationModule),
     typeof(AbpFeatureManagementApplicationModule),
-    typeof(AbpSettingManagementApplicationModule)
-    )]
+    typeof(AbpSettingManagementApplicationModule),
+    typeof(AbpAutoMapperModule) // <-- обязательно для профилей AutoMapper
+)]
 public class AICodeReviewApplicationModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         Configure<AbpAutoMapperOptions>(options =>
         {
-            options.AddMaps<AICodeReviewApplicationModule>();
+            // подтянет все Profile из сборки Application (включая PipelineApplicationAutoMapperProfile)
+            options.AddMaps<AICodeReviewApplicationModule>(validate: true);
         });
 
+        // Можно оставить здесь, но рекомендуемая практика — перенести эту регистрацию в Domain.Shared-модуль.
         Configure<AbpPermissionOptions>(options =>
         {
             options.DefinitionProviders.Add<AICodeReviewPermissionDefinitionProvider>();
         });
     }
 }
+

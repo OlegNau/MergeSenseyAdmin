@@ -1,37 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <Import Project="..\..\common.props" />
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <RootNamespace>AICodeReview</RootNamespace>
-    <PreserveCompilationReferences>true</PreserveCompilationReferences>
-    <UserSecretsId>AICodeReview-4681b4fd-151f-4221-84a4-929d86723e4c</UserSecretsId>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Отключаем имплиситные Content-элементы, чтобы не ловить дубли при явном Include -->
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <!-- Serilog: ядро + aspnetcore экстеншены + sinks -->
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.1" />
     <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
-    <PackageReference Include="Volo.Abp.AspNetCore.MultiTenancy" Version="9.3.2" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
+
+    <!-- ABP -->
     <PackageReference Include="Volo.Abp.Autofac" Version="9.3.2" />
+    <PackageReference Include="Volo.Abp.AspNetCore.MultiTenancy" Version="9.3.2" />
     <PackageReference Include="Volo.Abp.AspNetCore.Serilog" Version="9.3.2" />
     <PackageReference Include="Volo.Abp.Swashbuckle" Version="9.3.2" />
     <PackageReference Include="Volo.Abp.Account.Web.OpenIddict" Version="9.3.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Тема UI (как было) -->
     <PackageReference Include="Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite" Version="4.1.0-preview*" />
   </ItemGroup>
 
@@ -41,6 +39,7 @@
     <ProjectReference Include="..\AICodeReview.HttpApi\AICodeReview.HttpApi.csproj" />
   </ItemGroup>
 
+  <!-- не публикуем/не компилируем логи -->
   <ItemGroup>
     <Compile Remove="Logs\**" />
     <Content Remove="Logs\**" />
@@ -48,14 +47,12 @@
     <None Remove="Logs\**" />
   </ItemGroup>
 
+  <!-- Явно копируем конфиги, чтобы они гарантированно попадали в bin/publish -->
   <ItemGroup>
-    <None Remove="appsettings.json" />
     <Content Include="appsettings.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-
-    <None Remove="appsettings.secrets.json" />
     <Content Include="appsettings.secrets.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

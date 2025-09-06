@@ -4,16 +4,12 @@ using Volo.Abp.Application.Dtos;
 
 namespace AICodeReview.Pipelines.Dtos;
 
-public class PipelineDto : EntityDto<Guid>
+
+public class PipelineDto : AuditedEntityDto<Guid>
 {
-    public Guid ProjectId { get; set; }
     public string Name { get; set; } = default!;
-    public string Status { get; set; } = default!;
-    public DateTime? StartedAt { get; set; }
-    public DateTime? FinishedAt { get; set; }
-    public int? DurationSeconds { get; set; }
-    public bool IsActive { get; set; }
-    public DateTime CreationTime { get; set; }
+
+    public string? Description { get; set; }
 }
 
 public class PipelineCreateDto

@@ -1,19 +1,34 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp;
-using Volo.Abp.AuditLogging.EntityFrameworkCore;
-using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
-// using Volo.Abp.Data; // не нужен, чтобы не дублировать
+using Volo.Abp.Data;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore;
-using Volo.Abp.FeatureManagement.EntityFrameworkCore;
+
+// ABP Identity & Tenants
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
-using Volo.Abp.OpenIddict.EntityFrameworkCore;
-using Volo.Abp.PermissionManagement.EntityFrameworkCore;
-using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
+// ABP OpenIddict
+using Volo.Abp.OpenIddict;
+using Volo.Abp.OpenIddict.EntityFrameworkCore;
+
+// ABP Permission/Setting/Feature/Audit
+using Volo.Abp.PermissionManagement;
+using Volo.Abp.PermissionManagement.EntityFrameworkCore;
+using Volo.Abp.SettingManagement;
+using Volo.Abp.SettingManagement.EntityFrameworkCore;
+using Volo.Abp.FeatureManagement;
+using Volo.Abp.FeatureManagement.EntityFrameworkCore;
+using Volo.Abp.AuditLogging;
+using Volo.Abp.AuditLogging.EntityFrameworkCore;
+
+// (опционально) фоновые задания, если используешь
+using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
+
+// Ваши пространства имён доменных сущностей/конфигураций
 using AICodeReview.AiModels;
 using AICodeReview.Branches;
 using AICodeReview.Groups;
@@ -23,18 +38,30 @@ using AICodeReview.Projects;
 using AICodeReview.Repositories;
 using AICodeReview.Triggers;
 using AICodeReview.EntityFrameworkCore.Configurations;
-using Volo.Abp.Data;
-using Volo.Abp.DependencyInjection;
+using Volo.Abp.OpenIddict.Applications;
+using Volo.Abp.OpenIddict.Authorizations;
+using Volo.Abp.OpenIddict.Scopes;
+using Volo.Abp.OpenIddict.Tokens;
 
 namespace AICodeReview.EntityFrameworkCore;
 
 [ReplaceDbContext(typeof(IIdentityDbContext))]
 [ReplaceDbContext(typeof(ITenantManagementDbContext))]
+[ReplaceDbContext(typeof(IOpenIddictDbContext))]
+[ReplaceDbContext(typeof(IPermissionManagementDbContext))]
+[ReplaceDbContext(typeof(ISettingManagementDbContext))]
+[ReplaceDbContext(typeof(IFeatureManagementDbContext))]
+[ReplaceDbContext(typeof(IAuditLoggingDbContext))]
 [ConnectionStringName("Default")]
 public class AICodeReviewDbContext :
     AbpDbContext<AICodeReviewDbContext>,
     IIdentityDbContext,
-    ITenantManagementDbContext
+    IOpenIddictDbContext,
+    ITenantManagementDbContext,
+    IPermissionManagementDbContext,
+    ISettingManagementDbContext,
+    IFeatureManagementDbContext,
+    IAuditLoggingDbContext
 {
     // ===== ABP Identity =====
     public DbSet<IdentityUser> Users { get; set; } = default!;
@@ -51,6 +78,33 @@ public class AICodeReviewDbContext :
     // ===== ABP TenantManagement =====
     public DbSet<Tenant> Tenants { get; set; } = default!;
     public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; } = default!;
+
+    // ===== ABP OpenIddict =====
+    public DbSet<OpenIddictApplication> Applications { get; set; } = default!;
+    public DbSet<OpenIddictAuthorization> Authorizations { get; set; } = default!;
+    public DbSet<OpenIddictScope> Scopes { get; set; } = default!;
+    public DbSet<OpenIddictToken> Tokens { get; set; } = default!;
+
+    // ===== ABP PermissionManagement =====
+    public DbSet<PermissionGrant> PermissionGrants { get; set; } = default!;
+    public DbSet<PermissionGroupDefinitionRecord> PermissionGroups { get; set; } = default!;
+    public DbSet<PermissionDefinitionRecord> Permissions { get; set; } = default!;
+
+    // ===== ABP SettingManagement =====
+    public DbSet<SettingDefinitionRecord> SettingDefinitionRecords { get; set; } = default!;
+    public DbSet<Setting> Settings { get; set; } = default!;
+
+    // ===== ABP FeatureManagement =====
+    public DbSet<FeatureGroupDefinitionRecord> FeatureGroups { get; set; } = default!;
+    public DbSet<FeatureDefinitionRecord> Features { get; set; } = default!;
+    public DbSet<FeatureValue> FeatureValues { get; set; } = default!;
+
+    // ===== ABP AuditLogging =====
+    public DbSet<AuditLog> AuditLogs { get; set; } = default!;
+    public DbSet<AuditLogAction> AuditLogActions { get; set; } = default!;
+    public DbSet<EntityChange> EntityChanges { get; set; } = default!;
+    public DbSet<EntityPropertyChange> EntityPropertyChanges { get; set; } = default!;
+    public DbSet<AuditLogExcelFile> AuditLogExcelFiles { get; set; } = default!;
 
     // ===== Ваши сущности =====
     public DbSet<Project> Projects { get; set; } = default!;

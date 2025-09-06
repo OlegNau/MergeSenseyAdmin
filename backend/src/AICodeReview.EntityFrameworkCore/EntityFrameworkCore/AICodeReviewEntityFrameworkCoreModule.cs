@@ -1,36 +1,52 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore.PostgreSql;
+
+using Volo.Abp.Identity.EntityFrameworkCore;
+using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using Volo.Abp.OpenIddict.EntityFrameworkCore;
+using Volo.Abp.PermissionManagement.EntityFrameworkCore;
+using Volo.Abp.SettingManagement.EntityFrameworkCore;
+using Volo.Abp.FeatureManagement.EntityFrameworkCore;
+using Volo.Abp.AuditLogging.EntityFrameworkCore;
+
 using Volo.Abp.Modularity;
-using Volo.Abp.Uow;
 
 namespace AICodeReview.EntityFrameworkCore;
 
 [DependsOn(
-    typeof(AbpEntityFrameworkCorePostgreSqlModule)
+    typeof(AbpEntityFrameworkCorePostgreSqlModule),
+
+    typeof(AbpIdentityEntityFrameworkCoreModule),
+    typeof(AbpTenantManagementEntityFrameworkCoreModule),
+    typeof(AbpOpenIddictEntityFrameworkCoreModule),
+
+    typeof(AbpPermissionManagementEntityFrameworkCoreModule),
+    typeof(AbpSettingManagementEntityFrameworkCoreModule),
+    typeof(AbpFeatureManagementEntityFrameworkCoreModule),
+    typeof(AbpAuditLoggingEntityFrameworkCoreModule)
 )]
 public class AICodeReviewEntityFrameworkCoreModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        // Runtime DbContext + репозитории (как и было)
         context.Services.AddAbpDbContext<AICodeReviewDbContext>(options =>
         {
+            options.ReplaceDbContext<IIdentityDbContext>();
+            options.ReplaceDbContext<ITenantManagementDbContext>();
+            options.ReplaceDbContext<IOpenIddictDbContext>();
+            options.ReplaceDbContext<IPermissionManagementDbContext>();
+            options.ReplaceDbContext<ISettingManagementDbContext>();
+            options.ReplaceDbContext<IFeatureManagementDbContext>();
+            options.ReplaceDbContext<IAuditLoggingDbContext>();
+
+            // Регистрируем репозитории для всех сущностей (включая ваши)
             options.AddDefaultRepositories(includeAllEntities: true);
         });
 
-        // Регистрируем MIGRATIONS DbContext в DI, чтобы DbMigrator мог его резолвить
-        context.Services.AddAbpDbContext<AICodeReviewMigrationsDbContext>(options => { /* без репозиториев */ });
-
-        Configure<AbpDbContextOptions>(options =>
+        Configure<AbpDbContextOptions>(opts =>
         {
-            options.UseNpgsql();
-        });
-
-        Configure<AbpUnitOfWorkDefaultOptions>(options =>
-        {
-            // Обычно в миграторах транзакции отключают
-            options.TransactionBehavior = UnitOfWorkTransactionBehavior.Disabled;
+            opts.UseNpgsql();
         });
     }
 }
