@@ -21,19 +21,7 @@ public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigratio
     public AICodeReviewMigrationsDbContext(DbContextOptions<AICodeReviewMigrationsDbContext> options)
         : base(options)
     {
-        // Design-time безопасная инициализация шифратора EF (нужен для value-converters)
-        try
-        {
-            if (EfEncryption.Service == null)
-            {
-                EfEncryption.Service = LazyServiceProvider?.LazyGetService<IStringEncryptionService>()
-                                       ?? new NoopStringEncryptionService();
-            }
-        }
-        catch
-        {
-            EfEncryption.Service ??= new NoopStringEncryptionService();
-        }
+        EfEncryption.Service ??= new Design.NoopStringEncryptionService();
     }
 
     protected override void OnModelCreating(ModelBuilder builder)

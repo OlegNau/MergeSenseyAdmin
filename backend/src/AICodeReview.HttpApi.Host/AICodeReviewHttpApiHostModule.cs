@@ -227,10 +227,12 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
 
-        // Seed initial demo data (использует IClock — теперь это UTC)
-        context.ServiceProvider
-            .GetRequiredService<IDataSeeder>()
-            .SeedAsync()
-            .GetAwaiter().GetResult();
+        if (env.IsDevelopment())
+        {
+            context.ServiceProvider
+                .GetRequiredService<IDataSeeder>()
+                .SeedAsync()
+                .GetAwaiter().GetResult();
+        }
     }
 }
