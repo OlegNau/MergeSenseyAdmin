@@ -1,29 +1,35 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
-
-using AICodeReview.Pipelines;       // сущность Pipeline
-using AICodeReview.Pipelines.Dtos;  // DTO’шки
+using AICodeReview.Pipelines;
+using AICodeReview.Pipelines.Dtos;
 
 namespace AICodeReview.Services;
 
+[Area("app")]
+[RemoteService(Name = "AICodeReview")]
+[Route("api/app/pipelines")]
 public class PipelineAppService
     : CrudAppService<Pipeline, PipelineDto, Guid, PagedAndSortedResultRequestDto, CreateUpdatePipelineDto>,
-        IPipelineAppService
+      IPipelineAppService
 {
     public PipelineAppService(IRepository<Pipeline, Guid> repository)
         : base(repository)
     {
     }
 
-    // Пагинированный список (оставляем как есть — ABP сам повесит маршрут GET /api/app/pipeline)
+    // GET /api/app/pipelines (пагинация)
+    [HttpGet]
     public override Task<PagedResultDto<PipelineDto>> GetListAsync(PagedAndSortedResultRequestDto input)
         => base.GetListAsync(input);
 
-    // Все записи. ABP сгенерирует GET /api/app/pipeline/all (по имени метода).
+    // GET /api/app/pipelines/all (все записи) — отдельный путь, чтобы не конфликтовать со Swagger
+    [HttpGet("all")]
     public async Task<ListResultDto<PipelineDto>> GetAllAsync()
     {
         var entities = await Repository.GetListAsync();

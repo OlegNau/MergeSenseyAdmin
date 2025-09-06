@@ -58,7 +58,6 @@ public class CicdProfiles : Profile
         CreateMap<TriggerCreateDto, Trigger>()
             .ForMember(d => d.Id, o => o.Ignore());
 
-        CreateMap<Pipeline, PipelineDto>();
         CreateMap<PipelineCreateDto, Pipeline>()
             .ForMember(d => d.Id, o => o.Ignore())
             .ForMember(d => d.StartedAt, o => o.Ignore())
