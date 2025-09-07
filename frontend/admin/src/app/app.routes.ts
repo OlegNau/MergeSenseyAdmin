@@ -1,8 +1,10 @@
 import { Routes } from '@angular/router';
+import { authGuard } from '@abp/ng.core';
 
 export const routes: Routes = [
   {
     path: '',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./layout/app-layout.component').then(m => m.AppLayoutComponent),
     children: [
@@ -84,4 +86,3 @@ export const routes: Routes = [
     ],
   },
 ];
-
