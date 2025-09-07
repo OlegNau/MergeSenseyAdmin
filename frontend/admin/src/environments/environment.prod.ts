@@ -15,7 +15,7 @@ export const environment = {
   application: { baseUrl, name: 'MergeSenseyAdmin' },
   oAuthConfig,
   apis: {
-    default: {
+    Default: {
       url: 'https://localhost:44396',
     },
   },
