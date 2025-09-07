@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
-    "test": "echo \"no tests\""
+    "test": "echo \"no tests\"",
+    "proxy:gen": "npx abp generate-proxy -t ng -u https://localhost:44396 -o ./src/app/proxy --api-name Default",
+    "proxy:gen:force": "npx abp generate-proxy -t ng -u https://localhost:44396 -o ./src/app/proxy --api-name Default --force",
+    "postinstall": "npm run proxy:gen"
   },
   "prettier": {
     "printWidth": 100,
@@ -22,7 +25,6 @@
   },
   "private": true,
   "dependencies": {
-    "-": "^0.0.1",
     "@abp/ng.core": "^9.3.2",
     "@abp/ng.identity": "^9.3.2",
     "@abp/ng.oauth": "^9.3.2",
