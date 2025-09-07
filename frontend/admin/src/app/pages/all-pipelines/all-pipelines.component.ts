@@ -1,17 +1,12 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { PipelineService } from '../../proxy/pipelines/pipeline.service';
+import type { PipelineDto } from '../../proxy/pipelines/dtos/models';
 
-type Status = 'Active'|'Inactive';
-type PipelineRow = {
-  id: string;
-  name: string;
-  project: string;
-  status: Status;
-  trigger: string;
-  lastRun: string; // ISO
-};
+type Status = 'Active' | 'Inactive';
+type PipelineRow = { id: string; name: string; project: string; status: Status; trigger: string; lastRun: string };
 
 @Component({
   selector: 'app-all-pipelines',
@@ -22,29 +17,43 @@ type PipelineRow = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AllPipelinesComponent {
+  readonly rows = signal<PipelineRow[]>([]);
+  readonly loading = signal(true);
+
   public search = '';
   public projectFilter = 'All';
   public moreOpen = false;
-  public statusFilter = new Set<Status>(); // пусто = оба статуса
+  public statusFilter = new Set<Status>();
 
-  public projects = ['All','AI Review Platform','E-commerce Analytics','Mobile App Backend','Data Warehouse ETL'];
+  public projects: string[] = ['All'];
 
-  public rows: PipelineRow[] = [
-    { id:'p-main',  name:'Main Pipeline (main branch)', project:'AI Review Platform', status:'Active',   trigger:'push to main',     lastRun:'2024-01-15T14:30:00Z' },
-    { id:'p-log',   name:'Log Analysis (staging)',      project:'AI Review Platform', status:'Inactive', trigger:'push to staging',  lastRun:'2024-01-14T11:00:00Z' },
-    { id:'p-perf',  name:'Performance Testing',         project:'AI Review Platform', status:'Active',   trigger:'manual',           lastRun:'2024-01-15T09:15:00Z' },
-    { id:'p-sales', name:'Daily Sales Report',          project:'E-commerce Analytics', status:'Active', trigger:'schedule daily',   lastRun:'2024-01-15T08:00:00Z' },
-    { id:'p-seg',   name:'Customer Segmentation',       project:'E-commerce Analytics', status:'Active', trigger:'data change',      lastRun:'2024-01-15T12:45:00Z' },
-    { id:'p-api',   name:'API Deployment',              project:'Mobile App Backend', status:'Active',   trigger:'push to production', lastRun:'2024-01-15T16:20:00Z' },
-    { id:'p-db',    name:'Database Migration',          project:'Mobile App Backend', status:'Inactive', trigger:'manual',           lastRun:'2024-01-13T14:30:00Z' },
-    { id:'p-push',  name:'Push Notification Service',   project:'Mobile App Backend', status:'Active',   trigger:'push to main',     lastRun:'2024-01-15T13:10:00Z' },
-    { id:'p-etl',   name:'Daily ETL Process',           project:'Data Warehouse ETL', status:'Active',   trigger:'schedule daily',   lastRun:'2024-01-15T02:00:00Z' },
-    { id:'p-clean', name:'Weekly Data Cleanup',         project:'Data Warehouse ETL', status:'Inactive', trigger:'schedule weekly',  lastRun:'2024-01-08T03:30:00Z' },
-  ];
+  constructor(private pipelines: PipelineService) {
+    this.pipelines.getList({ skipCount: 0, maxResultCount: 100, sorting: '' })
+      .subscribe({
+        next: res => {
+          const mapped = (res.items ?? []).map((x: PipelineDto) => ({
+            id: x.id || '',
+            name: x.name ?? '',
+            project: x.projectId ?? '',
+            status: (x.status === 'Active' ? 'Active' : 'Inactive') as Status,
+            trigger: x.trigger ?? '',
+            lastRun: x.lastRun ?? x.finishedAt ?? x.startedAt ?? '',
+          }));
+          this.rows.set(mapped);
+          const names = Array.from(new Set(mapped.map(m => m.project).filter(p => p)));
+          this.projects = ['All', ...names];
+        },
+        error: () => {
+          this.rows.set([]);
+          this.projects = ['All'];
+        },
+        complete: () => this.loading.set(false),
+      });
+  }
 
   public filtered(): PipelineRow[] {
     const q = this.search.trim().toLowerCase();
-    return this.rows.filter(r => {
+    return this.rows().filter(r => {
       if (this.projectFilter !== 'All' && r.project !== this.projectFilter) return false;
       if (this.statusFilter.size && !this.statusFilter.has(r.status)) return false;
       if (!q) return true;

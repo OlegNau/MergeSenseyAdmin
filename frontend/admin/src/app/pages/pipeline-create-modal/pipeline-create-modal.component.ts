@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormArray, FormControl } from '@angular/forms';
-import { ActivatedRoute, RouterModule, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { PipelineService } from '../../proxy/pipelines/pipeline.service';
 
 type Trigger = 'manual'|'push'|'schedule';
 type SchType = 'daily'|'weekly'|'cron';
@@ -15,12 +16,13 @@ type SchType = 'daily'|'weekly'|'cron';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PipelineCreateModalComponent {
-  private fb = inject(FormBuilder);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly pipelines = inject(PipelineService);
 
   step = 1;
-  readonly projectId = this.route.snapshot.paramMap.get('projectId')!;
+  projectId = this.route.snapshot.paramMap.get('projectId') || '';
 
   readonly form = this.fb.nonNullable.group({
     name: this.fb.nonNullable.control('', { validators: [Validators.required, Validators.minLength(3)] }),
@@ -49,8 +51,11 @@ export class PipelineCreateModalComponent {
 
   @HostListener('document:keydown.escape') onEsc() { this.close(); }
 
-  close() { this.router.navigate([{ outlets: { modal: null } }]); }
-  prev()  { this.step = Math.max(1, this.step - 1); }
+  close() {
+    this.router.navigate([{ outlets: { modal: null } }], { relativeTo: this.route.root });
+  }
+
+  prev() { this.step = Math.max(1, this.step - 1); }
   next() {
     if (this.step === 1 && this.form.controls.name.invalid) {
       this.form.controls.name.markAsTouched();
@@ -66,10 +71,13 @@ export class PipelineCreateModalComponent {
     }
     this.step = Math.min(4, this.step + 1);
   }
+
   submit() {
     if (this.step !== 4) return;
     const payload = this.form.getRawValue();
-    console.log('CREATE PIPELINE', { projectId: this.projectId, ...payload });
-    this.close();
+    this.pipelines.create({ ...payload, projectId: this.projectId } as any).subscribe({
+      next: () => this.close(),
+      error: () => this.close(),
+    });
   }
 }

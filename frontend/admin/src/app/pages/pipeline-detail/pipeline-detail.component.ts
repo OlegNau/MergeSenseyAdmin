@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { PipelineService } from '../../proxy/pipelines/pipeline.service';
+import type { PipelineDto } from '../../proxy/pipelines/dtos/models';
 
 @Component({
   selector: 'app-pipeline-detail',
@@ -12,42 +14,55 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 })
 export class PipelineDetailComponent {
   private readonly route = inject(ActivatedRoute);
-  id = this.route.snapshot.paramMap.get('id') || '0';
+  private readonly pipelines = inject(PipelineService);
 
-  pipeline = {
-    id: this.id,
-    name: 'Main Pipeline (main branch)',
-    status: 'Active',
-    project: 'AI Review Platform',
-    trigger: 'push to main',
-    lastRun: '2024-01-15T14:30:00Z',
-    stats: { successRate: 92, avgDurationSec: 204, totalRuns: 247 },
-    overview: { trigger: 'push to main', status: 'Active', agents: 45 },
+  pipeline: (PipelineDto & {
+    project?: string;
+    stats: { successRate: number; avgDurationSec: number; totalRuns: number };
+    overview: { trigger: string; status: string; agents: number };
+  }) = {
+    id: '',
+    name: '',
+    project: '',
+    status: '',
+    trigger: '',
+    lastRun: '',
+    stats: { successRate: 0, avgDurationSec: 0, totalRuns: 0 },
+    overview: { trigger: '', status: '', agents: 0 },
   };
+  tab: 'overview'|'history'|'agents'|'settings' = 'overview';
 
-  tab: 'overview' | 'history' | 'agents' | 'settings' = 'overview';
+  history: Array<{ date: string; status: string; duration: number; ref: string }> = [];
+  agents: Array<{ name: string; active: boolean }> = [];
 
-  history = [
-    { date: '2024-01-15T14:30:00Z', status: 'Success', duration: 180, ref: 'abc123' },
-    { date: '2024-01-14T13:00:00Z', status: 'Failed', duration: 210, ref: 'def456' },
-    { date: '2024-01-13T10:15:00Z', status: 'Success', duration: 200, ref: 'ghi789' },
-  ];
-
-  agents = [
-    { name: 'Static Analysis', active: true },
-    { name: 'Security Scan', active: true },
-    { name: 'Lint/Format', active: false },
-  ];
-
-  setTab(t: 'overview' | 'history' | 'agents' | 'settings') {
-    this.tab = t;
+  constructor() {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.pipelines.get(id).subscribe({
+      next: p => {
+        this.pipeline = {
+          ...this.pipeline,
+          ...p,
+          project: p.projectId ?? '',
+          trigger: p.trigger ?? '',
+          status: p.status ?? '',
+          lastRun: p.lastRun ?? p.finishedAt ?? p.startedAt ?? '',
+        };
+      },
+      error: () => {},
+    });
   }
 
+  setTab(t: 'overview'|'history'|'agents'|'settings') { this.tab = t; }
+
   run() {
-    console.log('RUN', this.pipeline.id);
+    const id = this.pipeline.id || '';
+    if (!id) return;
+    this.pipelines.run(id).subscribe();
   }
 
   saveSettings(name: string, trigger: string, branch: string) {
-    console.log('SAVE', { name, trigger, branch });
+    const id = this.pipeline.id || '';
+    if (!id) return;
+    this.pipelines.update(id, { name, trigger }).subscribe();
   }
 }

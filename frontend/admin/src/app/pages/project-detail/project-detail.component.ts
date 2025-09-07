@@ -1,9 +1,12 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ProjectService } from '../../proxy/projects/project.service';
+import { PipelineService } from '../../proxy/pipelines/pipeline.service';
+import type { ProjectDto } from '../../proxy/projects/dtos/models';
+import type { PipelineDto } from '../../proxy/pipelines/dtos/models';
 
-type Status = 'Active' | 'Inactive';
-type PipelineRow = { id: string; name: string; status: Status; lastRun: string };
+type PipelineRow = { id: string; name: string; status: 'Active'|'Inactive'; lastRun: string };
 
 @Component({
   selector: 'app-project-detail',
@@ -14,35 +17,48 @@ type PipelineRow = { id: string; name: string; status: Status; lastRun: string }
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectDetailComponent {
-  readonly idFromRoute: string;
-  readonly project: {
-    id: string;
-    name: string;
-    description: string;
-    pipelines: PipelineRow[];
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly projects = inject(ProjectService);
+  private readonly pipelines = inject(PipelineService);
+
+  readonly loading = signal(true);
+  project: { id: string; name: string; description: string; pipelines: PipelineRow[] } = {
+    id: '',
+    name: '',
+    description: '',
+    pipelines: [],
   };
 
-  constructor(private router: Router, private route: ActivatedRoute) {
-    this.idFromRoute = this.route.snapshot.paramMap.get('id') ?? '';
-    // мок-данные (замени на сервис)
-    this.project = {
-      id: this.idFromRoute,
-      name: this.idFromRoute === 'ai-review' ? 'AI Review Platform' : 'Project ' + this.idFromRoute,
-      description:
-        'Core company product for automated code reviews with machine learning capabilities',
-      pipelines: <PipelineRow[]>[
-        { id: 'p-main', name: 'Main Pipeline (main branch)', status: 'Active', lastRun: '2024-01-15T14:30:00Z' },
-        { id: 'p-log', name: 'Log Analysis (staging)', status: 'Inactive', lastRun: '2024-01-14T11:00:00Z' },
-        { id: 'p-perf', name: 'Performance Testing', status: 'Active', lastRun: '2024-01-15T09:15:00Z' },
-      ],
-    };
+  constructor() {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.projects.get(id).subscribe({
+      next: (p: ProjectDto) => {
+        this.project.id = p.id || '';
+        this.project.name = p.name ?? '';
+        this.project.description = p.description ?? '';
+      },
+      error: () => {
+        this.project = { id: '', name: '', description: '', pipelines: [] };
+      },
+    });
+    this.pipelines.getList({ projectId: id, skipCount: 0, maxResultCount: 50, sorting: '' })
+      .subscribe({
+        next: res => {
+          const mapped = (res.items ?? []).map((x: PipelineDto) => ({
+            id: x.id || '',
+            name: x.name ?? '',
+            status: (x.status === 'Active' ? 'Active' : 'Inactive') as 'Active'|'Inactive',
+            lastRun: x.lastRun ?? x.finishedAt ?? x.startedAt ?? '',
+          }));
+          this.project.pipelines = mapped;
+        },
+        error: () => { this.project.pipelines = []; },
+        complete: () => this.loading.set(false),
+      });
   }
 
   openCreatePipelineModal(projectId: string) {
-    this.router.navigate(
-      [{ outlets: { modal: ['projects', projectId, 'pipelines', 'new'] } }],
-      { relativeTo: this.route.root }
-    );
+    this.router.navigate([{ outlets: { modal: ['projects', projectId, 'pipelines', 'new'] } }], { relativeTo: this.route.root });
   }
 }
-
