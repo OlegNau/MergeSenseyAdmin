@@ -3,7 +3,7 @@ import { Environment } from '@abp/ng.core';
 const baseUrl = window.location.origin;
 
 const oAuthConfig = {
-  issuer: 'https://localhost:44396',
+  issuer: 'https://localhost:44396/',
   redirectUri: baseUrl,
   clientId: 'MergeSensei_App',
   responseType: 'code',
@@ -19,6 +19,9 @@ export const environment = {
   },
   oAuthConfig,
   apis: {
+    default: {
+      url: 'https://localhost:44396',
+    },
     Default: {
       url: 'https://localhost:44396',
     },

@@ -14,7 +14,9 @@ bootstrapApplication(AppComponent, {
     provideHttpClient(withInterceptorsFromDi()),
     provideAbpCore(withOptions({
       environment,
-      registerLocaleFn: (locale: string) => import(`@angular/common/locales/${locale}.mjs`),
+      registerLocaleFn: (locale: string) =>
+        import(`@angular/common/locales/${locale}`)
+          .catch(() => import(`@angular/common/locales/${locale}.mjs`)),
     })),
     provideAbpOAuth(),
   ],
