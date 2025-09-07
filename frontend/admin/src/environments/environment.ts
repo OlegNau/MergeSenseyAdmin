@@ -19,7 +19,7 @@ export const environment = {
   },
   oAuthConfig,
   apis: {
-    default: {
+    Default: {
       url: 'https://localhost:44396',
     },
   },
