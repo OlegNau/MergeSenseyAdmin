@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
@@ -10,12 +10,14 @@ import { AuthService } from './auth.service';
   templateUrl: './auth-callback.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AuthCallbackComponent {
+export class AuthCallbackComponent implements OnInit {
   private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
 
   async ngOnInit() {
-    const ok = await this.auth.completeLogin();
-    await this.router.navigateByUrl(ok ? '/' : '/auth/login');
+    try {
+      await this.auth.completeLogin();
+    } catch (e) {
+      console.error(e);
+    }
   }
 }

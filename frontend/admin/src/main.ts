@@ -1,20 +1,49 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 
 import { provideAbpCore, withOptions } from '@abp/ng.core';
 import { provideAbpOAuth } from '@abp/ng.oauth';
+
+import { provideOAuthClient, OAuthStorage, OAuthService } from 'angular-oauth2-oidc';
+import { APP_INITIALIZER, inject } from '@angular/core';
+
 import { environment } from './environments/environment';
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
+
+    // 1) OAuth перехватчик для API
+    provideOAuthClient({
+      resourceServer: {
+        allowedUrls: ['https://localhost:44396', 'http://localhost:44396'],
+        sendAccessToken: true,
+      },
+    }),
+    { provide: OAuthStorage, useValue: localStorage },
+
+    // 2) Ранняя конфигурация OAuth (без логина)
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: () => {
+        const oauth = inject(OAuthService);
+        return async () => {
+          oauth.configure(environment.oAuthConfig as any);
+          try { await oauth.loadDiscoveryDocument(); } catch {}
+        };
+      },
+    },
+
+    // 3) ABP
     provideAbpCore(withOptions({
       environment,
-      registerLocaleFn: (locale: string) => { // static map avoids dynamic locale imports
+      registerLocaleFn: (locale: string) => {
         const loaders: Record<string, () => Promise<unknown>> = {
           ru: () => import('@angular/common/locales/ru'),
           en: () => import('@angular/common/locales/en'),

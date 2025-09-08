@@ -11,6 +11,7 @@ using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 
 using Volo.Abp.Modularity;
+using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 
 namespace AICodeReview.EntityFrameworkCore;
 
@@ -25,7 +26,8 @@ namespace AICodeReview.EntityFrameworkCore;
     typeof(AbpSettingManagementEntityFrameworkCoreModule),
     typeof(AbpFeatureManagementEntityFrameworkCoreModule),
     typeof(AbpAuditLoggingEntityFrameworkCoreModule)
-)]
+,
+    typeof(AbpBackgroundJobsEntityFrameworkCoreModule))]
 public class AICodeReviewEntityFrameworkCoreModule : AbpModule
 {
     public override void ConfigureServices(ServiceConfigurationContext context)

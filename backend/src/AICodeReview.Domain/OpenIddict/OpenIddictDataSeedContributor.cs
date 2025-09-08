@@ -143,14 +143,9 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             postLogoutUris: new[]
             {
                 "http://localhost:4200",
-                "http://localhost:4200/",
-                "https://localhost:4200",
-                "https://localhost:4200/"
-                // optionally:
-                // "http://localhost:4200/auth/logged-out",
-                // "https://localhost:4200/auth/logged-out"
+                "https://localhost:4200"
             },
-            additionalScopes: new[] { "MergeSensei" }
+            additionalScopes: new[] { "MergeSensei", "offline_access" } // <-- ВАЖНО
         );
     }
 
@@ -205,6 +200,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             Permissions.Endpoints.Authorization,
             Permissions.Endpoints.Token,
             Permissions.GrantTypes.AuthorizationCode,
+            Permissions.GrantTypes.RefreshToken,
             Permissions.ResponseTypes.Code,
             Permissions.Prefixes.Scope + Scopes.OpenId,
             Permissions.Prefixes.Scope + Scopes.Profile,

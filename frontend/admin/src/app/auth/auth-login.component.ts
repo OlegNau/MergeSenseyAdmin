@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './auth.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-auth-login',
@@ -12,5 +13,9 @@ import { AuthService } from './auth.service';
 })
 export class AuthLoginComponent {
   private readonly auth = inject(AuthService);
-  login() { this.auth.login(); }
+  private readonly route = inject(ActivatedRoute);
+  async onLogin() {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+    await this.auth.login(returnUrl);
+  }
 }

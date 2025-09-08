@@ -1,48 +1,57 @@
 import { Injectable, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { OAuthService, OAuthEvent } from 'angular-oauth2-oidc';
-import { filter, map, Observable } from 'rxjs';
+import { filter, Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly oauth = inject(OAuthService);
+  private readonly router = inject(Router);
 
-  initOnce(): Promise<void> {
-    // no-op here; ABP providers already bootstrapped OAuth. Keep method if needed later.
-    return Promise.resolve();
+  constructor() {
+    // fail-safe: если APP_INITIALIZER не успел
+    this.oauth.configure(environment.oAuthConfig as any);
   }
 
-  login(): void {
-    this.oauth.initCodeFlow(); // redirect to /connect/authorize (server login page)
+  async login(returnUrl = '/dashboard'): Promise<void> {
+    sessionStorage.setItem('returnUrl', returnUrl);
+    // Гарантируем, что discovery загружен — иначе initCodeFlow может «молча» не сработать
+    try {
+      if (!(this.oauth as any).discoveryDocumentLoaded) {
+        await this.oauth.loadDiscoveryDocument();
+      }
+    } catch (e) {
+      console.error('Discovery не загрузился. Бэк жив на https://localhost:44396?', e);
+      alert('Сервер авторизации недоступен (https://localhost:44396). Запусти бэк/проверь сертификат.');
+      return;
+    }
+    this.oauth.initCodeFlow();
   }
 
   async completeLogin(): Promise<boolean> {
-    await this.oauth.loadDiscoveryDocument(); // idempotent
+    try {
+      if (!(this.oauth as any).discoveryDocumentLoaded) {
+        await this.oauth.loadDiscoveryDocument();
+      }
+    } catch {}
     await this.oauth.tryLoginCodeFlow();
-    return this.oauth.hasValidAccessToken();
+    const ok = this.oauth.hasValidAccessToken();
+    const ru = sessionStorage.getItem('returnUrl') || '/dashboard';
+    sessionStorage.removeItem('returnUrl');
+    await this.router.navigateByUrl(ok ? ru : '/auth/login');
+    return ok;
   }
 
   logout(): void {
-    this.oauth.logOut(); // server-side logout if endsession supported
+    this.oauth.logOut();
   }
 
   hasToken(): boolean {
     return this.oauth.hasValidAccessToken();
   }
 
-  accessToken(): string | null {
-    return this.oauth.getAccessToken() || null;
-  }
-
-  claims(): any {
-    return this.oauth.getIdentityClaims() || null;
-  }
-
-  userName(): string {
-    const c: any = this.claims();
-    return c?.name || c?.preferred_username || '';
-  }
-
   events$(): Observable<OAuthEvent> {
-    return this.oauth.events.pipe(filter(e => !!e));
+    return this.oauth.events.pipe(filter(Boolean));
   }
 }
