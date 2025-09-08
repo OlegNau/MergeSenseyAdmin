@@ -1,5 +1,9 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideRouter, withEnabledBlockingInitialNavigation, withRouterConfig } from '@angular/router';
+import {
+  provideRouter,
+  withEnabledBlockingInitialNavigation,
+  withRouterConfig,
+} from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { AppComponent } from './app/app.component';
@@ -17,7 +21,7 @@ bootstrapApplication(AppComponent, {
     provideRouter(
       routes,
       withEnabledBlockingInitialNavigation(),
-      withRouterConfig({ paramsInheritanceStrategy: 'always' })
+      withRouterConfig({ paramsInheritanceStrategy: 'always' }),
     ),
     provideHttpClient(withInterceptorsFromDi()),
 
@@ -38,25 +42,37 @@ bootstrapApplication(AppComponent, {
         return async () => {
           oauth.setStorage(localStorage);
           oauth.configure(environment.oAuthConfig as any);
-          try { await oauth.loadDiscoveryDocument(); } catch {}
+
+          // 👇 Диагностика
+          try {
+            oauth.events.subscribe((e) => {
+              console.log('[oauth-event]', e.type, e);
+            });
+          } catch {}
+
+          try {
+            await oauth.loadDiscoveryDocument();
+          } catch {}
         };
       },
     },
 
-    provideAbpCore(withOptions({
-      environment,
-      registerLocaleFn: (locale: string) => {
-        const loaders: Record<string, () => Promise<unknown>> = {
-          ru: () => import('@angular/common/locales/ru'),
-          en: () => import('@angular/common/locales/en'),
-          de: () => import('@angular/common/locales/de'),
-          fr: () => import('@angular/common/locales/fr'),
-        };
-        const key = (locale || 'en').toLowerCase();
-        const load = loaders[key] ?? loaders['en'];
-        return load().then(m => (m as any).default ?? m);
-      },
-    })),
+    provideAbpCore(
+      withOptions({
+        environment,
+        registerLocaleFn: (locale: string) => {
+          const loaders: Record<string, () => Promise<unknown>> = {
+            ru: () => import('@angular/common/locales/ru'),
+            en: () => import('@angular/common/locales/en'),
+            de: () => import('@angular/common/locales/de'),
+            fr: () => import('@angular/common/locales/fr'),
+          };
+          const key = (locale || 'en').toLowerCase();
+          const load = loaders[key] ?? loaders['en'];
+          return load().then((m) => (m as any).default ?? m);
+        },
+      }),
+    ),
     provideAbpOAuth(),
   ],
-}).catch(err => console.error(err));
+}).catch((err) => console.error(err));
