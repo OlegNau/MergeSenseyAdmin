@@ -1,21 +1,17 @@
 import { Environment } from '@abp/ng.core';
 
-const baseUrl = 'http://localhost:4200';
-
 export const environment = {
   production: false,
-  application: { baseUrl, name: 'MergeSenseyAdmin' },
+  application: { baseUrl: 'http://localhost:4200', name: 'MergeSenseyAdmin' },
   oAuthConfig: {
     issuer: 'https://localhost:44396/',
-    redirectUri: 'http://localhost:4200/auth/callback',
+    redirectUri: 'http://localhost:4200',              // <— ROOT, not /auth/callback
     clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
     scope: 'offline_access openid profile MergeSensei',
-
     requireHttps: false,
     strictDiscoveryDocumentValidation: false,
     showDebugInformation: true,
-    // На всякий случай отключим сессионные проверки в DEV:
     sessionChecksEnabled: false,
   },
   apis: {

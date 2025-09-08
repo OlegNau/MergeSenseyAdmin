@@ -76,19 +76,15 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
         await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API", "AICodeReview");
 
-        var spaClientId = configurationSection["MergeSenseyAdmin_Angular:ClientId"];
-        if (!spaClientId.IsNullOrWhiteSpace())
-        {
-            var spaRootUrl = configurationSection["MergeSenseyAdmin_Angular:RootUrl"]?.TrimEnd('/');
+        var spaClientId = configurationSection["MergeSenseyAdmin_Angular:ClientId"] ?? "MergeSenseyAdmin_Angular";
+        var spaRootUrl = configurationSection["MergeSenseyAdmin_Angular:RootUrl"] ?? "http://localhost:4200";
 
-            await CreateOrReplaceSpaClientAsync(
-                _applicationManager,
-                clientId: spaClientId!,
-                displayName: "MergeSenseyAdmin Angular",
-                redirectUri: $"{spaRootUrl}/auth/callback",
-                postLogoutUri: spaRootUrl!
-            );
-        }
+        await CreateOrReplaceSpaClientAsync(
+            _applicationManager,
+            clientId: spaClientId,
+            displayName: "MergeSenseyAdmin Angular",
+            spaRoot: spaRootUrl
+        );
 
         var swaggerClientId = configurationSection["AICodeReview_Swagger:ClientId"];
         if (!swaggerClientId.IsNullOrWhiteSpace())
@@ -131,13 +127,12 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         IOpenIddictApplicationManager applicationManager,
         string clientId,
         string displayName,
-        string redirectUri,
-        string postLogoutUri)
+        string spaRoot // e.g. "http://localhost:4200"
+    )
     {
         var existing = await applicationManager.FindByClientIdAsync(clientId);
         if (existing is not null)
         {
-            // Delete to guarantee collections (RedirectUris/PostLogoutRedirectUris) are fully updated
             await applicationManager.DeleteAsync(existing);
         }
 
@@ -145,40 +140,42 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         {
             ClientId = clientId,
             DisplayName = displayName,
-            ConsentType = ConsentTypes.Explicit,
+            ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
         };
 
-        // Set ClientType = Public (supports OpenIddict 3/4/5)
-        var clientTypeProp = typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType")
-                             ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type");
-        clientTypeProp?.SetValue(descriptor, ClientTypes.Public);
+        // Public client (OpenIddict v3/v4/v5 compatible)
+        (typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType")
+         ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type"))
+         ?.SetValue(descriptor, OpenIddictConstants.ClientTypes.Public);
+
+        var root = spaRoot.TrimEnd('/');
 
         descriptor.RedirectUris.Clear();
-        descriptor.RedirectUris.Add(new Uri(redirectUri));
+        descriptor.RedirectUris.Add(new Uri(root));
+        descriptor.RedirectUris.Add(new Uri(root + "/"));
 
         descriptor.PostLogoutRedirectUris.Clear();
-        descriptor.PostLogoutRedirectUris.Add(new Uri(postLogoutUri));
+        descriptor.PostLogoutRedirectUris.Add(new Uri(root));
+        descriptor.PostLogoutRedirectUris.Add(new Uri(root + "/"));
 
-        // Permissions (version-safe)
         var perms = new HashSet<string>
         {
-            Permissions.Endpoints.Authorization,
-            Permissions.Endpoints.Token,
-            Permissions.GrantTypes.AuthorizationCode,
-            Permissions.GrantTypes.RefreshToken,
-            Permissions.ResponseTypes.Code,
-            Permissions.Prefixes.Scope + Scopes.OpenId,
-            Permissions.Prefixes.Scope + Scopes.Profile,
-            Permissions.Prefixes.Scope + Scopes.OfflineAccess,
-            Permissions.Prefixes.Scope + "MergeSensei"
+            OpenIddictConstants.Permissions.Endpoints.Authorization,
+            OpenIddictConstants.Permissions.Endpoints.Token,
+            OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
+            OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+            OpenIddictConstants.Permissions.ResponseTypes.Code,
+            OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OpenId,
+            OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.Profile,
+            OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OfflineAccess,
+            OpenIddictConstants.Permissions.Prefixes.Scope + "MergeSensei"
         };
 
         descriptor.Permissions.Clear();
-        foreach (var p in perms)
-            descriptor.Permissions.Add(p);
+        foreach (var p in perms) descriptor.Permissions.Add(p);
 
         descriptor.Requirements.Clear();
-        descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
+        descriptor.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
 
         await applicationManager.CreateAsync(descriptor);
     }
