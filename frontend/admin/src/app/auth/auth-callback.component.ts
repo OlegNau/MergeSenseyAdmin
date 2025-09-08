@@ -17,7 +17,7 @@ export class AuthCallbackComponent implements OnInit {
     try {
       await this.auth.completeLogin();
     } catch (e) {
-      console.error(e);
+      console.error('Ошибка завершения входа', e);
     }
   }
 }

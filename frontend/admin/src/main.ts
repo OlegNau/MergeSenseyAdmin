@@ -18,7 +18,6 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
 
-    // 1) OAuth перехватчик для API
     provideOAuthClient({
       resourceServer: {
         allowedUrls: ['https://localhost:44396', 'http://localhost:44396'],
@@ -27,7 +26,6 @@ bootstrapApplication(AppComponent, {
     }),
     { provide: OAuthStorage, useValue: localStorage },
 
-    // 2) Ранняя конфигурация OAuth (без логина)
     {
       provide: APP_INITIALIZER,
       multi: true,
@@ -40,7 +38,6 @@ bootstrapApplication(AppComponent, {
       },
     },
 
-    // 3) ABP
     provideAbpCore(withOptions({
       environment,
       registerLocaleFn: (locale: string) => {
