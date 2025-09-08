@@ -6,8 +6,8 @@ export const environment = {
   production: true,
   application: { baseUrl, name: 'MergeSenseyAdmin' },
   oAuthConfig: {
-    issuer: 'https://localhost:44396/',
-    redirectUri: `${baseUrl}/auth/callback`,
+    issuer: 'https://localhost:44396/',          // trailing slash is required
+    redirectUri: `${baseUrl}/auth/callback`,     // explicit callback
     clientId: 'MergeSensei_App',
     responseType: 'code',
     scope: 'offline_access openid profile MergeSensei',

@@ -14,7 +14,7 @@ bootstrapApplication(AppComponent, {
     provideHttpClient(withInterceptorsFromDi()),
     provideAbpCore(withOptions({
       environment,
-      registerLocaleFn: (locale: string) => {
+      registerLocaleFn: (locale: string) => { // static map avoids dynamic locale imports
         const loaders: Record<string, () => Promise<unknown>> = {
           ru: () => import('@angular/common/locales/ru'),
           en: () => import('@angular/common/locales/en'),
