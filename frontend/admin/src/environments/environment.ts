@@ -4,22 +4,21 @@ export const environment = {
   production: false,
   application: { baseUrl: 'http://localhost:4200', name: 'MergeSenseyAdmin' },
   oAuthConfig: {
-    issuer: 'http://localhost:44396/',
-    loginUrl: 'http://localhost:44396/connect/authorize',
-    tokenEndpoint: 'http://localhost:44396/connect/token',
-    redirectUri: 'http://localhost:4200',          // 1-в-1 как в БД OpenIddict
+    issuer: 'https://localhost:44396/',
+    loginUrl: 'https://localhost:44396/connect/authorize',
+    tokenEndpoint: 'https://localhost:44396/connect/token',
+    redirectUri: 'http://localhost:4200',
     postLogoutRedirectUri: 'http://localhost:4200',
     clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
     scope: 'offline_access openid profile MergeSensei',
-    requireHttps: false,
+    requireHttps: true,
     strictDiscoveryDocumentValidation: false,
     showDebugInformation: true,
     sessionChecksEnabled: false,
   },
   apis: {
-    default: { url: 'http://localhost:44396' },
-    Default: { url: 'http://localhost:44396' },
+    default: { url: 'https://localhost:44396' },
+    Default: { url: 'https://localhost:44396' },
   },
 } as Environment;
-
