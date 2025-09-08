@@ -8,6 +8,7 @@ async function handle(stateUrl: string): Promise<boolean> {
   const url = new URL(window.location.href);
 
   if (url.searchParams.has('error')) {
+    sessionStorage.removeItem('auth.loginInProgress');
     await router.navigate(['/auth/login'], {
       queryParams: {
         error: url.searchParams.get('error') ?? 'unknown_error',
@@ -24,7 +25,9 @@ async function handle(stateUrl: string): Promise<boolean> {
     } finally {
       sessionStorage.removeItem('auth.loginInProgress');
     }
+
     const ru = sessionStorage.getItem('returnUrl') || stateUrl || '/dashboard';
+    sessionStorage.removeItem('returnUrl');
     await router.navigateByUrl(ru, { replaceUrl: true });
     return true;
   }
