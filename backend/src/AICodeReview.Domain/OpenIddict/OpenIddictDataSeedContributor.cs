@@ -146,6 +146,9 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
                 "http://localhost:4200/",
                 "https://localhost:4200",
                 "https://localhost:4200/"
+                // optionally:
+                // "http://localhost:4200/auth/logged-out",
+                // "https://localhost:4200/auth/logged-out"
             },
             additionalScopes: new[] { "MergeSensei" }
         );
