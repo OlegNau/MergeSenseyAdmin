@@ -8,9 +8,9 @@ export const environment = {
   oAuthConfig: {
     issuer: 'https://localhost:44396/',
     redirectUri: `${baseUrl}/auth/callback`,
-    clientId: 'MergeSensei_App',
+    clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
-    scope: 'offline_access openid profile MergeSensei',
+    scope: 'offline_access openid profile AICodeReview',
     requireHttps: true,
   },
   apis: {

@@ -108,7 +108,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
                 "offline_access"
             },
             clientUri: "http://localhost:4200",
-            redirectUri: "http://localhost:4200",
+            redirectUri: "http://localhost:4200/auth/callback",
             postLogoutRedirectUri: "http://localhost:4200"
         );
 
