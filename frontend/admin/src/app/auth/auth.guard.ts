@@ -23,7 +23,35 @@ async function handle(stateUrl: string): Promise<boolean> {
 
   if (url.searchParams.has('code') && url.searchParams.has('state')) {
     try {
+      console.log('[auth] tryLoginCodeFlow start');
       await oauth.tryLoginCodeFlow();
+      // ⏱️ Развязка тика, чтобы storage успел записаться
+      await Promise.resolve();
+
+      const ok = oauth.hasValidAccessToken();
+      console.log('[auth] tryLoginCodeFlow done, hasValidAccessToken=', ok);
+
+      if (!ok) {
+        // Принудительно утащим пользователя на login с ошибкой — без новой авторизации
+        await router.navigate(['/auth/login'], {
+          queryParams: {
+            error: 'invalid_token',
+            error_description: 'Access token is missing or invalid after code exchange',
+          },
+          replaceUrl: true,
+        });
+        return false;
+      }
+    } catch (e) {
+      console.error('[auth] tryLoginCodeFlow error:', e);
+      await router.navigate(['/auth/login'], {
+        queryParams: {
+          error: 'token_exchange_failed',
+          error_description: (e as Error)?.message ?? 'Unknown error',
+        },
+        replaceUrl: true,
+      });
+      return false;
     } finally {
       sessionStorage.removeItem('auth.loginInProgress');
     }
@@ -56,4 +84,3 @@ async function handle(stateUrl: string): Promise<boolean> {
 
 export const authGuard: CanActivateChildFn = async (route, state) => handle(state.url);
 export const authGuardActivate: CanActivateFn = async (route, state) => handle(state.url);
-
