@@ -10,7 +10,6 @@ import { provideAbpOAuth } from '@abp/ng.oauth';
 
 import { provideOAuthClient, OAuthStorage, OAuthService } from 'angular-oauth2-oidc';
 import { APP_INITIALIZER, inject } from '@angular/core';
-
 import { environment } from './environments/environment';
 
 bootstrapApplication(AppComponent, {
@@ -24,7 +23,12 @@ bootstrapApplication(AppComponent, {
         sendAccessToken: true,
       },
     }),
-    { provide: OAuthStorage, useValue: localStorage },
+
+    // ⚠️ В DEV используем sessionStorage, в PROD — localStorage
+    {
+      provide: OAuthStorage,
+      useFactory: () => (environment.production ? localStorage : sessionStorage),
+    },
 
     {
       provide: APP_INITIALIZER,
@@ -33,7 +37,13 @@ bootstrapApplication(AppComponent, {
         const oauth = inject(OAuthService);
         return async () => {
           oauth.configure(environment.oAuthConfig as any);
+
+          // discovery документ подгружаем заранее
           try { await oauth.loadDiscoveryDocument(); } catch {}
+
+          // авто-продление по refresh token (angular-oauth2-oidc сам решит чем пользоваться)
+          // NOTE: требует scope offline_access — он уже есть.
+          try { oauth.setupAutomaticSilentRefresh(); } catch {}
         };
       },
     },
