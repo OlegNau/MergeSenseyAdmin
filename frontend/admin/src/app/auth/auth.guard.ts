@@ -23,20 +23,27 @@ async function handle(stateUrl: string): Promise<boolean> {
 
   if (url.searchParams.has('code') && url.searchParams.has('state')) {
     try {
+      // Если discovery ещё не загружен или tokenEndpoint не задан — загрузим сейчас
+      const hasTokenEndpoint = (oauth as any).tokenEndpoint || (oauth as any)._discoveryDocumentLoaded;
+      if (!(oauth as any).discoveryDocumentLoaded || !hasTokenEndpoint) {
+        console.log('[auth] loading discovery document before code exchange');
+        await oauth.loadDiscoveryDocument();
+      }
+
       console.log('[auth] tryLoginCodeFlow start');
       await oauth.tryLoginCodeFlow();
-      // ⏱️ Развязка тика, чтобы storage успел записаться
+
+      // Развязка тика, чтобы успела записаться инфа в storage
       await Promise.resolve();
 
       const ok = oauth.hasValidAccessToken();
       console.log('[auth] tryLoginCodeFlow done, hasValidAccessToken=', ok);
 
       if (!ok) {
-        // Принудительно утащим пользователя на login с ошибкой — без новой авторизации
         await router.navigate(['/auth/login'], {
           queryParams: {
             error: 'invalid_token',
-            error_description: 'Access token is missing or invalid after code exchange',
+            error_description: 'Access token missing/invalid after code exchange',
           },
           replaceUrl: true,
         });
