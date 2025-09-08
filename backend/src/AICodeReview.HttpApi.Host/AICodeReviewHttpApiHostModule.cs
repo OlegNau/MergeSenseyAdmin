@@ -52,6 +52,18 @@ public class AICodeReviewHttpApiHostModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {
+        var env = context.Services.GetHostingEnvironment();
+
+        // Разрешаем HTTP (убираем требование HTTPS) именно в Dev
+        PreConfigure<OpenIddictServerAspNetCoreBuilder>(builder =>
+        {
+            if (env.IsDevelopment())
+            {
+                builder.DisableTransportSecurityRequirement();
+            }
+        });
+
+        // Валидация токенов — оставляем как было
         PreConfigure<OpenIddictBuilder>(builder =>
         {
             builder.AddValidation(options =>
@@ -76,21 +88,6 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         {
             Configure<AbpBackgroundJobOptions>(o => o.IsJobExecutionEnabled = false);
         }
-
-        context.Services.AddOpenIddict()
-            .AddServer(options =>
-            {
-                options.UseAspNetCore()
-                    .EnableAuthorizationEndpointPassthrough()
-                    .EnableTokenEndpointPassthrough()
-                    .EnableUserinfoEndpointPassthrough();
-
-                if (hostingEnvironment.IsDevelopment())
-                {
-                    options.UseAspNetCore()
-                           .DisableTransportSecurityRequirement();
-                }
-            });
 
         ConfigureAuthentication(context);
         ConfigureBundles();
