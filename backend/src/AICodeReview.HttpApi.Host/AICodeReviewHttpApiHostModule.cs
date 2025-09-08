@@ -14,6 +14,7 @@ using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
 using Microsoft.OpenApi.Models;
 using OpenIddict.Server;
+using OpenIddict.Server.AspNetCore; // требуется для DisableTransportSecurityRequirement()
 using OpenIddict.Validation.AspNetCore;
 using Volo.Abp;
 using Volo.Abp.Account;
@@ -52,13 +53,20 @@ public class AICodeReviewHttpApiHostModule : AbpModule
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {
         var env = context.Services.GetHostingEnvironment();
-        if (env.IsDevelopment())
+
+        PreConfigure<OpenIddictServerBuilder>(builder =>
         {
-            PreConfigure<OpenIddictServerBuilder>(builder =>
+            var aspNetCoreBuilder = builder.UseAspNetCore()
+                .EnableAuthorizationEndpointPassthrough()
+                .EnableTokenEndpointPassthrough()
+                .EnableLogoutEndpointPassthrough()
+                .EnableUserinfoEndpointPassthrough();
+
+            if (env.IsDevelopment())
             {
-                builder.DisableTransportSecurityRequirement();
-            });
-        }
+                aspNetCoreBuilder.DisableTransportSecurityRequirement();
+            }
+        });
 
         PreConfigure<OpenIddictBuilder>(builder =>
         {
