@@ -74,6 +74,22 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
     {
         var configurationSection = _configuration.GetSection("OpenIddict:Applications");
 
+        await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API");
+
+        var spaClientId = configurationSection["MergeSenseyAdmin_Angular:ClientId"];
+        if (!spaClientId.IsNullOrWhiteSpace())
+        {
+            var spaRootUrl = configurationSection["MergeSenseyAdmin_Angular:RootUrl"]?.TrimEnd('/');
+
+            await CreateOrReplaceSpaClientAsync(
+                _applicationManager,
+                clientId: spaClientId!,
+                displayName: "MergeSenseyAdmin Angular",
+                redirectUri: $"{spaRootUrl}/auth/callback",
+                postLogoutUri: spaRootUrl!
+            );
+        }
+
         var swaggerClientId = configurationSection["AICodeReview_Swagger:ClientId"];
         if (!swaggerClientId.IsNullOrWhiteSpace())
         {
@@ -87,53 +103,6 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
                 postLogoutUri: $"{swaggerRootUrl}/swagger/"
             );
         }
-
-        const string spaClientId = "MergeSenseyAdmin_Angular";
-
-        await CreateApplicationAsync(
-            name: spaClientId,
-            type: OpenIddictConstants.ClientTypes.Public,
-            consentType: OpenIddictConstants.ConsentTypes.Explicit,
-            displayName: "MergeSenseyAdmin Angular",
-            secret: null,                                               
-            grantTypes: new List<string> {
-                OpenIddictConstants.GrantTypes.AuthorizationCode,       
-                OpenIddictConstants.GrantTypes.RefreshToken              
-            },
-            scopes: new List<string> {
-                OpenIddictConstants.Permissions.Scopes.Email,
-                OpenIddictConstants.Permissions.Scopes.Profile,
-                OpenIddictConstants.Permissions.Scopes.Roles,
-                "AICodeReview",
-                "offline_access"
-            },
-            clientUri: "http://localhost:4200",
-            redirectUri: "http://localhost:4200/auth/callback",
-            postLogoutRedirectUri: "http://localhost:4200"
-        );
-
-        await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API");
-
-        await CreateOrReplaceSpaClientAsync(
-            _applicationManager,
-            clientId: "MergeSensei_App",
-            displayName: "MergeSensei Angular SPA",
-            redirectUris: new[]
-            {
-                "http://localhost:4200",
-                "http://localhost:4200/",
-                "http://localhost:4200/auth/callback",
-                "https://localhost:4200",
-                "https://localhost:4200/",
-                "https://localhost:4200/auth/callback"
-            },
-            postLogoutUris: new[]
-            {
-                "http://localhost:4200",
-                "https://localhost:4200"
-            },
-            additionalScopes: new[] { "MergeSensei", "offline_access" } // <-- ВАЖНО
-        );
     }
 
     private static async Task EnsureScopeAsync(IOpenIddictScopeManager scopeManager, string name, string displayName)
@@ -152,9 +121,8 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         IOpenIddictApplicationManager applicationManager,
         string clientId,
         string displayName,
-        IEnumerable<string> redirectUris,
-        IEnumerable<string> postLogoutUris,
-        IEnumerable<string>? additionalScopes = null)
+        string redirectUri,
+        string postLogoutUri)
     {
         var existing = await applicationManager.FindByClientIdAsync(clientId);
         if (existing is not null)
@@ -176,10 +144,10 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         clientTypeProp?.SetValue(descriptor, ClientTypes.Public);
 
         descriptor.RedirectUris.Clear();
-        foreach (var u in redirectUris) descriptor.RedirectUris.Add(new Uri(u));
+        descriptor.RedirectUris.Add(new Uri(redirectUri));
 
         descriptor.PostLogoutRedirectUris.Clear();
-        foreach (var u in postLogoutUris) descriptor.PostLogoutRedirectUris.Add(new Uri(u));
+        descriptor.PostLogoutRedirectUris.Add(new Uri(postLogoutUri));
 
         // Permissions (version-safe)
         var perms = new HashSet<string>
@@ -191,11 +159,9 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             Permissions.ResponseTypes.Code,
             Permissions.Prefixes.Scope + Scopes.OpenId,
             Permissions.Prefixes.Scope + Scopes.Profile,
-            Permissions.Prefixes.Scope + Scopes.OfflineAccess
+            Permissions.Prefixes.Scope + Scopes.OfflineAccess,
+            Permissions.Prefixes.Scope + "MergeSensei"
         };
-        if (additionalScopes != null)
-            foreach (var s in additionalScopes)
-                perms.Add(Permissions.Prefixes.Scope + s);
 
         descriptor.Permissions.Clear();
         foreach (var p in perms)
@@ -242,6 +208,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             Permissions.Endpoints.Authorization,
             Permissions.Endpoints.Token,
             Permissions.GrantTypes.AuthorizationCode,
+            Permissions.GrantTypes.RefreshToken,
             Permissions.ResponseTypes.Code,
             Permissions.Prefixes.Scope + Scopes.OpenId,
             Permissions.Prefixes.Scope + Scopes.Profile,
