@@ -72,35 +72,22 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
     private async Task CreateApplicationsAsync()
     {
-        var commonScopes = new List<string> {
-            OpenIddictConstants.Permissions.Scopes.Address,
-            OpenIddictConstants.Permissions.Scopes.Email,
-            OpenIddictConstants.Permissions.Scopes.Phone,
-            OpenIddictConstants.Permissions.Scopes.Profile,
-            OpenIddictConstants.Permissions.Scopes.Roles,
-            "AICodeReview"
-        };
-
         var configurationSection = _configuration.GetSection("OpenIddict:Applications");
-        
+
         var swaggerClientId = configurationSection["AICodeReview_Swagger:ClientId"];
         if (!swaggerClientId.IsNullOrWhiteSpace())
         {
             var swaggerRootUrl = configurationSection["AICodeReview_Swagger:RootUrl"]?.TrimEnd('/');
 
-            await CreateApplicationAsync(
-                name: swaggerClientId!,
-                type: OpenIddictConstants.ClientTypes.Public,
-                consentType: OpenIddictConstants.ConsentTypes.Implicit,
-                displayName: "Swagger Application",
-                secret: null,
-                grantTypes: new List<string> { OpenIddictConstants.GrantTypes.AuthorizationCode },
-                scopes: commonScopes,
+            await CreateOrReplaceSwaggerClientAsync(
+                _applicationManager,
+                clientId: swaggerClientId!,
+                displayName: "Swagger",
                 redirectUri: $"{swaggerRootUrl}/swagger/oauth2-redirect.html",
-                clientUri: swaggerRootUrl
+                postLogoutUri: $"{swaggerRootUrl}/swagger/"
             );
         }
-        
+
         const string spaClientId = "MergeSenseyAdmin_Angular";
 
         await CreateApplicationAsync(
@@ -209,6 +196,58 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         if (additionalScopes != null)
             foreach (var s in additionalScopes)
                 perms.Add(Permissions.Prefixes.Scope + s);
+
+        descriptor.Permissions.Clear();
+        foreach (var p in perms)
+            descriptor.Permissions.Add(p);
+
+        descriptor.Requirements.Clear();
+        descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
+
+        await applicationManager.CreateAsync(descriptor);
+    }
+
+    private static async Task CreateOrReplaceSwaggerClientAsync(
+        IOpenIddictApplicationManager applicationManager,
+        string clientId,
+        string displayName,
+        string redirectUri,
+        string postLogoutUri)
+    {
+        var existing = await applicationManager.FindByClientIdAsync(clientId);
+        if (existing is not null)
+        {
+            await applicationManager.DeleteAsync(existing);
+        }
+
+        var descriptor = new OpenIddictApplicationDescriptor
+        {
+            ClientId = clientId,
+            DisplayName = displayName,
+            ConsentType = ConsentTypes.Implicit,
+        };
+
+        var clientTypeProp = typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType")
+                             ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type");
+        clientTypeProp?.SetValue(descriptor, ClientTypes.Public);
+
+        descriptor.RedirectUris.Clear();
+        descriptor.RedirectUris.Add(new Uri(redirectUri));
+
+        descriptor.PostLogoutRedirectUris.Clear();
+        descriptor.PostLogoutRedirectUris.Add(new Uri(postLogoutUri));
+
+        var perms = new HashSet<string>
+        {
+            Permissions.Endpoints.Authorization,
+            Permissions.Endpoints.Token,
+            Permissions.GrantTypes.AuthorizationCode,
+            Permissions.ResponseTypes.Code,
+            Permissions.Prefixes.Scope + Scopes.OpenId,
+            Permissions.Prefixes.Scope + Scopes.Profile,
+            Permissions.Prefixes.Scope + Scopes.OfflineAccess,
+            Permissions.Prefixes.Scope + "MergeSensei"
+        };
 
         descriptor.Permissions.Clear();
         foreach (var p in perms)
