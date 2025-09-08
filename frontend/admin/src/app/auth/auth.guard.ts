@@ -37,8 +37,16 @@ async function handle(stateUrl: string): Promise<boolean> {
   }
 
   if (oauth.hasValidAccessToken()) return true;
+  // ✅ NEW: если мы уже стоим на том же URL, который собираемся сохранить как returnUrl,
+  // просто кинем на логин сразу (без лишних «сохранений» и гонок навигации)
+  const currentUrl = router.routerState.snapshot.url || '/';
+  const plannedUrl = stateUrl || '/';
+  if (currentUrl === plannedUrl) {
+    oauth.initCodeFlow();
+    return false;
+  }
 
-  sessionStorage.setItem('returnUrl', stateUrl);
+  sessionStorage.setItem('returnUrl', plannedUrl);
   try {
     if (!(oauth as any).discoveryDocumentLoaded) {
       await oauth.loadDiscoveryDocument();
