@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenIddict.Abstractions;
 using Serilog;
 using Serilog.Events;
 
@@ -57,6 +61,28 @@ public class Program
 
             await builder.AddApplicationAsync<AICodeReviewHttpApiHostModule>();
             var app = builder.Build();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.MapGet("/dev/openiddict/client/{clientId}", async (string clientId, IServiceProvider sp) =>
+                {
+                    var manager = sp.GetRequiredService<IOpenIddictApplicationManager>();
+                    var appEntity = await manager.FindByClientIdAsync(clientId);
+                    if (appEntity is null) return Results.NotFound(new { clientId });
+
+                    // Извлечём дескриптор, чтобы увидеть RedirectUris/PostLogoutRedirectUris
+                    var type = appEntity.GetType();
+                    var redirectUris = (IEnumerable<Uri>)(type.GetProperty("RedirectUris")?.GetValue(appEntity) as IEnumerable<Uri> ?? Enumerable.Empty<Uri>());
+                    var postLogoutUris = (IEnumerable<Uri>)(type.GetProperty("PostLogoutRedirectUris")?.GetValue(appEntity) as IEnumerable<Uri> ?? Enumerable.Empty<Uri>());
+
+                    return Results.Ok(new
+                    {
+                        clientId,
+                        redirectUris = redirectUris.Select(u => u.ToString()).ToArray(),
+                        postLogoutRedirectUris = postLogoutUris.Select(u => u.ToString()).ToArray()
+                    });
+                });
+            }
 
             app.UseCors(); // place before auth
 
