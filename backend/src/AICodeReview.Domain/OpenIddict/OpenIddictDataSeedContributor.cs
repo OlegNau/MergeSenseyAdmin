@@ -131,8 +131,17 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             _applicationManager,
             clientId: "MergeSensei_App",
             displayName: "MergeSensei Angular SPA",
-            redirectUri: "https://localhost:4200",
-            postLogoutRedirectUri: "https://localhost:4200",
+            redirectUris: new[]
+            {
+                "https://localhost:4200",
+                "https://localhost:4200/",
+                "https://localhost:4200/auth/callback"
+            },
+            postLogoutRedirectUris: new[]
+            {
+                "https://localhost:4200",
+                "https://localhost:4200/"
+            },
             additionalScopes: new[] { "MergeSensei" }
         );
     }
@@ -153,8 +162,8 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         IOpenIddictApplicationManager applicationManager,
         string clientId,
         string displayName,
-        string redirectUri,
-        string postLogoutRedirectUri,
+        IEnumerable<string> redirectUris,
+        IEnumerable<string> postLogoutRedirectUris,
         IEnumerable<string>? additionalScopes = null)
     {
         var existing = await applicationManager.FindByClientIdAsync(clientId);
@@ -171,10 +180,16 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         clientTypeProp?.SetValue(descriptor, ClientTypes.Public);
 
         descriptor.RedirectUris.Clear();
-        descriptor.RedirectUris.Add(new Uri(redirectUri));
+        foreach (var u in redirectUris)
+        {
+            descriptor.RedirectUris.Add(new Uri(u));
+        }
 
         descriptor.PostLogoutRedirectUris.Clear();
-        descriptor.PostLogoutRedirectUris.Add(new Uri(postLogoutRedirectUri));
+        foreach (var u in postLogoutRedirectUris)
+        {
+            descriptor.PostLogoutRedirectUris.Add(new Uri(u));
+        }
 
         var perms = new HashSet<string>
         {
