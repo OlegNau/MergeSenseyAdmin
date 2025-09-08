@@ -27,7 +27,7 @@ bootstrapApplication(AppComponent, {
 
     provideOAuthClient({
       resourceServer: {
-        allowedUrls: ['https://localhost:44396', 'http://localhost:44396'],
+        allowedUrls: ['http://localhost:44396'],
         sendAccessToken: true,
       },
     }),
