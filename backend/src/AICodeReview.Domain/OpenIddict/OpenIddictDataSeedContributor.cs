@@ -74,7 +74,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
     {
         var configurationSection = _configuration.GetSection("OpenIddict:Applications");
 
-        await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API");
+        await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API", "AICodeReview");
 
         var spaClientId = configurationSection["MergeSenseyAdmin_Angular:ClientId"];
         if (!spaClientId.IsNullOrWhiteSpace())
@@ -105,15 +105,25 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         }
     }
 
-    private static async Task EnsureScopeAsync(IOpenIddictScopeManager scopeManager, string name, string displayName)
+    private static async Task EnsureScopeAsync(
+        IOpenIddictScopeManager scopeManager,
+        string name,
+        string displayName,
+        params string[] resources)
     {
         if (await scopeManager.FindByNameAsync(name) is null)
         {
-            await scopeManager.CreateAsync(new OpenIddictScopeDescriptor
+            var d = new OpenIddictScopeDescriptor
             {
                 Name = name,
                 DisplayName = displayName
-            });
+            };
+            if (resources != null)
+            {
+                foreach (var r in resources)
+                    d.Resources.Add(r);
+            }
+            await scopeManager.CreateAsync(d);
         }
     }
 
@@ -135,7 +145,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         {
             ClientId = clientId,
             DisplayName = displayName,
-            ConsentType = ConsentTypes.Implicit,
+            ConsentType = ConsentTypes.Explicit,
         };
 
         // Set ClientType = Public (supports OpenIddict 3/4/5)
@@ -190,7 +200,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         {
             ClientId = clientId,
             DisplayName = displayName,
-            ConsentType = ConsentTypes.Implicit,
+            ConsentType = ConsentTypes.Explicit,
         };
 
         var clientTypeProp = typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType")
