@@ -150,13 +150,28 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
         var root = spaRoot.TrimEnd('/');
 
+        // Compute https variant for localhost:4200 too
+        var httpsRoot = root.StartsWith("http://localhost:4200", StringComparison.OrdinalIgnoreCase)
+            ? root.Replace("http://", "https://")
+            : root;
+
         descriptor.RedirectUris.Clear();
         descriptor.RedirectUris.Add(new Uri(root));
         descriptor.RedirectUris.Add(new Uri(root + "/"));
+        if (!string.Equals(httpsRoot, root, StringComparison.OrdinalIgnoreCase))
+        {
+            descriptor.RedirectUris.Add(new Uri(httpsRoot));
+            descriptor.RedirectUris.Add(new Uri(httpsRoot + "/"));
+        }
 
         descriptor.PostLogoutRedirectUris.Clear();
         descriptor.PostLogoutRedirectUris.Add(new Uri(root));
         descriptor.PostLogoutRedirectUris.Add(new Uri(root + "/"));
+        if (!string.Equals(httpsRoot, root, StringComparison.OrdinalIgnoreCase))
+        {
+            descriptor.PostLogoutRedirectUris.Add(new Uri(httpsRoot));
+            descriptor.PostLogoutRedirectUris.Add(new Uri(httpsRoot + "/"));
+        }
 
         var perms = new HashSet<string>
         {

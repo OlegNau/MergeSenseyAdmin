@@ -220,6 +220,7 @@ public class AICodeReviewHttpApiHostModule : AbpModule
             var configuration = context.ServiceProvider.GetRequiredService<IConfiguration>();
             c.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
             c.OAuthUsePkce();
+            // Request all useful scopes by default (DEV-friendly)
             c.OAuthScopes("AICodeReview", "openid", "profile", "offline_access", "MergeSensei");
         });
 
