@@ -127,18 +127,23 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
         await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API");
 
-        await CreateOrUpdateSpaClientAsync(
+        await CreateOrReplaceSpaClientAsync(
             _applicationManager,
             clientId: "MergeSensei_App",
             displayName: "MergeSensei Angular SPA",
             redirectUris: new[]
             {
+                "http://localhost:4200",
+                "http://localhost:4200/",
+                "http://localhost:4200/auth/callback",
                 "https://localhost:4200",
                 "https://localhost:4200/",
                 "https://localhost:4200/auth/callback"
             },
-            postLogoutRedirectUris: new[]
+            postLogoutUris: new[]
             {
+                "http://localhost:4200",
+                "http://localhost:4200/",
                 "https://localhost:4200",
                 "https://localhost:4200/"
             },
@@ -158,15 +163,20 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         }
     }
 
-    private static async Task CreateOrUpdateSpaClientAsync(
+    private static async Task CreateOrReplaceSpaClientAsync(
         IOpenIddictApplicationManager applicationManager,
         string clientId,
         string displayName,
         IEnumerable<string> redirectUris,
-        IEnumerable<string> postLogoutRedirectUris,
+        IEnumerable<string> postLogoutUris,
         IEnumerable<string>? additionalScopes = null)
     {
         var existing = await applicationManager.FindByClientIdAsync(clientId);
+        if (existing is not null)
+        {
+            // Ensure collections are refreshed: delete & recreate for SPA (no secret)
+            await applicationManager.DeleteAsync(existing);
+        }
 
         var descriptor = new OpenIddictApplicationDescriptor
         {
@@ -175,58 +185,41 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             ConsentType = ConsentTypes.Implicit,
         };
 
+        // Set ClientType = Public (supports OpenIddict 3/4/5 via reflection)
         var clientTypeProp = typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType")
                              ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type");
         clientTypeProp?.SetValue(descriptor, ClientTypes.Public);
 
         descriptor.RedirectUris.Clear();
-        foreach (var u in redirectUris)
-        {
-            descriptor.RedirectUris.Add(new Uri(u));
-        }
+        foreach (var u in redirectUris) descriptor.RedirectUris.Add(new Uri(u));
 
         descriptor.PostLogoutRedirectUris.Clear();
-        foreach (var u in postLogoutRedirectUris)
-        {
-            descriptor.PostLogoutRedirectUris.Add(new Uri(u));
-        }
+        foreach (var u in postLogoutUris) descriptor.PostLogoutRedirectUris.Add(new Uri(u));
 
+        // Build permissions (version-safe)
         var perms = new HashSet<string>
         {
             Permissions.Endpoints.Authorization,
             Permissions.Endpoints.Token,
+            // omit Endpoints.Logout for compatibility
             Permissions.GrantTypes.AuthorizationCode,
             Permissions.ResponseTypes.Code,
             Permissions.Prefixes.Scope + Scopes.OpenId,
             Permissions.Prefixes.Scope + Scopes.Profile,
             Permissions.Prefixes.Scope + Scopes.OfflineAccess
         };
-
         if (additionalScopes != null)
-        {
             foreach (var s in additionalScopes)
-            {
                 perms.Add(Permissions.Prefixes.Scope + s);
-            }
-        }
 
         descriptor.Permissions.Clear();
         foreach (var p in perms)
-        {
             descriptor.Permissions.Add(p);
-        }
 
         descriptor.Requirements.Clear();
         descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
 
-        if (existing is not null)
-        {
-            await applicationManager.UpdateAsync(existing, descriptor);
-        }
-        else
-        {
-            await applicationManager.CreateAsync(descriptor);
-        }
+        await applicationManager.CreateAsync(descriptor);
     }
 
     private async Task CreateApplicationAsync(
