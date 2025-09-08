@@ -7,7 +7,7 @@ export const environment = {
   application: { baseUrl, name: 'MergeSenseyAdmin' },
   oAuthConfig: {
     issuer: 'https://localhost:44396/',
-    redirectUri: baseUrl,
+    redirectUri: `${baseUrl}/auth/callback`,
     clientId: 'MergeSensei_App',
     responseType: 'code',
     scope: 'offline_access openid profile MergeSensei',
