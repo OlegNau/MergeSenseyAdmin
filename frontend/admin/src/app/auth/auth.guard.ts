@@ -7,6 +7,8 @@ async function handle(stateUrl: string): Promise<boolean> {
   const router = inject(Router);
   const url = new URL(window.location.href);
 
+  console.log('[auth] stateUrl=', stateUrl);
+
   if (url.searchParams.has('error')) {
     sessionStorage.removeItem('auth.loginInProgress');
     await router.navigate(['/auth/login'], {
@@ -32,6 +34,7 @@ async function handle(stateUrl: string): Promise<boolean> {
     return true;
   }
 
+  console.log('[auth] hasValidAccessToken=', oauth.hasValidAccessToken());
   if (oauth.hasValidAccessToken()) {
     return true;
   }
