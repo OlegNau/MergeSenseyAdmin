@@ -21,6 +21,7 @@ export class AuthLoginComponent {
 
   async onLogin() {
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
-    await this.auth.login(returnUrl);
+    sessionStorage.setItem('returnUrl', returnUrl);
+    this.auth.login(returnUrl);
   }
 }

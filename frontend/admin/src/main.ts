@@ -24,11 +24,7 @@ bootstrapApplication(AppComponent, {
       },
     }),
 
-    // ⚠️ В DEV используем sessionStorage, в PROD — localStorage
-    {
-      provide: OAuthStorage,
-      useFactory: () => (environment.production ? localStorage : sessionStorage),
-    },
+    { provide: OAuthStorage, useValue: localStorage },
 
     {
       provide: APP_INITIALIZER,
@@ -36,14 +32,9 @@ bootstrapApplication(AppComponent, {
       useFactory: () => {
         const oauth = inject(OAuthService);
         return async () => {
+          oauth.setStorage(localStorage);
           oauth.configure(environment.oAuthConfig as any);
-
-          // discovery документ подгружаем заранее
           try { await oauth.loadDiscoveryDocument(); } catch {}
-
-          // авто-продление по refresh token (angular-oauth2-oidc сам решит чем пользоваться)
-          // NOTE: требует scope offline_access — он уже есть.
-          try { oauth.setupAutomaticSilentRefresh(); } catch {}
         };
       },
     },
