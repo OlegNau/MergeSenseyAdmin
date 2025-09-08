@@ -4,9 +4,9 @@ export const environment = {
   production: false,
   application: { baseUrl: 'http://localhost:4200', name: 'MergeSenseyAdmin' },
   oAuthConfig: {
-    issuer: 'https://localhost:44396/',
-    loginUrl: 'https://localhost:44396/connect/authorize',   // fallback для authorize
-    tokenEndpoint: 'https://localhost:44396/connect/token',  // fallback для token
+    issuer: 'http://localhost:44396/',
+    loginUrl: 'http://localhost:44396/connect/authorize',   // fallback для authorize
+    tokenEndpoint: 'http://localhost:44396/connect/token',  // fallback для token
     redirectUri: 'http://localhost:4200',                    // или со слэшем, но 1-в-1 как в БД
     postLogoutRedirectUri: 'http://localhost:4200',
     clientId: 'MergeSenseyAdmin_Angular',
@@ -18,8 +18,8 @@ export const environment = {
     sessionChecksEnabled: false,
   },
   apis: {
-    default: { url: 'https://localhost:44396' },
-    Default: { url: 'https://localhost:44396' },
+    default: { url: 'http://localhost:44396' },
+    Default: { url: 'http://localhost:44396' },
   },
 } as Environment;
 
