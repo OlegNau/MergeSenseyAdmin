@@ -32,6 +32,23 @@ public class Program
             Log.Information("Starting AICodeReview.HttpApi.Host.");
 
             var builder = WebApplication.CreateBuilder(args);
+            var configuration = builder.Configuration;
+
+            // CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    var origins = configuration["App:CorsOrigins"]
+                        ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        ?? Array.Empty<string>();
+
+                    policy.WithOrigins(origins)
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
 
             builder.Host
                 .AddAppSettingsSecretsJson() // подхватит appsettings.secrets.json при наличии
@@ -40,6 +57,8 @@ public class Program
 
             await builder.AddApplicationAsync<AICodeReviewHttpApiHostModule>();
             var app = builder.Build();
+
+            app.UseCors(); // place before auth
 
             await app.InitializeApplicationAsync();
             await app.RunAsync();
