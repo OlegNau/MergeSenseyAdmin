@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using OpenIddict.Abstractions;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 using Volo.Abp;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Data;
@@ -104,8 +105,8 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
         await CreateApplicationAsync(
             name: spaClientId,
-            type: OpenIddictConstants.ClientTypes.Public,          
-            consentType: OpenIddictConstants.ConsentTypes.Explicit,  
+            type: OpenIddictConstants.ClientTypes.Public,
+            consentType: OpenIddictConstants.ConsentTypes.Explicit,
             displayName: "MergeSenseyAdmin Angular",
             secret: null,                                               
             grantTypes: new List<string> {
@@ -123,6 +124,69 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             redirectUri: "http://localhost:4200",
             postLogoutRedirectUri: "http://localhost:4200"
         );
+
+        var angularClientId = "MergeSensei_App";
+        var redirectUri = new Uri("https://localhost:4200");
+        var postLogoutRedirectUri = new Uri("https://localhost:4200");
+
+        await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API", new[]
+        {
+            Scopes.OpenId,
+            Scopes.Profile,
+            Scopes.OfflineAccess
+        });
+
+        var existing = await _applicationManager.FindByClientIdAsync(angularClientId);
+        var descriptor = new OpenIddictApplicationDescriptor
+        {
+            ClientId = angularClientId,
+            DisplayName = "MergeSensei Angular SPA",
+            ConsentType = ConsentTypes.Implicit,
+            Type = ClientTypes.Public
+        };
+
+        descriptor.Permissions.Add(Permissions.Endpoints.Authorization);
+        descriptor.Permissions.Add(Permissions.Endpoints.Token);
+        descriptor.Permissions.Add(Permissions.Endpoints.Logout);
+        descriptor.Permissions.Add(Permissions.GrantTypes.AuthorizationCode);
+        descriptor.Permissions.Add(Permissions.ResponseTypes.Code);
+        descriptor.Permissions.Add(Permissions.Scopes.OpenId);
+        descriptor.Permissions.Add(Permissions.Scopes.Profile);
+        descriptor.Permissions.Add(Permissions.Scopes.OfflineAccess);
+        descriptor.Permissions.Add("MergeSensei");
+
+        descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
+
+        descriptor.RedirectUris.Add(redirectUri);
+        descriptor.PostLogoutRedirectUris.Add(postLogoutRedirectUri);
+
+        if (existing is not null)
+        {
+            await _applicationManager.UpdateAsync(existing, descriptor);
+        }
+        else
+        {
+            await _applicationManager.CreateAsync(descriptor);
+        }
+    }
+
+    private async Task EnsureScopeAsync(IOpenIddictScopeManager scopeManager, string name, string displayName, IEnumerable<string> resources)
+    {
+        if (await scopeManager.FindByNameAsync(name) is null)
+        {
+            var descriptor = new OpenIddictScopeDescriptor
+            {
+                Name = name,
+                DisplayName = displayName
+            };
+
+            foreach (var resource in resources)
+            {
+                descriptor.Resources.Add(resource);
+            }
+
+            await scopeManager.CreateAsync(descriptor);
+        }
     }
 
     private async Task CreateApplicationAsync(
