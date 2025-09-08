@@ -227,12 +227,9 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
 
-        if (env.IsDevelopment())
-        {
-            context.ServiceProvider
-                .GetRequiredService<IDataSeeder>()
-                .SeedAsync()
-                .GetAwaiter().GetResult();
-        }
+        context.ServiceProvider
+            .GetRequiredService<IDataSeeder>()
+            .SeedAsync()
+            .GetAwaiter().GetResult();
     }
 }
