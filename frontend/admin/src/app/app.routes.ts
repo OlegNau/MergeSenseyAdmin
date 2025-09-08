@@ -2,6 +2,29 @@ import { Routes } from '@angular/router';
 import { authGuard } from '@abp/ng.core';
 
 export const routes: Routes = [
+  // Public auth routes (no guard)
+  {
+    path: 'auth/login',
+    loadComponent: () => import('./auth/auth-login.component').then(m => m.AuthLoginComponent),
+  },
+  {
+    path: 'auth/callback',
+    loadComponent: () => import('./auth/auth-callback.component').then(m => m.AuthCallbackComponent),
+  },
+  {
+    path: 'auth/logout',
+    loadComponent: () => import('./auth/auth-logout.component').then(m => m.AuthLogoutComponent),
+  },
+  {
+    path: 'auth/logged-out',
+    loadComponent: () => import('./auth/auth-loggedout.component').then(m => m.AuthLoggedOutComponent),
+  },
+  {
+    path: 'auth/forbidden',
+    loadComponent: () => import('./auth/auth-forbidden.component').then(m => m.AuthForbiddenComponent),
+  },
+
+  // Guarded shell
   {
     path: '',
     canActivate: [authGuard],
