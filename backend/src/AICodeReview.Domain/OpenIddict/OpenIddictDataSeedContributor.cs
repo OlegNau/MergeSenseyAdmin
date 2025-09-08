@@ -76,11 +76,10 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
         await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API", "AICodeReview");
 
-        await CreateOrReplaceSpaClientAsync(
+        await UpsertSpaAsync(
             _applicationManager,
-            clientId: "MergeSenseyAdmin_Angular",
-            displayName: "MergeSenseyAdmin Angular",
-            spaRoot: "http://localhost:4200"
+            "MergeSenseyAdmin_Angular",
+            "MergeSenseyAdmin Angular"
         );
 
         var swaggerClientId = configurationSection["AICodeReview_Swagger:ClientId"];
@@ -120,52 +119,42 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         }
     }
 
-    private static async Task CreateOrReplaceSpaClientAsync(
+    private static async Task UpsertSpaAsync(
         IOpenIddictApplicationManager applicationManager,
         string clientId,
-        string displayName,
-        string spaRoot // e.g. "http://localhost:4200"
-    )
+        string displayName)
     {
-        // delete-then-create to guarantee URIs/perms are updated
         var existing = await applicationManager.FindByClientIdAsync(clientId);
         if (existing is not null)
         {
             await applicationManager.DeleteAsync(existing);
         }
 
-        var descriptor = new OpenIddictApplicationDescriptor
+        var d = new OpenIddictApplicationDescriptor
         {
             ClientId = clientId,
             DisplayName = displayName,
             ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
         };
 
-        // Set as Public (v4/v5 compatibility)
+        // Public client (совместимо с v4/v5)
         (typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType")
          ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type"))
-         ?.SetValue(descriptor, OpenIddictConstants.ClientTypes.Public);
+         ?.SetValue(d, OpenIddictConstants.ClientTypes.Public);
 
-        // register redirect/post-logout URIs: http/https and with/without trailing slash
-        var root = spaRoot.TrimEnd('/'); // "http://localhost:4200"
-        var httpsRoot = root.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
-            ? root.Replace("http://", "https://")
-            : root;
+        // === РОВНО эти URI ===
+        d.RedirectUris.Add(new Uri("http://localhost:4200"));
+        d.RedirectUris.Add(new Uri("http://localhost:4200/"));
+        d.RedirectUris.Add(new Uri("https://localhost:4200"));
+        d.RedirectUris.Add(new Uri("https://localhost:4200/"));
 
-        descriptor.RedirectUris.Clear();
-        descriptor.RedirectUris.Add(new Uri(root));        // http://localhost:4200
-        descriptor.RedirectUris.Add(new Uri(root + "/"));  // http://localhost:4200/
-        descriptor.RedirectUris.Add(new Uri(httpsRoot));   // https://localhost:4200
-        descriptor.RedirectUris.Add(new Uri(httpsRoot + "/")); // https://localhost:4200/
+        d.PostLogoutRedirectUris.Add(new Uri("http://localhost:4200"));
+        d.PostLogoutRedirectUris.Add(new Uri("http://localhost:4200/"));
+        d.PostLogoutRedirectUris.Add(new Uri("https://localhost:4200"));
+        d.PostLogoutRedirectUris.Add(new Uri("https://localhost:4200/"));
 
-        descriptor.PostLogoutRedirectUris.Clear();
-        descriptor.PostLogoutRedirectUris.Add(new Uri(root));
-        descriptor.PostLogoutRedirectUris.Add(new Uri(root + "/"));
-        descriptor.PostLogoutRedirectUris.Add(new Uri(httpsRoot));
-        descriptor.PostLogoutRedirectUris.Add(new Uri(httpsRoot + "/"));
-
-        // permissions: code + refresh, token/authorization endpoints, scopes
-        var perms = new HashSet<string>
+        // Разрешения: code + refresh + нужные скоупы
+        d.Permissions.UnionWith(new[]
         {
             OpenIddictConstants.Permissions.Endpoints.Authorization,
             OpenIddictConstants.Permissions.Endpoints.Token,
@@ -175,17 +164,13 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OpenId,
             OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.Profile,
             OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OfflineAccess,
-            OpenIddictConstants.Permissions.Prefixes.Scope + "MergeSensei"
-        };
+            OpenIddictConstants.Permissions.Prefixes.Scope + "MergeSensei",
+        });
 
-        descriptor.Permissions.Clear();
-        foreach (var p in perms) descriptor.Permissions.Add(p);
+        // Требовать PKCE
+        d.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
 
-        // PKCE required
-        descriptor.Requirements.Clear();
-        descriptor.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
-
-        await applicationManager.CreateAsync(descriptor);
+        await applicationManager.CreateAsync(d);
     }
 
     private static async Task CreateOrReplaceSwaggerClientAsync(
