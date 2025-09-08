@@ -13,6 +13,7 @@ using AICodeReview.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
 using Microsoft.OpenApi.Models;
+using OpenIddict.Server;
 using OpenIddict.Validation.AspNetCore;
 using Volo.Abp;
 using Volo.Abp.Account;
@@ -50,6 +51,15 @@ public class AICodeReviewHttpApiHostModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {
+        var env = context.Services.GetHostingEnvironment();
+        if (env.IsDevelopment())
+        {
+            PreConfigure<OpenIddictServerBuilder>(builder =>
+            {
+                builder.DisableTransportSecurityRequirement();
+            });
+        }
+
         PreConfigure<OpenIddictBuilder>(builder =>
         {
             builder.AddValidation(options =>
