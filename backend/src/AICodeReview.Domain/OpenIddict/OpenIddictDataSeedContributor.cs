@@ -174,7 +174,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         var existing = await applicationManager.FindByClientIdAsync(clientId);
         if (existing is not null)
         {
-            // Ensure collections are refreshed: delete & recreate for SPA (no secret)
+            // Delete to guarantee collections (RedirectUris/PostLogoutRedirectUris) are fully updated
             await applicationManager.DeleteAsync(existing);
         }
 
@@ -185,7 +185,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             ConsentType = ConsentTypes.Implicit,
         };
 
-        // Set ClientType = Public (supports OpenIddict 3/4/5 via reflection)
+        // Set ClientType = Public (supports OpenIddict 3/4/5)
         var clientTypeProp = typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType")
                              ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type");
         clientTypeProp?.SetValue(descriptor, ClientTypes.Public);
@@ -196,12 +196,11 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         descriptor.PostLogoutRedirectUris.Clear();
         foreach (var u in postLogoutUris) descriptor.PostLogoutRedirectUris.Add(new Uri(u));
 
-        // Build permissions (version-safe)
+        // Permissions (version-safe)
         var perms = new HashSet<string>
         {
             Permissions.Endpoints.Authorization,
             Permissions.Endpoints.Token,
-            // omit Endpoints.Logout for compatibility
             Permissions.GrantTypes.AuthorizationCode,
             Permissions.ResponseTypes.Code,
             Permissions.Prefixes.Scope + Scopes.OpenId,
