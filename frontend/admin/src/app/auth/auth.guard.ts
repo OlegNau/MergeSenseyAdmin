@@ -7,6 +7,12 @@ async function handle(stateUrl: string): Promise<boolean> {
   const router = inject(Router);
   const url = new URL(window.location.href);
 
+  // Уже авторизованы и пытаемся открыть страницу логина — ведём в дашборд.
+  if (oauth.hasValidAccessToken() && stateUrl.startsWith('/auth/login')) {
+    await router.navigateByUrl('/dashboard', { replaceUrl: true });
+    return false;
+  }
+
   console.log('[auth] stateUrl=', stateUrl);
 
   if (url.searchParams.has('error')) {
@@ -71,6 +77,11 @@ async function handle(stateUrl: string): Promise<boolean> {
 
   console.log('[auth] hasValidAccessToken=', oauth.hasValidAccessToken());
   if (oauth.hasValidAccessToken()) {
+    return true;
+  }
+
+  // На странице логина не стартуем Code Flow — просто отрисовываем компонент.
+  if (stateUrl.startsWith('/auth/login')) {
     return true;
   }
 
