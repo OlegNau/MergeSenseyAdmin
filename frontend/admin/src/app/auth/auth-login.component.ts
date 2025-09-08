@@ -14,6 +14,11 @@ import { ActivatedRoute } from '@angular/router';
 export class AuthLoginComponent {
   private readonly auth = inject(AuthService);
   public readonly route = inject(ActivatedRoute);
+
+  ngOnInit() {
+    sessionStorage.removeItem('auth.loginInProgress');
+  }
+
   async onLogin() {
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
     await this.auth.login(returnUrl);
