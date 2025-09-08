@@ -2,8 +2,9 @@ import { Routes } from '@angular/router';
 import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
-  // опционально можно оставить публичный login:
-  // { path: 'auth/login', loadComponent: () => import('./auth/auth-login.component').then(m => m.AuthLoginComponent) },
+  { path: 'auth/login', loadComponent: () => import('./auth/auth-login.component').then(m => m.AuthLoginComponent) },
+  { path: 'auth/forbidden', loadComponent: () => import('./auth/auth-forbidden.component').then(m => m.AuthForbiddenComponent) },
+  { path: 'auth/loggedout', loadComponent: () => import('./auth/auth-loggedout.component').then(m => m.AuthLoggedOutComponent) },
 
   {
     path: '',
