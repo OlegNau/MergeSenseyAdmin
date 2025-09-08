@@ -202,6 +202,12 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
+        if (!env.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+            app.UseHsts();
+        }
+
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
