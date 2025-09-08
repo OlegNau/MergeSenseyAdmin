@@ -1,5 +1,7 @@
 using System;
 using AICodeReview.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Autofac;
@@ -37,7 +39,15 @@ public class AICodeReviewDbMigratorModule : AbpModule
         Configure<AbpClockOptions>(o => o.Kind = DateTimeKind.Utc);
         
         Configure<AbpBackgroundJobOptions>(o => o.IsJobExecutionEnabled = false);
-        
+
+        var configuration = context.Services.GetConfiguration();
+
+        // Explicitly register the migrations DbContext so Autofac can resolve its options
+        context.Services.AddDbContext<AICodeReview.EntityFrameworkCore.AICodeReviewMigrationsDbContext>(options =>
+        {
+            options.UseNpgsql(configuration.GetConnectionString("Default"));
+        });
+
         context.Services.AddTransient<AICodeReview.Data.AICodeReviewDbMigrationService>();
     }
 }

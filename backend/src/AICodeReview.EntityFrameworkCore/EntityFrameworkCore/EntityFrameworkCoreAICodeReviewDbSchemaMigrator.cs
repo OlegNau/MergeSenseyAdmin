@@ -20,7 +20,16 @@ public class EntityFrameworkCoreAICodeReviewDbSchemaMigrator
     public async Task MigrateAsync()
     {
         // Сначала применяем миграции MIGRATIONS-контекста (содержит App* таблицы)
-        var migrationsCtx = _serviceProvider.GetService<AICodeReviewMigrationsDbContext>();
+        AICodeReviewMigrationsDbContext? migrationsCtx = null;
+        try
+        {
+            migrationsCtx = _serviceProvider.GetService<AICodeReviewMigrationsDbContext>();
+        }
+        catch
+        {
+            // ignore – we'll fall back to runtime context below
+        }
+
         if (migrationsCtx != null)
         {
             await migrationsCtx.Database.MigrateAsync();
