@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router';
-import { OAuthService, LoginOptions } from 'angular-oauth2-oidc';
+import { OAuthService } from 'angular-oauth2-oidc';
 
 async function handle(stateUrl: string): Promise<boolean> {
   const oauth = inject(OAuthService);
@@ -8,52 +8,42 @@ async function handle(stateUrl: string): Promise<boolean> {
   const url = new URL(window.location.href);
 
   if (url.searchParams.has('error')) {
-    console.warn('[auth] OIDC error:', url.searchParams.get('error'), url.searchParams.get('error_description'));
-    await router.navigate(['/']);
+    await router.navigate(['/auth/login'], {
+      queryParams: {
+        error: url.searchParams.get('error') ?? 'unknown_error',
+        error_description: url.searchParams.get('error_description') ?? '',
+      },
+      replaceUrl: true,
+    });
     return false;
   }
 
   if (url.searchParams.has('code') && url.searchParams.has('state')) {
     try {
-      const opts: LoginOptions = { disableOAuth2StateCheck: false };
-      await oauth.tryLoginCodeFlow(opts);
-
-      if (!oauth.hasValidAccessToken()) {
-        console.warn('[auth] tryLoginCodeFlow finished but access token invalid');
-        await router.navigate(['/']);
-        return false;
-      }
-
-      const ru = sessionStorage.getItem('returnUrl') || '/dashboard';
-      sessionStorage.removeItem('returnUrl');
-
-      await router.navigateByUrl(ru);
-      return false;
-    } catch (e) {
-      console.error('[auth] tryLoginCodeFlow failed', e);
-      await router.navigate(['/']);
-      return false;
+      await oauth.tryLoginCodeFlow();
+    } finally {
+      sessionStorage.removeItem('auth.loginInProgress');
     }
+    const ru = sessionStorage.getItem('returnUrl') || stateUrl || '/dashboard';
+    await router.navigateByUrl(ru, { replaceUrl: true });
+    return true;
   }
 
-  if (oauth.hasValidAccessToken()) return true;
-  // ✅ NEW: если мы уже стоим на том же URL, который собираемся сохранить как returnUrl,
-  // просто кинем на логин сразу (без лишних «сохранений» и гонок навигации)
-  const currentUrl = router.routerState.snapshot.url || '/';
-  const plannedUrl = stateUrl || '/';
-  if (currentUrl === plannedUrl) {
-    oauth.initCodeFlow();
+  if (oauth.hasValidAccessToken()) {
+    return true;
+  }
+
+  if (sessionStorage.getItem('auth.loginInProgress') === '1') {
     return false;
   }
+  sessionStorage.setItem('auth.loginInProgress', '1');
 
-  sessionStorage.setItem('returnUrl', plannedUrl);
   try {
     if (!(oauth as any).discoveryDocumentLoaded) {
       await oauth.loadDiscoveryDocument();
     }
-  } catch (e) {
-    console.warn('[auth] discovery load failed, continuing with initCodeFlow', e);
-  }
+  } catch {}
+
   oauth.initCodeFlow();
   return false;
 }

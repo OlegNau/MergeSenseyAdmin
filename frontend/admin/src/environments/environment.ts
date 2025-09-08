@@ -5,7 +5,8 @@ export const environment = {
   application: { baseUrl: 'http://localhost:4200', name: 'MergeSenseyAdmin' },
   oAuthConfig: {
     issuer: 'https://localhost:44396/',
-    redirectUri: 'http://localhost:4200',              // <— ROOT, not /auth/callback
+    redirectUri: 'http://localhost:4200/',           // с закрывающим слэшем
+    postLogoutRedirectUri: 'http://localhost:4200/', // добавь это поле
     clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
     scope: 'offline_access openid profile MergeSensei',

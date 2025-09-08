@@ -13,7 +13,7 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class AuthLoginComponent {
   private readonly auth = inject(AuthService);
-  private readonly route = inject(ActivatedRoute);
+  public readonly route = inject(ActivatedRoute);
   async onLogin() {
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
     await this.auth.login(returnUrl);
