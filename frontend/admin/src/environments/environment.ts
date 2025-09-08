@@ -5,8 +5,10 @@ export const environment = {
   application: { baseUrl: 'http://localhost:4200', name: 'MergeSenseyAdmin' },
   oAuthConfig: {
     issuer: 'https://localhost:44396/',
-    redirectUri: 'http://localhost:4200',            // без закрывающего слэша
-    postLogoutRedirectUri: 'http://localhost:4200',  // без закрывающего слэша
+    loginUrl: 'https://localhost:44396/connect/authorize',   // fallback для authorize
+    tokenEndpoint: 'https://localhost:44396/connect/token',  // fallback для token
+    redirectUri: 'http://localhost:4200',                    // или со слэшем, но 1-в-1 как в БД
+    postLogoutRedirectUri: 'http://localhost:4200',
     clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
     scope: 'offline_access openid profile MergeSensei',
