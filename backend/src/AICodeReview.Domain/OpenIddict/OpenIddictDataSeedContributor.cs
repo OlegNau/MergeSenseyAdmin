@@ -125,67 +125,92 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             postLogoutRedirectUri: "http://localhost:4200"
         );
 
-        var angularClientId = "MergeSensei_App";
-        var redirectUri = new Uri("https://localhost:4200");
-        var postLogoutRedirectUri = new Uri("https://localhost:4200");
+        await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API");
 
-        await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API", new[]
-        {
-            Scopes.OpenId,
-            Scopes.Profile,
-            Scopes.OfflineAccess
-        });
-
-        var existing = await _applicationManager.FindByClientIdAsync(angularClientId);
-        var descriptor = new OpenIddictApplicationDescriptor
-        {
-            ClientId = angularClientId,
-            DisplayName = "MergeSensei Angular SPA",
-            ConsentType = ConsentTypes.Implicit,
-            Type = ClientTypes.Public
-        };
-
-        descriptor.Permissions.Add(Permissions.Endpoints.Authorization);
-        descriptor.Permissions.Add(Permissions.Endpoints.Token);
-        descriptor.Permissions.Add(Permissions.Endpoints.Logout);
-        descriptor.Permissions.Add(Permissions.GrantTypes.AuthorizationCode);
-        descriptor.Permissions.Add(Permissions.ResponseTypes.Code);
-        descriptor.Permissions.Add(Permissions.Scopes.OpenId);
-        descriptor.Permissions.Add(Permissions.Scopes.Profile);
-        descriptor.Permissions.Add(Permissions.Scopes.OfflineAccess);
-        descriptor.Permissions.Add("MergeSensei");
-
-        descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
-
-        descriptor.RedirectUris.Add(redirectUri);
-        descriptor.PostLogoutRedirectUris.Add(postLogoutRedirectUri);
-
-        if (existing is not null)
-        {
-            await _applicationManager.UpdateAsync(existing, descriptor);
-        }
-        else
-        {
-            await _applicationManager.CreateAsync(descriptor);
-        }
+        await CreateOrUpdateSpaClientAsync(
+            _applicationManager,
+            clientId: "MergeSensei_App",
+            displayName: "MergeSensei Angular SPA",
+            redirectUri: "https://localhost:4200",
+            postLogoutRedirectUri: "https://localhost:4200",
+            additionalScopes: new[] { "MergeSensei" }
+        );
     }
 
-    private async Task EnsureScopeAsync(IOpenIddictScopeManager scopeManager, string name, string displayName, IEnumerable<string> resources)
+    private static async Task EnsureScopeAsync(IOpenIddictScopeManager scopeManager, string name, string displayName)
     {
         if (await scopeManager.FindByNameAsync(name) is null)
         {
-            var descriptor = new OpenIddictScopeDescriptor
+            await scopeManager.CreateAsync(new OpenIddictScopeDescriptor
             {
                 Name = name,
                 DisplayName = displayName
-            };
+            });
+        }
+    }
 
-            foreach (var resource in resources)
+    private static async Task CreateOrUpdateSpaClientAsync(
+        IOpenIddictApplicationManager applicationManager,
+        string clientId,
+        string displayName,
+        string redirectUri,
+        string postLogoutRedirectUri,
+        IEnumerable<string>? additionalScopes = null)
+    {
+        var existing = await applicationManager.FindByClientIdAsync(clientId);
+
+        var descriptor = new OpenIddictApplicationDescriptor
+        {
+            ClientId = clientId,
+            DisplayName = displayName,
+            ConsentType = ConsentTypes.Implicit,
+        };
+
+        var clientTypeProp = typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType")
+                             ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type");
+        clientTypeProp?.SetValue(descriptor, ClientTypes.Public);
+
+        descriptor.RedirectUris.Clear();
+        descriptor.RedirectUris.Add(new Uri(redirectUri));
+
+        descriptor.PostLogoutRedirectUris.Clear();
+        descriptor.PostLogoutRedirectUris.Add(new Uri(postLogoutRedirectUri));
+
+        var perms = new HashSet<string>
+        {
+            Permissions.Endpoints.Authorization,
+            Permissions.Endpoints.Token,
+            Permissions.GrantTypes.AuthorizationCode,
+            Permissions.ResponseTypes.Code,
+            Permissions.Prefixes.Scope + Scopes.OpenId,
+            Permissions.Prefixes.Scope + Scopes.Profile,
+            Permissions.Prefixes.Scope + Scopes.OfflineAccess
+        };
+
+        if (additionalScopes != null)
+        {
+            foreach (var s in additionalScopes)
             {
-                descriptor.Resources.Add(resource);
+                perms.Add(Permissions.Prefixes.Scope + s);
             }
+        }
 
-            await scopeManager.CreateAsync(descriptor);
+        descriptor.Permissions.Clear();
+        foreach (var p in perms)
+        {
+            descriptor.Permissions.Add(p);
+        }
+
+        descriptor.Requirements.Clear();
+        descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
+
+        if (existing is not null)
+        {
+            await applicationManager.UpdateAsync(existing, descriptor);
+        }
+        else
+        {
+            await applicationManager.CreateAsync(descriptor);
         }
     }
 
