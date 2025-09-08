@@ -14,9 +14,26 @@ bootstrapApplication(AppComponent, {
     provideHttpClient(withInterceptorsFromDi()),
     provideAbpCore(withOptions({
       environment,
-      registerLocaleFn: (locale: string) =>
-        import(`@angular/common/locales/${locale}`)
-          .catch(() => import(`@angular/common/locales/${locale}.mjs`)),
+      registerLocaleFn: (locale: string) => {
+        const base = `@angular/common/locales/${locale}`;
+        return import(base)
+          .then(m => (m as any).default ?? m)
+          .catch(async () => {
+            try {
+              const mod = await import(`${base}.js`);
+              return (mod as any).default ?? mod;
+            } catch {
+              try {
+                const mod = await import(`${base}.mjs`);
+                return (mod as any).default ?? mod;
+              } catch {
+                // last resort: load English so pipes work
+                const en = await import(`@angular/common/locales/en`);
+                return (en as any).default ?? en;
+              }
+            }
+          });
+      },
     })),
     provideAbpOAuth(),
   ],
