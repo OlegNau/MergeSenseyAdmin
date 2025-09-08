@@ -5,9 +5,9 @@ export const environment = {
   application: { baseUrl: 'http://localhost:4200', name: 'MergeSenseyAdmin' },
   oAuthConfig: {
     issuer: 'http://localhost:44396/',
-    loginUrl: 'http://localhost:44396/connect/authorize',   // fallback для authorize
-    tokenEndpoint: 'http://localhost:44396/connect/token',  // fallback для token
-    redirectUri: 'http://localhost:4200',                    // или со слэшем, но 1-в-1 как в БД
+    loginUrl: 'http://localhost:44396/connect/authorize',
+    tokenEndpoint: 'http://localhost:44396/connect/token',
+    redirectUri: 'http://localhost:4200',          // 1-в-1 как в БД OpenIddict
     postLogoutRedirectUri: 'http://localhost:4200',
     clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
