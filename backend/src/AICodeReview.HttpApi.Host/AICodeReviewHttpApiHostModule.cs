@@ -83,7 +83,6 @@ public class AICodeReviewHttpApiHostModule : AbpModule
                 options.UseAspNetCore()
                     .EnableAuthorizationEndpointPassthrough()
                     .EnableTokenEndpointPassthrough()
-                    .EnableLogoutEndpointPassthrough()
                     .EnableUserinfoEndpointPassthrough();
 
                 if (hostingEnvironment.IsDevelopment())
