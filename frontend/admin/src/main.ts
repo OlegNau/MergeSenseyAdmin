@@ -15,24 +15,15 @@ bootstrapApplication(AppComponent, {
     provideAbpCore(withOptions({
       environment,
       registerLocaleFn: (locale: string) => {
-        const base = `@angular/common/locales/${locale}`;
-        return import(base)
-          .then(m => (m as any).default ?? m)
-          .catch(async () => {
-            try {
-              const mod = await import(`${base}.js`);
-              return (mod as any).default ?? mod;
-            } catch {
-              try {
-                const mod = await import(`${base}.mjs`);
-                return (mod as any).default ?? mod;
-              } catch {
-                // last resort: load English so pipes work
-                const en = await import(`@angular/common/locales/en`);
-                return (en as any).default ?? en;
-              }
-            }
-          });
+        const loaders: Record<string, () => Promise<unknown>> = {
+          ru: () => import('@angular/common/locales/ru'),
+          en: () => import('@angular/common/locales/en'),
+          de: () => import('@angular/common/locales/de'),
+          fr: () => import('@angular/common/locales/fr'),
+        };
+        const key = (locale || 'en').toLowerCase();
+        const load = loaders[key] ?? loaders['en'];
+        return load().then(m => (m as any).default ?? m);
       },
     })),
     provideAbpOAuth(),
