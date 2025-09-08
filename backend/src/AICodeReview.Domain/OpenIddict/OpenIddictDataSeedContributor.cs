@@ -76,14 +76,11 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
         await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API", "AICodeReview");
 
-        var spaClientId = configurationSection["MergeSenseyAdmin_Angular:ClientId"] ?? "MergeSenseyAdmin_Angular";
-        var spaRootUrl = configurationSection["MergeSenseyAdmin_Angular:RootUrl"] ?? "http://localhost:4200";
-
         await CreateOrReplaceSpaClientAsync(
             _applicationManager,
-            clientId: spaClientId,
+            clientId: "MergeSenseyAdmin_Angular",
             displayName: "MergeSenseyAdmin Angular",
-            spaRoot: spaRootUrl
+            spaRoot: "http://localhost:4200"
         );
 
         var swaggerClientId = configurationSection["AICodeReview_Swagger:ClientId"];
@@ -130,6 +127,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         string spaRoot // e.g. "http://localhost:4200"
     )
     {
+        // delete-then-create to guarantee URIs/perms are updated
         var existing = await applicationManager.FindByClientIdAsync(clientId);
         if (existing is not null)
         {
@@ -143,36 +141,30 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
         };
 
-        // Public client (OpenIddict v3/v4/v5 compatible)
+        // Set as Public (v4/v5 compatibility)
         (typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType")
          ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type"))
          ?.SetValue(descriptor, OpenIddictConstants.ClientTypes.Public);
 
-        var root = spaRoot.TrimEnd('/');
-
-        // Compute https variant for localhost:4200 too
-        var httpsRoot = root.StartsWith("http://localhost:4200", StringComparison.OrdinalIgnoreCase)
+        // register redirect/post-logout URIs: http/https and with/without trailing slash
+        var root = spaRoot.TrimEnd('/'); // "http://localhost:4200"
+        var httpsRoot = root.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
             ? root.Replace("http://", "https://")
             : root;
 
         descriptor.RedirectUris.Clear();
-        descriptor.RedirectUris.Add(new Uri(root));
-        descriptor.RedirectUris.Add(new Uri(root + "/"));
-        if (!string.Equals(httpsRoot, root, StringComparison.OrdinalIgnoreCase))
-        {
-            descriptor.RedirectUris.Add(new Uri(httpsRoot));
-            descriptor.RedirectUris.Add(new Uri(httpsRoot + "/"));
-        }
+        descriptor.RedirectUris.Add(new Uri(root));        // http://localhost:4200
+        descriptor.RedirectUris.Add(new Uri(root + "/"));  // http://localhost:4200/
+        descriptor.RedirectUris.Add(new Uri(httpsRoot));   // https://localhost:4200
+        descriptor.RedirectUris.Add(new Uri(httpsRoot + "/")); // https://localhost:4200/
 
         descriptor.PostLogoutRedirectUris.Clear();
         descriptor.PostLogoutRedirectUris.Add(new Uri(root));
         descriptor.PostLogoutRedirectUris.Add(new Uri(root + "/"));
-        if (!string.Equals(httpsRoot, root, StringComparison.OrdinalIgnoreCase))
-        {
-            descriptor.PostLogoutRedirectUris.Add(new Uri(httpsRoot));
-            descriptor.PostLogoutRedirectUris.Add(new Uri(httpsRoot + "/"));
-        }
+        descriptor.PostLogoutRedirectUris.Add(new Uri(httpsRoot));
+        descriptor.PostLogoutRedirectUris.Add(new Uri(httpsRoot + "/"));
 
+        // permissions: code + refresh, token/authorization endpoints, scopes
         var perms = new HashSet<string>
         {
             OpenIddictConstants.Permissions.Endpoints.Authorization,
@@ -189,6 +181,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         descriptor.Permissions.Clear();
         foreach (var p in perms) descriptor.Permissions.Add(p);
 
+        // PKCE required
         descriptor.Requirements.Clear();
         descriptor.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
 
