@@ -2,10 +2,9 @@ import { Routes } from '@angular/router';
 import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
-  // Optional public login page (manual “Войти” button)
-  { path: 'auth/login', loadComponent: () => import('./auth/auth-login.component').then(m => m.AuthLoginComponent) },
+  // опционально можно оставить публичный login:
+  // { path: 'auth/login', loadComponent: () => import('./auth/auth-login.component').then(m => m.AuthLoginComponent) },
 
-  // Protected shell
   {
     path: '',
     canActivateChild: [authGuard],
@@ -25,6 +24,6 @@ export const routes: Routes = [
     ],
   },
 
-  // 404 fallback
   { path: '**', redirectTo: '' },
 ];
+
