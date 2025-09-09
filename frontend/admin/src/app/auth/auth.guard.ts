@@ -1,20 +1,17 @@
+// src/app/auth/auth.guard.ts
 import { inject } from '@angular/core';
-import { CanActivateChildFn, CanActivateFn, Router } from '@angular/router';
+import { CanActivateChildFn, Router } from '@angular/router';
 import { OAuthService } from 'angular-oauth2-oidc';
 
-function toLogin(url: string) {
-  const router = inject(Router);
-  return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: url } });
-}
-
-async function handle(stateUrl: string): Promise<boolean | ReturnType<typeof toLogin>> {
+export const authGuard: CanActivateChildFn = (_route, state) => {
   const oauth = inject(OAuthService);
+  const router = inject(Router);
 
-  if (stateUrl.startsWith('/auth/')) return true;
-  if (oauth.hasValidAccessToken()) return true;
-
-  return toLogin(stateUrl);
-}
-
-export const authGuardActivate: CanActivateFn = async (_r, s) => handle(s.url);
-export const authGuard: CanActivateChildFn = async (_r, s) => handle(s.url);
+  if (oauth.hasValidAccessToken()) {
+    return true;
+  }
+  // сохраняем целевой URL и идём на страницу логина
+  sessionStorage.setItem('returnUrl', state.url || '/dashboard');
+  router.navigate(['/auth/login'], { replaceUrl: true });
+  return false;
+};

@@ -1,19 +1,26 @@
-<div class="min-h-screen grid place-items-center bg-neutral-950 text-neutral-100">
-  <div class="w-full max-w-sm p-6 rounded-xl border border-white/10 bg-white/[0.02]">
-    <h1 class="text-lg font-semibold">Вход</h1>
+<div class="mx-auto max-w-sm mt-16 p-6 rounded-xl border border-white/10 bg-white/[0.03]">
+  <h1 class="text-xl font-semibold mb-4">Вход</h1>
 
-    <ng-container *ngIf="route.snapshot.queryParamMap.get('error') as err">
-      <div class="mt-3 text-sm text-red-400">
-        Ошибка: {{ err }}
-      </div>
-      <div class="mt-1 opacity-90 text-xs text-red-300">
+  <!-- Покажем текст ошибки из query, если он есть -->
+  <ng-container *ngIf="route.snapshot.queryParamMap.get('error') as err">
+    <div class="mb-3 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm">
+      Ошибка входа: {{ err }}
+      <div class="mt-1 opacity-80">
         {{ route.snapshot.queryParamMap.get('error_description') }}
       </div>
-    </ng-container>
+    </div>
+  </ng-container>
 
-    <button class="mt-6 w-full rounded-md border border-white/10 py-2 hover:bg-white/10"
-            (click)="login()">
-      Войти
-    </button>
+  <button
+    class="w-full h-10 rounded-md border border-white/10 hover:bg-white/10 transition"
+    (click)="login()"
+    [disabled]="isBusy"
+    aria-busy="{{isBusy}}"
+  >
+    {{ isBusy ? 'Ожидание…' : 'Войти' }}
+  </button>
+
+  <div class="mt-3 text-xs text-neutral-400">
+    После входа вы будете перенаправлены назад.
   </div>
 </div>

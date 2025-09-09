@@ -30,7 +30,7 @@ const registerLocaleFn = (locale: string) => {
   });
 };
 
-/** Simple OIDC bootstrap: discovery + tryLogin + clean ABP query params */
+/** OIDC bootstrap: discovery + tryLogin + cleanup + returnUrl */
 function authInitializer() {
   return async () => {
     const oauth = inject(OAuthService);
@@ -43,7 +43,7 @@ function authInitializer() {
       postLogoutRedirectUri: cfg.postLogoutRedirectUri,
       clientId: cfg.clientId,
       responseType: cfg.responseType, // 'code'
-      scope: cfg.scope,
+      scope: cfg.scope, // 'openid profile offline_access AICodeReview'
       requireHttps: cfg.requireHttps,
       strictDiscoveryDocumentValidation: cfg.strictDiscoveryDocumentValidation,
       showDebugInformation: cfg.showDebugInformation,
@@ -53,22 +53,25 @@ function authInitializer() {
 
     oauth.setStorage(localStorage as unknown as OAuthStorage);
 
-    // discovery + code->tokens + silent refresh (if supported)
-    await oauth.loadDiscoveryDocumentAndTryLogin();
+    // discovery + code->tokens
+    await oauth.loadDiscoveryDocumentAndTryLogin().catch(() => {});
+
+    // включаем silent refresh (если поддерживается)
     try { oauth.setupAutomaticSilentRefresh(); } catch {}
 
-    // Clean ABP-added query params that can cause loops/black screens
+    // чистим мусорные query-параметры ABP, чтобы не было циклов/чёрного экрана
     const url = new URL(window.location.href);
     if (url.searchParams.has('iss') || url.searchParams.has('culture') || url.searchParams.has('ui-culture')) {
-      // Keep the current route, drop query string
       await router.navigateByUrl(router.url.split('?')[0], { replaceUrl: true });
     }
 
-    // Navigate to saved returnUrl if present
-    const returnUrl = sessionStorage.getItem('returnUrl');
-    if (returnUrl && oauth.hasValidAccessToken()) {
-      sessionStorage.removeItem('returnUrl');
-      await router.navigateByUrl(returnUrl, { replaceUrl: true });
+    // если логин удался — уходим на сохранённый returnUrl
+    if (oauth.hasValidAccessToken()) {
+      const returnUrl = sessionStorage.getItem('returnUrl');
+      if (returnUrl) {
+        sessionStorage.removeItem('returnUrl');
+        await router.navigateByUrl(returnUrl, { replaceUrl: true });
+      }
     }
   };
 }
