@@ -4,17 +4,17 @@ export const environment: Environment = {
   production: false,
   application: {
     baseUrl: 'http://localhost:4200',
-    name: 'MergeSenseiAdmin',
+    name: 'MergeSenseyAdmin',
   },
   oAuthConfig: {
-    issuer: 'https://localhost:44396/', // как в discovery (со слешом)
+    issuer: 'https://localhost:44396/', // со слешом!
     redirectUri: 'http://localhost:4200',
     postLogoutRedirectUri: 'http://localhost:4200',
-    clientId: 'MergeSenseiAdmin_Angular', // 1-в-1 с сидером
+    clientId: 'MergeSenseiAdmin_Angular',
     responseType: 'code',
     scope: 'openid profile offline_access MergeSensei',
     requireHttps: true,
-    strictDiscoveryDocumentValidation: false, // dev: не валимся на / vs без /
+    strictDiscoveryDocumentValidation: true,
     showDebugInformation: true,
     sessionChecksEnabled: false,
   },

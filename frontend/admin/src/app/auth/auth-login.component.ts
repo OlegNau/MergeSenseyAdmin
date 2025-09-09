@@ -13,18 +13,18 @@ import { OAuthService } from 'angular-oauth2-oidc';
 export class AuthLoginComponent implements OnInit {
   private oauth = inject(OAuthService);
   private router = inject(Router);
-  public route = inject(ActivatedRoute);
+  private route = inject(ActivatedRoute);
 
   async ngOnInit() {
     if (this.oauth.hasValidAccessToken()) {
-      const ru = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
-      await this.router.navigateByUrl(ru, { replaceUrl: true });
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+      await this.router.navigateByUrl(returnUrl, { replaceUrl: true });
     }
   }
 
   login() {
-    const ru = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
-    sessionStorage.setItem('returnUrl', ru);
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+    sessionStorage.setItem('returnUrl', returnUrl);
     this.oauth.initCodeFlow();
   }
 }

@@ -28,7 +28,8 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
     private async Task CreateOrUpdateSpaClientAsync()
     {
-        const string clientId = "MergeSenseiAdmin_Angular"; // совпадает с фронтом
+        const string clientId = "MergeSenseiAdmin_Angular";
+
         var existing = await _applicationManager.FindByClientIdAsync(clientId);
 
         var redirectUri = new Uri("http://localhost:4200");
@@ -41,7 +42,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
                 ClientId = clientId,
                 DisplayName = "MergeSensei Admin Angular",
                 ClientType = ClientTypes.Public,
-                ConsentType = ConsentTypes.Explicit,
+                ConsentType = ConsentTypes.Explicit
             };
 
             d.RedirectUris.Add(redirectUri);
@@ -55,14 +56,11 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             d.Permissions.Add(Permissions.ResponseTypes.Code);
             d.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
 
-            // стандартные скоупы
-            d.Permissions.Add(Permissions.Scopes.Profile);
-            d.Permissions.Add(Permissions.Scopes.Email);
-            d.Permissions.Add(Permissions.Scopes.Roles);
-
-            // явно — то, что запрашивает фронт
             d.Permissions.Add(Permissions.Prefixes.Scope + "openid");
+            d.Permissions.Add(Permissions.Prefixes.Scope + "profile");
             d.Permissions.Add(Permissions.Prefixes.Scope + "offline_access");
+            d.Permissions.Add(Permissions.Prefixes.Scope + "email");
+            d.Permissions.Add(Permissions.Prefixes.Scope + "roles");
             d.Permissions.Add(Permissions.Prefixes.Scope + "MergeSensei");
 
             await _applicationManager.CreateAsync(d);
@@ -72,7 +70,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             var d = new OpenIddictApplicationDescriptor();
             await _applicationManager.PopulateAsync(existing, d);
 
-            d.ClientId = clientId; // важно при Update
+            d.ClientId = clientId;
             d.DisplayName = "MergeSensei Admin Angular";
             d.ClientType = ClientTypes.Public;
             d.ConsentType = ConsentTypes.Explicit;
@@ -85,17 +83,14 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             d.Permissions.Clear();
             d.Permissions.Add(Permissions.Endpoints.Authorization);
             d.Permissions.Add(Permissions.Endpoints.Token);
-
             d.Permissions.Add(Permissions.GrantTypes.AuthorizationCode);
             d.Permissions.Add(Permissions.GrantTypes.RefreshToken);
             d.Permissions.Add(Permissions.ResponseTypes.Code);
-
-            d.Permissions.Add(Permissions.Scopes.Profile);
-            d.Permissions.Add(Permissions.Scopes.Email);
-            d.Permissions.Add(Permissions.Scopes.Roles);
-
             d.Permissions.Add(Permissions.Prefixes.Scope + "openid");
+            d.Permissions.Add(Permissions.Prefixes.Scope + "profile");
             d.Permissions.Add(Permissions.Prefixes.Scope + "offline_access");
+            d.Permissions.Add(Permissions.Prefixes.Scope + "email");
+            d.Permissions.Add(Permissions.Prefixes.Scope + "roles");
             d.Permissions.Add(Permissions.Prefixes.Scope + "MergeSensei");
 
             d.Requirements.Clear();
@@ -115,9 +110,10 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             var sd = new OpenIddictScopeDescriptor
             {
                 Name = apiScope,
-                DisplayName = "MergeSensei API",
+                DisplayName = "MergeSensei API"
             };
             sd.Resources.Add(apiScope);
+
             await _scopeManager.CreateAsync(sd);
         }
         else
@@ -125,19 +121,8 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             var sd = new OpenIddictScopeDescriptor();
             await _scopeManager.PopulateAsync(scope, sd);
 
-            sd.Name = apiScope; // обязательно при Update
+            sd.Name = apiScope;
             sd.DisplayName = "MergeSensei API";
-        const string clientId = "MergeSenseiAdmin_Angular"; // совпадает с фронтом
-                ClientType = ClientTypes.Public,
-            // стандартные скоупы
-            // явно — то, что запрашивает фронт
-            d.Permissions.Add(Permissions.Prefixes.Scope + "openid");
-            d.Permissions.Add(Permissions.Prefixes.Scope + "offline_access");
-            d.Permissions.Add(Permissions.Prefixes.Scope + "MergeSensei");
-            d.ClientId = clientId; // важно при Update
-            d.Permissions.Add(Permissions.Prefixes.Scope + "openid");
-
-            sd.Name = apiScope; // обязательно при Update
             sd.Resources.Clear();
             sd.Resources.Add(apiScope);
 
