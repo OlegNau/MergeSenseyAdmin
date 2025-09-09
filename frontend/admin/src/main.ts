@@ -5,13 +5,13 @@ import { APP_INITIALIZER, inject } from '@angular/core';
 import { OAuthService, OAuthStorage, provideOAuthClient } from 'angular-oauth2-oidc';
 import { provideAbpCore, withOptions } from '@abp/ng.core';
 import { provideAbpOAuth } from '@abp/ng.oauth';
+import { Router } from '@angular/router';
 
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { environment } from './environments/environment';
-import { Router } from '@angular/router';
 
-/** Лениво регистрируем локали для ABP */
+// Локали для ABP
 const registerLocaleFn = (locale: string) => {
   const loaders: Record<string, () => Promise<unknown>> = {
     ru: () => import('@angular/common/locales/ru'),
@@ -24,7 +24,7 @@ const registerLocaleFn = (locale: string) => {
   return load().then((m) => (m as any).default ?? m);
 };
 
-/** Простой bootstrap OIDC: discovery + tryLogin — и навигируем на returnUrl, если он был */
+// Жёсткая последовательность: discovery → tryLoginCodeFlow (если есть code/state) → silent refresh → возврат на returnUrl
 function authInitializer() {
   return async () => {
     const oauth = inject(OAuthService);
@@ -32,7 +32,7 @@ function authInitializer() {
     const cfg = environment.oAuthConfig!;
 
     oauth.configure({
-      issuer: cfg.issuer, // со слешом — как в discovery
+      issuer: cfg.issuer,
       redirectUri: cfg.redirectUri,
       postLogoutRedirectUri: cfg.postLogoutRedirectUri,
       clientId: cfg.clientId,
@@ -47,22 +47,44 @@ function authInitializer() {
 
     oauth.setStorage(localStorage as unknown as OAuthStorage);
 
-    // discovery + обмен code→tokens + очистка URL
-    await oauth.loadDiscoveryDocumentAndTryLogin();
+    // 1) Скачиваем discovery
+    await oauth.loadDiscoveryDocument();
 
-    // Вернём пользователя туда, куда он шёл перед логином (если есть токен)
-    const returnUrl = sessionStorage.getItem('returnUrl');
-    if (returnUrl && oauth.hasValidAccessToken()) {
-      sessionStorage.removeItem('returnUrl');
-      await router.navigateByUrl(returnUrl, { replaceUrl: true });
+    // 2) Если IdP вернул error — покажем его на /auth/login и очистим URL
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('error')) {
+      const err = url.searchParams.get('error') ?? '';
+      const ed = url.searchParams.get('error_description') ?? '';
+      history.replaceState(history.state, document.title, cfg.redirectUri);
+      await router.navigate(['/auth/login'], { queryParams: { error: err, error_description: ed }, replaceUrl: true });
+      return;
     }
 
-    // Silent refresh, если сервер поддерживает
+    // 3) Обмен кода на токены, если есть code/state в URL
+    if (url.searchParams.has('code') && url.searchParams.has('state')) {
+      try {
+        await oauth.tryLoginCodeFlow();
+      } finally {
+        // очищаем query params
+        history.replaceState(history.state, document.title, cfg.redirectUri);
+      }
+    }
+
+    // 4) Возврат на сохранённый returnUrl, если токен валиден
+    if (oauth.hasValidAccessToken()) {
+      const ru = sessionStorage.getItem('returnUrl');
+      if (ru) {
+        sessionStorage.removeItem('returnUrl');
+        await router.navigateByUrl(ru, { replaceUrl: true });
+      }
+    }
+
+    // 5) Silent refresh (если сервер поддерживает)
     try { oauth.setupAutomaticSilentRefresh(); } catch {}
   };
 }
 
-// Разрешённые адреса API, чтобы HttpClient прикреплял Authorization: Bearer
+// Для прикрепления Authorization: Bearer к API
 const API = environment.apis.default.url.replace(/\/+$/, '');
 const ALLOWED_URLS = [API, `${API}/`];
 

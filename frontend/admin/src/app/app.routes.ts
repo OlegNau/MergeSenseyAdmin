@@ -3,14 +3,11 @@ import { authGuard } from './auth/auth.guard';
 import { AppLayoutComponent } from './layout/app-layout.component';
 
 export const routes: Routes = [
-  // Публичная страница логина (без хедера/сайдбара)
   {
     path: 'auth/login',
     loadComponent: () =>
       import('./auth/auth-login.component').then((m) => m.AuthLoginComponent),
   },
-
-  // Защищённое дерево ПОД оболочкой (хедер + сайдбар здесь!)
   {
     path: '',
     component: AppLayoutComponent,
@@ -25,27 +22,71 @@ export const routes: Routes = [
             (m) => m.DashboardComponent,
           ),
       },
-
-      // Раскомментируй/добавь свои страницы по мере необходимости:
-      // {
-      //   path: 'projects',
-      //   loadComponent: () => import('./pages/projects/projects.component').then(m => m.ProjectsComponent),
-      // },
-      // {
-      //   path: 'all-pipelines',
-      //   loadComponent: () => import('./pages/all-pipelines/all-pipelines.component').then(m => m.AllPipelinesComponent),
-      // },
-      // {
-      //   path: 'settings',
-      //   loadComponent: () => import('./pages/settings/settings.component').then(m => m.SettingsComponent),
-      // },
-      // {
-      //   path: 'help',
-      //   loadComponent: () => import('./pages/help/help.component').then(m => m.HelpComponent),
-      // },
+      {
+        path: 'dashboard-stats',
+        loadComponent: () =>
+          import('./pages/dashboard-stats/dashboard-stats.component').then(
+            (m) => m.DashboardStatsComponent,
+          ),
+      },
+      {
+        path: 'projects',
+        loadComponent: () =>
+          import('./pages/projects/projects.component').then(
+            (m) => m.ProjectsComponent,
+          ),
+      },
+      {
+        path: 'projects/new',
+        loadComponent: () =>
+          import('./pages/create-project/create-project.component').then(
+            (m) => m.CreateProjectComponent,
+          ),
+      },
+      {
+        path: 'projects/:projectId/pipelines/new',
+        outlet: 'modal',
+        loadComponent: () =>
+          import('./pages/pipeline-create-modal/pipeline-create-modal.component').then(
+            (m) => m.PipelineCreateModalComponent,
+          ),
+      },
+      {
+        path: 'projects/:id',
+        loadComponent: () =>
+          import('./pages/project-detail/project-detail.component').then(
+            (m) => m.ProjectDetailComponent,
+          ),
+      },
+      {
+        path: 'all-pipelines',
+        loadComponent: () =>
+          import('./pages/all-pipelines/all-pipelines.component').then(
+            (m) => m.AllPipelinesComponent,
+          ),
+      },
+      {
+        path: 'pipelines/:id',
+        loadComponent: () =>
+          import('./pages/pipeline-detail/pipeline-detail.component').then(
+            (m) => m.PipelineDetailComponent,
+          ),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./pages/settings/settings.component').then(
+            (m) => m.SettingsComponent,
+          ),
+      },
+      {
+        path: 'help',
+        loadComponent: () =>
+          import('./pages/help/help.component').then(
+            (m) => m.HelpComponent,
+          ),
+      },
     ],
   },
-
   { path: '**', redirectTo: 'dashboard' },
 ];
-

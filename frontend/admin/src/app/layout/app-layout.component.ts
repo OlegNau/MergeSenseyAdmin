@@ -10,9 +10,5 @@ import { NgClass } from '@angular/common';
 })
 export class AppLayoutComponent {
   sidebarOpen = true;
-
-  toggleSidebar() {
-    this.sidebarOpen = !this.sidebarOpen;
-  }
+  toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; }
 }
-

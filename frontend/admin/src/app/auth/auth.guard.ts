@@ -10,13 +10,11 @@ function toLogin(url: string) {
 async function handle(stateUrl: string): Promise<boolean | ReturnType<typeof toLogin>> {
   const oauth = inject(OAuthService);
 
-  // Публичные роуты не защищаем
-  if (stateUrl.startsWith('/auth/')) return true;
+  if (stateUrl.startsWith('/auth/')) return true; // публично
 
-  // Есть валидный access token — пропускаем
   if (oauth.hasValidAccessToken()) return true;
 
-  // Нет токена — ведём на страницу логина (кнопка инициирует интерактивный логин)
+  // без токена — на страницу логина (guard НИЧЕГО не инициирует)
   return toLogin(stateUrl);
 }
 
