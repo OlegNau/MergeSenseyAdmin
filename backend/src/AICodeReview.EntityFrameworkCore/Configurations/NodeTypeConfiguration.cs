@@ -17,6 +17,6 @@ public class NodeTypeConfiguration : IEntityTypeConfiguration<NodeType>
         builder.Property(x => x.Name).IsRequired().HasMaxLength(64);
         builder.HasIndex(x => x.Name).IsUnique();
 
-        // сидирование выполняется в миграции Add_CiCd_Schema
+        
     }
 }

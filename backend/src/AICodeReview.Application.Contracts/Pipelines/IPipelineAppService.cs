@@ -9,10 +9,10 @@ namespace AICodeReview.Services;
 public interface IPipelineAppService
     : ICrudAppService<
         PipelineDto,               // DTO
-        Guid,                      // первичный ключ
-        PagedAndSortedResultRequestDto, // вход для листинга (пагинация/сортировка)
-        CreateUpdatePipelineDto>   // DTO для создания/обновления
+        Guid,                      
+        PagedAndSortedResultRequestDto, 
+        CreateUpdatePipelineDto>   
 {
-    /// <summary>Вернуть все пайплайны без пагинации.</summary>
+    
     Task<ListResultDto<PipelineDto>> GetAllAsync();
 }

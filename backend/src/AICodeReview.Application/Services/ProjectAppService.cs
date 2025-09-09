@@ -55,14 +55,14 @@ public class ProjectAppService :
 
         if (input.IsActive.HasValue)
         {
-            // Если у Project нет поля IsActive — убери этот блок.
+            
             query = query.Where(x => x.IsActive == input.IsActive);
         }
 
         return query;
     }
 
-    // Отдельный метод для сводки, чтобы не конфликтовать с Crud GetListAsync.
+    
     public virtual async Task<PagedResultDto<ProjectSummaryDto>> GetSummariesAsync(ProjectGetListInput input)
     {
         var baseQuery   = await CreateFilteredQueryAsync(input);
@@ -74,7 +74,7 @@ public class ProjectAppService :
 
         var pipelines = await _pipelineRepository.GetQueryableAsync();
 
-        // Строго типизированная проекция в IQueryable<ProjectSummaryDto> без Select(...IQueryable...)
+        
         var itemsQuery =
             from pr in baseQuery
             select new ProjectSummaryDto
@@ -83,7 +83,7 @@ public class ProjectAppService :
                 Name                  = pr.Name,
                 Provider              = pr.Provider,
                 RepoPath              = pr.RepoPath,
-                IsActive              = pr.IsActive, // убери, если поля нет в сущности
+                IsActive              = pr.IsActive, 
                 TotalPipelinesCount   = pipelines.Count(pl => pl.ProjectId == pr.Id),
                 ActivePipelinesCount  = pipelines.Count(pl => pl.ProjectId == pr.Id && pl.IsActive)
             };

@@ -5,12 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 
-    <!-- Отключаем имплиситные Content-элементы, чтобы не ловить дубли при явном Include -->
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Serilog: ядро + aspnetcore экстеншены + sinks -->
     <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.1" />
@@ -20,7 +18,6 @@
 
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
 
-    <!-- ABP -->
     <PackageReference Include="Volo.Abp.Autofac" Version="9.3.2" />
     <PackageReference Include="Volo.Abp.AspNetCore.MultiTenancy" Version="9.3.2" />
     <PackageReference Include="Volo.Abp.AspNetCore.Serilog" Version="9.3.2" />
@@ -29,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Тема UI (как было) -->
     <PackageReference Include="Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite" Version="4.1.0-preview*" />
   </ItemGroup>
 
@@ -39,7 +35,6 @@
     <ProjectReference Include="..\AICodeReview.HttpApi\AICodeReview.HttpApi.csproj" />
   </ItemGroup>
 
-  <!-- не публикуем/не компилируем логи -->
   <ItemGroup>
     <Compile Remove="Logs\**" />
     <Content Remove="Logs\**" />
@@ -47,7 +42,6 @@
     <None Remove="Logs\**" />
   </ItemGroup>
 
-  <!-- Явно копируем конфиги, чтобы они гарантированно попадали в bin/publish -->
   <ItemGroup>
     <Content Include="appsettings.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

@@ -1056,7 +1056,7 @@ namespace AICodeReview.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Drop dependents first, then parents. Никаких операций над App* таблицами!
+            
             migrationBuilder.DropTable(name: "AbpAuditLogActions");
             migrationBuilder.DropTable(name: "AbpAuditLogExcelFiles");
             migrationBuilder.DropTable(name: "AbpBackgroundJobs");

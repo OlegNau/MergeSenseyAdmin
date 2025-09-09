@@ -37,7 +37,7 @@ public class CicdProfiles : Profile
         // ===== Projects =====
         CreateMap<Project, ProjectDto>();
 
-        // Сводка: счётчики считаются в ProjectAppService.GetSummaryAsync
+        
         CreateMap<Project, ProjectSummaryDto>()
             .ForMember(d => d.TotalPipelinesCount,  o => o.Ignore())
             .ForMember(d => d.ActivePipelinesCount, o => o.Ignore());
@@ -138,8 +138,8 @@ public class CicdProfiles : Profile
                 .IgnoreFullAuditedObjectProperties()
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.TenantId,          o => o.Ignore())
-                .ForMember(d => d.ConcurrencyStamp,  o => o.Ignore()) // <-- новый игнор
-                .ForMember(d => d.Type,              o => o.Ignore()) // <-- новый игнор (навигация)
+                .ForMember(d => d.ConcurrencyStamp,  o => o.Ignore()) 
+                .ForMember(d => d.Type,              o => o.Ignore()) 
                 .ForMember(d => d.ExtraProperties,   o => o.MapFrom(s =>
                     s.ExtraProperties == null 
                         ? new ExtraPropertyDictionary()
@@ -191,13 +191,13 @@ public class CicdProfiles : Profile
             .ForMember(d => d.ExtraProperties,  o => o.Ignore());
     }
 
-    // === Статический helper, на который ссылается ProjectAppService ===
+    
     public static IQueryable<ProjectSummaryDto> ProjectToSummaryWithNavigation(IQueryable<Project> query)
         => query.Select(p => new ProjectSummaryDto
         {
             Id = p.Id,
             Name = p.Name,
-            // Счётчики задаются позже в сервисе
+            
             TotalPipelinesCount  = 0,
             ActivePipelinesCount = 0
         });

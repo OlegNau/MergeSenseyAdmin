@@ -14,13 +14,11 @@ type Project = { id: string; name: string; pipelines: { id: string; name: string
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardStatsComponent {
-  // мок-проекты и пайплайны (заменишь из сервиса позже)
   readonly projects: Project[] = [
     { id: 'p-ai', name: 'AI Review Platform', pipelines: [{ id: 'pl-main', name: 'Main' }, { id: 'pl-sec', name: 'Security' }] },
     { id: 'p-pay', name: 'Payments',          pipelines: [{ id: 'pl-core', name: 'Core' }, { id: 'pl-recon', name: 'Reconciliation' }] },
   ];
 
-  // мок-данные по дням (last 30d)
   readonly daysAll: DayPoint[] = [
     { date:'2025-08-06', success:10, failed:2,  avgSec:190 },
     { date:'2025-08-07', success:12, failed:1,  avgSec:210 },
@@ -54,7 +52,6 @@ export class DashboardStatsComponent {
     { date:'2025-09-04', success:17, failed:2,  avgSec:171 },
   ];
 
-  // фильтры
   period = signal<'7d'|'30d'|'90d'>('30d');
   projectId = signal<'all'|string>('all');
   pipelineId = signal<'all'|string>('all');
@@ -67,7 +64,7 @@ export class DashboardStatsComponent {
   });
 
   days = computed(() => {
-    const n = this.period() === '7d' ? 7 : this.period() === '30d' ? 30 : 30; // 90d пока имитация
+    const n = this.period() === '7d' ? 7 : this.period() === '30d' ? 30 : 30;
     return this.daysAll.slice(-n);
   });
 
@@ -80,10 +77,8 @@ export class DashboardStatsComponent {
     return { runs, ok, rate, avg };
   });
 
-  // sparkline path для avgSec
   sparklinePath = computed(() => this.buildSparkline(this.days().map(d => d.avgSec), 100, 32, 2));
 
-  // утилита построения path
   private buildSparkline(values: number[], w = 100, h = 32, pad = 2): string {
     if (!values.length) return '';
     const min = Math.min(...values), max = Math.max(...values);

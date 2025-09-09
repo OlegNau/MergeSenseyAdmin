@@ -17,7 +17,6 @@ type Quick = { title: string; desc: string; icon: 'book'|'rocket'|'api'|'changel
 export class HelpComponent {
   private readonly fb = inject(FormBuilder);
 
-  // поиск по FAQ
   public query = signal('');
   public category = signal<'all'|'projects'|'pipelines'|'billing'|'account'>('all');
   public opened = signal<Set<number>>(new Set());
@@ -53,7 +52,6 @@ export class HelpComponent {
     this.opened.set(s);
   }
 
-  // форма обращения
   public readonly form = this.fb.group({
     subject: ['', [Validators.required, Validators.minLength(5)]],
     category: ['general', [Validators.required]],

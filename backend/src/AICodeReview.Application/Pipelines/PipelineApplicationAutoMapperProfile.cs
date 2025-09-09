@@ -11,12 +11,12 @@ namespace AICodeReview.Pipelines
         public PipelineApplicationAutoMapperProfile()
         {
             // Entity -> DTO
-            // Если в сущности Pipeline нет свойства Description — игнорируем его в DTO, чтобы не падала конфигурация.
+            
             CreateMap<Pipeline, PipelineDto>()
                 .ForMember(d => d.Description, opt => opt.Ignore());
 
             // DTO -> Entity
-            // У сущности есть ExtraProperties, у DTO его нет — игнорируем.
+            
             CreateMap<CreateUpdatePipelineDto, Pipeline>()
                 .IgnoreFullAuditedObjectProperties()
                 .ForMember(x => x.ExtraProperties,   opt => opt.Ignore())

@@ -5,7 +5,7 @@ using Volo.Abp.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 
-// ABP domain entities (НЕ EFCore модули!)
+
 using Volo.Abp.AuditLogging;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.OpenIddict;

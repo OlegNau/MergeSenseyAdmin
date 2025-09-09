@@ -63,15 +63,15 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
     [UnitOfWork]
     public async Task SeedAsync(DataSeedContext context)
     {
-        // 1) Базовые справочники (если их нет — создаём)
+        
         await EnsureTriggerTypesAsync();
         await EnsureNodeTypesAsync();
 
-        // 2) Если уже есть проекты — сидить ничего не будем
+        
         if (await _projectRepository.GetCountAsync() > 0)
             return;
 
-        // 3) Демонстрационный проект
+        
         var project = await _projectRepository.InsertAsync(new Project
         {
             Name = "Demo Project",
@@ -81,7 +81,7 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             IsActive = true
         }, autoSave: true);
 
-        // 4) Репозиторий проекта
+        
         var repo = await _repositoryRepository.InsertAsync(new Repository
         {
             ProjectId = project.Id,
@@ -90,7 +90,7 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             IsActive = true
         }, autoSave: true);
 
-        // 5) Ветки
+        
         var mainBranch = await _branchRepository.InsertAsync(new Branch
         {
             RepositoryId = repo.Id,
@@ -107,7 +107,7 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             LastCommitSha = null
         }, autoSave: true);
 
-        // 6) Триггеры
+        
         var manualType = await _triggerTypeRepository.FirstOrDefaultAsync(t => t.Name == "Manual");
         var scheduleType = await _triggerTypeRepository.FirstOrDefaultAsync(t => t.Name == "Schedule");
 
@@ -133,7 +133,7 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             }, autoSave: true);
         }
 
-        // 7) Пайплайн и этапы
+        
         var pipeline = await _pipelineRepository.InsertAsync(new Pipeline
         {
             ProjectId = project.Id,
@@ -166,7 +166,7 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
         if (deployNode != null)
             await _pipelineNodeRepository.InsertAsync(new PipelineNode { PipelineId = pipeline.Id, NodeId = deployNode.Id, Order = order++ }, autoSave: true);
 
-        // 8) Группа и привязка к проекту
+        
         var group = await _groupRepository.InsertAsync(new Group
         {
             Name = "Default Group",
@@ -179,7 +179,7 @@ public class AICodeReviewDataSeedContributor : IDataSeedContributor, ITransientD
             ProjectId = project.Id
         }, autoSave: true);
 
-        // 9) AI-модель (пустой ключ, по умолчанию не активна)
+        
         await _aiModelRepository.InsertAsync(new AiModel
         {
             Name = "OpenAI GPT-4o-mini",

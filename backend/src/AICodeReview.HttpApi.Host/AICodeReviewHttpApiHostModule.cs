@@ -50,12 +50,12 @@ public class AICodeReviewHttpApiHostModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {
-        // Валидация access-токенов через локальный сервер OpenIddict
+        
         PreConfigure<OpenIddictBuilder>(builder =>
         {
             builder.AddValidation(options =>
             {
-                options.AddAudiences("AICodeReview"); // audience вашего API
+                options.AddAudiences("AICodeReview"); 
                 options.UseLocalServer();
                 options.UseAspNetCore();
             });
@@ -67,10 +67,10 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         var configuration = context.Services.GetConfiguration();
         var hostingEnvironment = context.Services.GetHostingEnvironment();
 
-        // Все DateTime в UTC — меньше сюрпризов с токенами и логами
+        
         Configure<AbpClockOptions>(o => o.Kind = DateTimeKind.Utc);
 
-        // В dev — без фоновых задач (ускоряет запуск, меньше побочек)
+        
         if (hostingEnvironment.IsDevelopment())
         {
             Configure<AbpBackgroundJobOptions>(o => o.IsJobExecutionEnabled = false);
@@ -87,10 +87,10 @@ public class AICodeReviewHttpApiHostModule : AbpModule
 
     private void ConfigureAuthentication(ServiceConfigurationContext context)
     {
-        // Все аутентификации Bearer прокидываем в OpenIddict Validation
+        
         context.Services.ForwardIdentityAuthenticationForBearer(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
 
-        // Динамические клеймы ABP (роллы/пермишены подтянутся)
+        
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
             options.IsDynamicClaimsEnabled = true;
@@ -110,7 +110,7 @@ public class AICodeReviewHttpApiHostModule : AbpModule
 
     private void ConfigureUrls(IConfiguration configuration)
     {
-        // Важно, чтобы SelfUrl и ClientUrl были заданы в appsettings.json
+        
         Configure<AppUrlOptions>(options =>
         {
             options.Applications["MVC"].RootUrl = configuration["App:SelfUrl"];
@@ -152,7 +152,7 @@ public class AICodeReviewHttpApiHostModule : AbpModule
     private static void ConfigureSwaggerServices(ServiceConfigurationContext context, IConfiguration configuration)
     {
         context.Services.AddAbpSwaggerGenWithOAuth(
-            configuration["AuthServer:Authority"]!, // например: https://localhost:44396/
+            configuration["AuthServer:Authority"]!, 
             new Dictionary<string, string> { { "AICodeReview", "AICodeReview API" } },
             options =>
             {
@@ -164,7 +164,7 @@ public class AICodeReviewHttpApiHostModule : AbpModule
 
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
-        // Разрешаем запросы с фронта (http://localhost:4200)
+        
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
@@ -210,10 +210,10 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         app.MapAbpStaticAssets();
         app.UseRouting();
 
-        // CORS до аутентификации
+        
         app.UseCors();
 
-        // Аутентификация/валидация токена
+        
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
 
@@ -234,15 +234,15 @@ public class AICodeReviewHttpApiHostModule : AbpModule
 
             c.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
             c.OAuthUsePkce();
-            // Запрашиваем полезные скоупы (dev-friendly)
-            c.OAuthScopes("AICodeReview", "openid", "profile", "offline_access", "MergeSensei");
+            
+            c.OAuthScopes("AICodeReview", "openid", "profile", "offline_access");
         });
 
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
 
-        // Сидер (в т.ч. клиент/скоупы OpenIddict)
+        
         context.ServiceProvider
             .GetRequiredService<IDataSeeder>()
             .SeedAsync()

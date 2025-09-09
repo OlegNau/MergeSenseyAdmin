@@ -42,7 +42,7 @@ public class AICodeReviewEntityFrameworkCoreModule : AbpModule
             options.ReplaceDbContext<IFeatureManagementDbContext>();
             options.ReplaceDbContext<IAuditLoggingDbContext>();
 
-            // Регистрируем репозитории для всех сущностей (включая ваши)
+            
             options.AddDefaultRepositories(includeAllEntities: true);
         });
 

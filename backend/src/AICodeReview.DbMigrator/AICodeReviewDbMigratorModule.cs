@@ -22,7 +22,7 @@ namespace AICodeReview.DbMigrator;
 [DependsOn(
     typeof(AbpAutofacModule),
     typeof(AICodeReviewEntityFrameworkCoreModule),
-    typeof(AICodeReviewApplicationContractsModule), // тип в namespace AICodeReview
+    typeof(AICodeReviewApplicationContractsModule), 
     typeof(AbpIdentityEntityFrameworkCoreModule),
     typeof(AbpPermissionManagementEntityFrameworkCoreModule),
     typeof(AbpSettingManagementEntityFrameworkCoreModule),

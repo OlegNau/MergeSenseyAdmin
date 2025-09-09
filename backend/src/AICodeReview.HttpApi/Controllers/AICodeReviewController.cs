@@ -19,7 +19,6 @@ public class PipelinesController : AbpController
         _service = service;
     }
 
-    // Явный маршрут для "все записи" — не конфликтует с авто-маршрутом CrudAppService
     [HttpGet("all")]
     public Task<ListResultDto<PipelineDto>> GetAllAsync()
         => _service.GetAllAsync();
