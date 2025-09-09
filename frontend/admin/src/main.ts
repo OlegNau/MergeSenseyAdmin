@@ -10,6 +10,7 @@ import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { environment } from './environments/environment';
 
+/** Лениво регистрируем локали для ABP */
 const registerLocaleFn = (locale: string) => {
   const loaders: Record<string, () => Promise<unknown>> = {
     ru: () => import('@angular/common/locales/ru'),
@@ -22,51 +23,56 @@ const registerLocaleFn = (locale: string) => {
   return load().then((m) => (m as any).default ?? m);
 };
 
+/** Простой bootstrap OIDC: discovery + tryLogin — и всё */
 function authInitializer() {
   return async () => {
     const oauth = inject(OAuthService);
     const cfg = environment.oAuthConfig!;
 
     oauth.configure({
-      issuer: cfg.issuer,
+      issuer: cfg.issuer, // со слешом — как в discovery
       redirectUri: cfg.redirectUri,
       postLogoutRedirectUri: cfg.postLogoutRedirectUri,
       clientId: cfg.clientId,
-      responseType: cfg.responseType,
+      responseType: cfg.responseType, // 'code'
       scope: cfg.scope,
       requireHttps: cfg.requireHttps,
       strictDiscoveryDocumentValidation: cfg.strictDiscoveryDocumentValidation,
       showDebugInformation: cfg.showDebugInformation,
       sessionChecksEnabled: cfg.sessionChecksEnabled,
       clearHashAfterLogin: true,
-      timeoutFactor: 0.75,
     });
 
     oauth.setStorage(localStorage as unknown as OAuthStorage);
 
+    // Вся магия — одной строкой: discovery + обмен code→tokens + очистка URL
     await oauth.loadDiscoveryDocumentAndTryLogin();
-    oauth.setupAutomaticSilentRefresh();
 
-    if (oauth.hasValidAccessToken()) {
-      sessionStorage.removeItem('auth.loginInProgress');
-    }
-
-    const returnUrl = sessionStorage.getItem('returnUrl');
-    if (returnUrl && oauth.hasValidAccessToken()) {
-      sessionStorage.removeItem('returnUrl');
-      history.replaceState(history.state, document.title, returnUrl);
-    }
+    // Silent refresh, если сервер это поддерживает
+    try { oauth.setupAutomaticSilentRefresh(); } catch {}
   };
 }
 
+// Разрешённые адреса API, чтобы HttpClient прикреплял Authorization: Bearer
+const API = environment.apis.default.url.replace(/\/+$/, '');
+const ALLOWED_URLS = [API, `${API}/`];
+
 bootstrapApplication(AppComponent, {
   providers: [
-    provideRouter(routes, withEnabledBlockingInitialNavigation(), withRouterConfig({ paramsInheritanceStrategy: 'always' })),
+    provideRouter(
+      routes,
+      withEnabledBlockingInitialNavigation(),
+      withRouterConfig({ paramsInheritanceStrategy: 'always' }),
+    ),
     provideHttpClient(withInterceptorsFromDi()),
     provideAbpCore(withOptions({ environment, registerLocaleFn })),
     provideAbpOAuth(),
-    provideOAuthClient(),
+    provideOAuthClient({
+      resourceServer: {
+        allowedUrls: ALLOWED_URLS,
+        sendAccessToken: true,
+      },
+    }),
     { provide: APP_INITIALIZER, useFactory: authInitializer, multi: true },
   ],
 }).catch(console.error);
-
