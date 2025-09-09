@@ -7,25 +7,14 @@ export const environment: Environment = {
     name: 'MergeSenseiAdmin',
   },
   oAuthConfig: {
-    // dev: оставляем trailing slash и отключаем строгую валидацию, чтобы не спотыкаться об слеш
-    issuer: 'https://localhost:44396/',
+    issuer: 'https://localhost:44396/', // как в discovery (со слешом)
     redirectUri: 'http://localhost:4200',
     postLogoutRedirectUri: 'http://localhost:4200',
-
-    // ВАЖНО: буква "i" — как у всего проекта/скоупа
-    clientId: 'MergeSenseiAdmin_Angular',
-
+    clientId: 'MergeSenseiAdmin_Angular', // 1-в-1 с сидером
     responseType: 'code',
     scope: 'openid profile offline_access MergeSensei',
     requireHttps: true,
-
-    // dev-профиль: не валим приложение, если discovery слегка отличается (слеш/метаданные)
-    strictDiscoveryDocumentValidation: false,
-    // на всякий случай игнорируем несовпадение issuer в discovery
-    // (свойство поддерживается angular-oauth2-oidc)
-    // @ts-ignore
-    skipIssuerCheck: true,
-
+    strictDiscoveryDocumentValidation: false, // dev: не валимся на / vs без /
     showDebugInformation: true,
     sessionChecksEnabled: false,
   },

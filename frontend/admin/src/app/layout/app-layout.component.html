@@ -1,5 +1,4 @@
 <div class="min-h-screen bg-neutral-950 text-neutral-100 flex">
-  <!-- Sidebar -->
   <aside
     class="hidden md:flex flex-col w-64 shrink-0 border-r border-white/10 bg-white/[0.02]"
     [ngClass]="{ '!hidden': !sidebarOpen }"
@@ -9,69 +8,35 @@
     </div>
 
     <nav class="p-2 space-y-1">
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="bg-white/10"
-        class="block rounded-md px-3 py-2 hover:bg-white/10 transition"
-        [routerLinkActiveOptions]="{ exact: true }"
-        >Dashboard</a
-      >
-
-      <!-- Примеры пунктов — включай по мере готовности страниц -->
-      <a
-        routerLink="/projects"
-        routerLinkActive="bg-white/10"
-        class="block rounded-md px-3 py-2 hover:bg-white/10 transition"
-        >Projects</a
-      >
-      <a
-        routerLink="/all-pipelines"
-        routerLinkActive="bg-white/10"
-        class="block rounded-md px-3 py-2 hover:bg-white/10 transition"
-        >All Pipelines</a
-      >
-      <a
-        routerLink="/settings"
-        routerLinkActive="bg-white/10"
-        class="block rounded-md px-3 py-2 hover:bg-white/10 transition"
-        >Settings</a
-      >
-      <a
-        routerLink="/help"
-        routerLinkActive="bg-white/10"
-        class="block rounded-md px-3 py-2 hover:bg-white/10 transition"
-        >Help</a
-      >
+      <a routerLink="/dashboard" routerLinkActive="bg-white/10"
+         class="block rounded-md px-3 py-2 hover:bg-white/10 transition"
+         [routerLinkActiveOptions]="{ exact: true }">Dashboard</a>
+      <a routerLink="/projects" routerLinkActive="bg-white/10"
+         class="block rounded-md px-3 py-2 hover:bg-white/10 transition">Projects</a>
+      <a routerLink="/all-pipelines" routerLinkActive="bg-white/10"
+         class="block rounded-md px-3 py-2 hover:bg-white/10 transition">All Pipelines</a>
+      <a routerLink="/settings" routerLinkActive="bg-white/10"
+         class="block rounded-md px-3 py-2 hover:bg-white/10 transition">Settings</a>
+      <a routerLink="/help" routerLinkActive="bg-white/10"
+         class="block rounded-md px-3 py-2 hover:bg-white/10 transition">Help</a>
     </nav>
   </aside>
 
-  <!-- Main column -->
   <div class="flex-1 flex min-w-0 flex-col">
-    <!-- Header -->
-    <header
-      class="h-14 flex items-center justify-between px-4 border-b border-white/10 bg-white/[0.02]"
-    >
+    <header class="h-14 flex items-center justify-between px-4 border-b border-white/10 bg-white/[0.02]">
       <div class="flex items-center gap-2">
-        <button
-          class="md:hidden inline-flex items-center justify-center rounded-md border border-white/10 px-3 py-1.5 hover:bg-white/10"
-          (click)="toggleSidebar()"
-          aria-label="Toggle sidebar"
-        >
-          ☰
-        </button>
+        <button class="md:hidden inline-flex items-center justify-center rounded-md border border-white/10 px-3 py-1.5 hover:bg-white/10"
+                (click)="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
         <div class="font-semibold">Dashboard</div>
       </div>
-
       <div class="flex items-center gap-2">
-        <!-- Подставь сюда юзер-меню/локаль/тему, если нужно -->
         <span class="text-sm text-neutral-400">v0.1</span>
       </div>
     </header>
 
-    <!-- Page content -->
     <main class="p-4 md:p-6">
-      <router-outlet />
+      <router-outlet></router-outlet>
+      <router-outlet name="modal"></router-outlet>
     </main>
   </div>
 </div>
-
