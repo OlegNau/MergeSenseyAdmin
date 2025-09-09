@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Localization;
 using OpenIddict.Abstractions;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.OpenIddict.Applications;
+using Volo.Abp.OpenIddict.Scopes;
 
 namespace AICodeReview.OpenIddict;
 
@@ -23,30 +26,36 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
     public async Task SeedAsync(DataSeedContext context)
     {
-        // 1) Только ваш API-скоуп – системные openid/profile/offline_access не сидируем
-        await CreateOrUpdateApiScopeAsync();
-
-        // 2) Клиент SPA (Angular) – авторизационный код + PKCE + refresh_token + offline_access
+        await CreateOrUpdateScopesAsync();
         await CreateOrUpdateSpaClientAsync();
     }
 
-    private async Task CreateOrUpdateApiScopeAsync()
+    private async Task CreateOrUpdateScopesAsync()
     {
-        const string apiScopeName = "AICodeReview";
-        var existing = await _scopeManager.FindByNameAsync(apiScopeName);
+        // Создаём/обновляем только нужные скоупы приложения.
+        await CreateOrUpdateScopeAsync("AICodeReview", "AICodeReview API");
+        // openid/profile/offline_access — стандартные, их не создаём как кастомные.
+    }
 
-        var descriptor = new OpenIddictScopeDescriptor
-        {
-            Name = apiScopeName,
-            DisplayName = "AICodeReview API"
-        };
-
+    private async Task CreateOrUpdateScopeAsync(string name, string displayName)
+    {
+        var existing = await _scopeManager.FindByNameAsync(name);
         if (existing is null)
         {
+            var descriptor = new OpenIddictScopeDescriptor
+            {
+                Name = name,
+                DisplayName = displayName
+            };
             await _scopeManager.CreateAsync(descriptor);
         }
         else
         {
+            var descriptor = new OpenIddictScopeDescriptor
+            {
+                Name = name,
+                DisplayName = displayName
+            };
             await _scopeManager.UpdateAsync(existing, descriptor);
         }
     }
@@ -55,16 +64,19 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
     {
         const string clientId = "MergeSenseyAdmin_Angular";
 
-        var existing = await _appManager.FindByClientIdAsync(clientId);
-
+        // Разрешаем ВСЕ необходимые redirect-uri варианты:
         var redirectUris = new[]
         {
-            // 1-в-1 с Angular environment.oAuthConfig.redirectUri/postLogoutRedirectUri
-            "http://localhost:4200"
+            "http://localhost:4200",
+            "http://localhost:4200/",
+            "http://localhost:4200/index.html"
         };
+
         var postLogoutRedirectUris = new[]
         {
-            "http://localhost:4200"
+            "http://localhost:4200",
+            "http://localhost:4200/",
+            "http://localhost:4200/index.html"
         };
 
         var permissions = new HashSet<string>
@@ -73,20 +85,21 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             OpenIddictConstants.Permissions.Endpoints.Authorization,
             OpenIddictConstants.Permissions.Endpoints.Token,
 
-            // code + PKCE
+            // code flow + PKCE
             OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
             OpenIddictConstants.Permissions.ResponseTypes.Code,
 
-            // обязательный грант под offline_access
+            // refresh tokens (offline_access)
             OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
 
-            // разрешённые скоупы
-            OpenIddictConstants.Permissions.Prefixes.Scope + "openid",
-            OpenIddictConstants.Permissions.Prefixes.Scope + "profile",
-            OpenIddictConstants.Permissions.Prefixes.Scope + "offline_access",
+            // scopes
+            OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OpenId,
+            OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.Profile,
+            OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OfflineAccess,
             OpenIddictConstants.Permissions.Prefixes.Scope + "AICodeReview"
         };
 
+        var existing = await _appManager.FindByClientIdAsync(clientId);
         if (existing is null)
         {
             var descriptor = new OpenIddictApplicationDescriptor
@@ -94,8 +107,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
                 ClientId = clientId,
                 ClientType = OpenIddictConstants.ClientTypes.Public, // SPA
                 DisplayName = "MergeSensey Admin SPA",
-
-                // КЛЮЧЕВОЕ: не спрашивать согласие (никакой страницы «предоставить доступ»)
+                // Без экрана согласия
                 ConsentType = OpenIddictConstants.ConsentTypes.Implicit
             };
 
@@ -119,8 +131,6 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
                 ClientId = clientId,
                 ClientType = OpenIddictConstants.ClientTypes.Public,
                 DisplayName = "MergeSensey Admin SPA",
-
-                // КЛЮЧЕВОЕ: отключаем экран согласия
                 ConsentType = OpenIddictConstants.ConsentTypes.Implicit
             };
 
