@@ -15,8 +15,13 @@ export class AuthLoginComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
+  error = '';
+  errorDescription = '';
+
   async ngOnInit() {
-    // Если уже авторизованы — уйдём на returnUrl
+    this.error = this.route.snapshot.queryParamMap.get('error') || '';
+    this.errorDescription = this.route.snapshot.queryParamMap.get('error_description') || '';
+
     if (this.oauth.hasValidAccessToken()) {
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
       await this.router.navigateByUrl(returnUrl, { replaceUrl: true });
@@ -24,7 +29,6 @@ export class AuthLoginComponent implements OnInit {
   }
 
   login() {
-    // Сохраним желаемый маршрут — заберём его в APP_INITIALIZER после успешного логина
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
     sessionStorage.setItem('returnUrl', returnUrl);
     this.oauth.initCodeFlow();
