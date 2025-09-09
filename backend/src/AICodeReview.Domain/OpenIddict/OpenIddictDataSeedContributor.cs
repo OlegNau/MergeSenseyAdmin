@@ -78,7 +78,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             "http://localhost:4200"
         };
 
-        // Минимальный набор для Authorization Code + PKCE
+        // Разрешения для Authorization Code + PKCE
         var permissions = new HashSet<string>
         {
             // endpoints
@@ -89,7 +89,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
             OpenIddictConstants.Permissions.ResponseTypes.Code,
 
-            // scopes (через префикс, кросс-версионно)
+            // scopes через префикс — кросс-версионно
             Scope("openid"),
             Scope("profile"),
             Scope("offline_access"),
@@ -101,8 +101,9 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             var descriptor = new OpenIddictApplicationDescriptor
             {
                 ClientId = clientId,
+                ClientType = OpenIddictConstants.ClientTypes.Public, // SPA = public
                 DisplayName = "MergeSensey Admin SPA",
-                ConsentType = OpenIddictConstants.ConsentTypes.Systematic // без экрана согласия
+                ConsentType = OpenIddictConstants.ConsentTypes.Systematic
             };
 
             foreach (var uri in redirectUris)
@@ -114,7 +115,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             foreach (var p in permissions)
                 descriptor.Permissions.Add(p);
 
-            // PKCE – публичный SPA без client secret
+            // PKCE обязательно для публичного клиента
             descriptor.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
 
             await _appManager.CreateAsync(descriptor);
@@ -123,6 +124,9 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         {
             var descriptor = new OpenIddictApplicationDescriptor
             {
+                // ВАЖНО: указать и ClientId, и ClientType при UPDATE
+                ClientId = clientId,
+                ClientType = OpenIddictConstants.ClientTypes.Public,
                 DisplayName = "MergeSensey Admin SPA",
                 ConsentType = OpenIddictConstants.ConsentTypes.Systematic
             };
