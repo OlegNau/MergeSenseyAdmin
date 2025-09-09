@@ -11,9 +11,9 @@ import { OAuthService } from 'angular-oauth2-oidc';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthLoginComponent implements OnInit {
-  public oauth = inject(OAuthService);
-  public router = inject(Router);
-  public route = inject(ActivatedRoute);
+  private oauth = inject(OAuthService);
+  private router = inject(Router);
+  public route = inject(ActivatedRoute); // <-- public
 
   async ngOnInit() {
     if (this.oauth.hasValidAccessToken()) {
