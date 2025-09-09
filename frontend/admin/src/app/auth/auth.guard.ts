@@ -6,17 +6,23 @@ export const authGuard: CanActivateChildFn = async (_route, state) => {
   const oauth = inject(OAuthService);
   const router = inject(Router);
 
-  // Если возвращаемся с code/state — завершаем вход ЗДЕСЬ
-  const qp = new URLSearchParams(window.location.search);
-  const hasCode = qp.has('code') && qp.has('state');
+  const search = new URLSearchParams(window.location.search);
+  const hasCode = search.has('code') && search.has('state');
 
   if (hasCode) {
     try {
+      // ✅ Гарантируем discovery ДО обмена code→tokens
+      await oauth.loadDiscoveryDocument();
       await oauth.tryLoginCodeFlow();
-      // чистим query, оставляем путь, чтобы не ходить кругами
-      await router.navigateByUrl(state.url.split('?')[0], { replaceUrl: true });
+
+      // после входа — чистим query (в т.ч. iss/culture/ui-culture) и остаёмся на том же пути
+      const cleanUrl = state.url.split('?')[0] || '/dashboard';
+      await router.navigateByUrl(cleanUrl, { replaceUrl: true });
     } catch (e) {
+      // если вдруг exchange не удался — отправляем на логин
       console.error('tryLoginCodeFlow failed', e);
+      sessionStorage.setItem('returnUrl', state.url || '/dashboard');
+      return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: state.url } });
     }
   }
 
@@ -24,7 +30,7 @@ export const authGuard: CanActivateChildFn = async (_route, state) => {
     return true;
   }
 
-  // Не авторизован → ведём на публичную страницу логина
-  sessionStorage.setItem('returnUrl', state.url);
+  // Не авторизован — ведём на публичный логин, запоминая, куда возвращаться
+  sessionStorage.setItem('returnUrl', state.url || '/dashboard');
   return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: state.url } });
 };
