@@ -7,12 +7,12 @@ export const environment: Environment = {
     name: 'MergeSenseyAdmin',
   },
   oAuthConfig: {
-    issuer: 'https://localhost:44396/',
+    issuer: 'https://localhost:44396/', // trailing slash!
     redirectUri: 'http://localhost:4200',
     postLogoutRedirectUri: 'http://localhost:4200',
     clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
-    scope: 'openid profile offline_access AICodeReview',
+    scope: 'openid profile offline_access AICodeReview', // make sure scopes match backend seed
     requireHttps: true,
     strictDiscoveryDocumentValidation: true,
     showDebugInformation: true,
@@ -21,5 +21,8 @@ export const environment: Environment = {
   apis: {
     default: { url: 'https://localhost:44396' },
     Default: { url: 'https://localhost:44396' },
+  },
+  localization: {
+    defaultResourceName: 'AICodeReview', // keep only this property on Angular side
   },
 };
