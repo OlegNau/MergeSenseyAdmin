@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using OpenIddict.Abstractions;
 using Volo.Abp.Data;
@@ -22,46 +23,36 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
     public async Task SeedAsync(DataSeedContext context)
     {
-        await CreateOrUpdateScopesAsync();
+        // 1) Только ваш API-скоуп – системные openid/profile/offline_access не сидируем
+        await CreateOrUpdateApiScopeAsync();
+
+        // 2) Клиент SPA (Angular) – авторизационный код + PKCE + refresh_token + offline_access
         await CreateOrUpdateSpaClientAsync();
-    }
-
-    private async Task CreateOrUpdateScopesAsync()
-    {
-        await CreateOrUpdateScopeAsync("AICodeReview", "AICodeReview API");
-
-        // системные OIDC-скоупы
-        await CreateOrUpdateScopeAsync("openid", "OpenID Connect");
-        await CreateOrUpdateScopeAsync("profile", "User profile");
-        await CreateOrUpdateScopeAsync("offline_access", "Offline access");
-    }
-
-    private async Task CreateOrUpdateScopeAsync(string name, string displayName)
-    {
-        var existing = await _scopeManager.FindByNameAsync(name);
-        if (existing is null)
-        {
-            var desc = new OpenIddictScopeDescriptor
-            {
-                Name = name,
-                DisplayName = displayName
-            };
-            await _scopeManager.CreateAsync(desc);
-        }
-        else
-        {
-            // В ЭТОЙ ВЕРСИИ OpenIddict при UpdateAsync имя ОБЯЗАТЕЛЬНО
-            var desc = new OpenIddictScopeDescriptor
-            {
-                Name = name,
-                DisplayName = displayName
-            };
-            await _scopeManager.UpdateAsync(existing, desc);
-        }
     }
 
     private static string Scope(string name) =>
         OpenIddictConstants.Permissions.Prefixes.Scope + name;
+
+    private async Task CreateOrUpdateApiScopeAsync()
+    {
+        const string apiScopeName = "AICodeReview";
+        var existing = await _scopeManager.FindByNameAsync(apiScopeName);
+
+        var descriptor = new OpenIddictScopeDescriptor
+        {
+            Name = apiScopeName,
+            DisplayName = "AICodeReview API"
+        };
+
+        if (existing is null)
+        {
+            await _scopeManager.CreateAsync(descriptor);
+        }
+        else
+        {
+            await _scopeManager.UpdateAsync(existing, descriptor);
+        }
+    }
 
     private async Task CreateOrUpdateSpaClientAsync()
     {
@@ -71,6 +62,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
         var redirectUris = new[]
         {
+            // ДОЛЖНЫ 1в1 совпадать с Angular environment.oAuthConfig.redirectUri/postLogoutRedirectUri
             "http://localhost:4200"
         };
         var postLogoutRedirectUris = new[]
@@ -78,18 +70,21 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             "http://localhost:4200"
         };
 
-        // Разрешения для Authorization Code + PKCE
+        // Набор разрешений для SPA: code+PKCE, token endpoint, refresh_token и нужные скоупы
         var permissions = new HashSet<string>
         {
             // endpoints
             OpenIddictConstants.Permissions.Endpoints.Authorization,
             OpenIddictConstants.Permissions.Endpoints.Token,
 
-            // grant/response
+            // гранты/респонсы
             OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
             OpenIddictConstants.Permissions.ResponseTypes.Code,
 
-            // scopes через префикс — кросс-версионно
+            // обязательный грант для offline_access
+            OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+
+            // разрешённые скоупы
             Scope("openid"),
             Scope("profile"),
             Scope("offline_access"),
@@ -101,7 +96,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             var descriptor = new OpenIddictApplicationDescriptor
             {
                 ClientId = clientId,
-                ClientType = OpenIddictConstants.ClientTypes.Public, // SPA = public
+                ClientType = OpenIddictConstants.ClientTypes.Public,   // SPA = public
                 DisplayName = "MergeSensey Admin SPA",
                 ConsentType = OpenIddictConstants.ConsentTypes.Systematic
             };
@@ -124,7 +119,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         {
             var descriptor = new OpenIddictApplicationDescriptor
             {
-                // ВАЖНО: указать и ClientId, и ClientType при UPDATE
+                // ВАЖНО: при update тоже задаём ClientId/ClientType
                 ClientId = clientId,
                 ClientType = OpenIddictConstants.ClientTypes.Public,
                 DisplayName = "MergeSensey Admin SPA",
@@ -146,4 +141,3 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         }
     }
 }
-
