@@ -37,23 +37,18 @@ function authInitializer(oauth: OAuthService) {
       redirectUri: cfg.redirectUri,
       postLogoutRedirectUri: cfg.postLogoutRedirectUri,
       clientId: cfg.clientId,
-      responseType: cfg.responseType,
-      scope: cfg.scope,
+      responseType: cfg.responseType,         // 'code'
+      scope: cfg.scope,                       // с offline_access
       requireHttps: cfg.requireHttps,
       strictDiscoveryDocumentValidation: cfg.strictDiscoveryDocumentValidation,
       showDebugInformation: cfg.showDebugInformation,
       sessionChecksEnabled: cfg.sessionChecksEnabled,
       clearHashAfterLogin: true,
-      useSilentRefresh: false,
+      useSilentRefresh: false,                // для code+refresh не нужен iframe
     });
     oauth.setStorage(localStorage as unknown as OAuthStorage);
-
-    // discovery нужен гарду, чтобы корректно завершить tryLoginCodeFlow
-    try {
-      await oauth.loadDiscoveryDocument();
-    } catch (e) {
-      console.error('Discovery load failed', e);
-    }
+    await oauth.loadDiscoveryDocument();      // чтобы гард видел tokenEndpoint
+    oauth.setupAutomaticSilentRefresh();      // авто-рефреш по таймеру событиям
   };
 }
 

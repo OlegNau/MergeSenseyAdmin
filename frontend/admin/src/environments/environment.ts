@@ -12,7 +12,7 @@ export const environment: Environment = {
     postLogoutRedirectUri: 'http://localhost:4200',
     clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
-    scope: 'openid profile AICodeReview',        // offline_access не запрашиваем
+    scope: 'openid profile offline_access AICodeReview',
     requireHttps: true,
     strictDiscoveryDocumentValidation: true,
     showDebugInformation: true,
