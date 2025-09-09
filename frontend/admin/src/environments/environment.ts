@@ -1,27 +1,26 @@
-import { Environment } from '@abp/ng.core';
+import type { Environment } from '@abp/ng.core';
 
 export const environment: Environment = {
   production: false,
   application: {
-    baseUrl: 'http://localhost:4200',
-    name: 'MergeSenseyAdmin',
+    name: 'AICodeReview',
+    logoUrl: '',
   },
   oAuthConfig: {
-    issuer: 'https://localhost:44396/', // с хвостовым слэшем
+    issuer: 'https://localhost:44396/',          // ВАЖНО: с завершающим слешем
     redirectUri: 'http://localhost:4200',
     postLogoutRedirectUri: 'http://localhost:4200',
     clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
-    scope: 'openid profile offline_access AICodeReview',
+    scope: 'openid profile AICodeReview',        // offline_access не запрашиваем
     requireHttps: true,
     strictDiscoveryDocumentValidation: true,
     showDebugInformation: true,
     sessionChecksEnabled: false,
   },
   apis: {
-    default: { url: 'https://localhost:44396' },
-  },
-  localization: {
-    defaultResourceName: 'AICodeReview',
+    default: {
+      url: 'https://localhost:44396',
+    },
   },
 };

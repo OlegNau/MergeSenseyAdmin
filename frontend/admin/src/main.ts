@@ -1,9 +1,7 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withEnabledBlockingInitialNavigation, withRouterConfig } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { APP_INITIALIZER, inject } from '@angular/core';
-import { Router } from '@angular/router';
-
+import { APP_INITIALIZER } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import { OAuthService, OAuthStorage, provideOAuthClient } from 'angular-oauth2-oidc';
 import { provideAbpCore, withOptions } from '@abp/ng.core';
@@ -13,7 +11,7 @@ import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { environment } from './environments/environment';
 
-/** Robust, explicit locale loader (works with ru/en/de/fr) */
+/** Регистрация локалей (ru/en/de/fr) для Angular i18n */
 const registerLocaleFn = (locale: string) => {
   const key = (locale || 'en').split('-')[0].toLowerCase();
   const loaders: Record<string, () => Promise<any>> = {
@@ -30,53 +28,35 @@ const registerLocaleFn = (locale: string) => {
   });
 };
 
-/** OIDC bootstrap: discovery + tryLogin + cleanup + returnUrl */
-function authInitializer() {
+/** Лёгкий bootstrap для загрузки discovery ДО первого роутинга */
+function authInitializer(oauth: OAuthService) {
   return async () => {
-    const oauth = inject(OAuthService);
-    const router = inject(Router);
     const cfg = environment.oAuthConfig!;
-
     oauth.configure({
-      issuer: cfg.issuer, // must match discovery (with trailing /)
+      issuer: cfg.issuer,
       redirectUri: cfg.redirectUri,
       postLogoutRedirectUri: cfg.postLogoutRedirectUri,
       clientId: cfg.clientId,
-      responseType: cfg.responseType, // 'code'
-      scope: cfg.scope, // 'openid profile offline_access AICodeReview'
+      responseType: cfg.responseType,
+      scope: cfg.scope,
       requireHttps: cfg.requireHttps,
       strictDiscoveryDocumentValidation: cfg.strictDiscoveryDocumentValidation,
       showDebugInformation: cfg.showDebugInformation,
       sessionChecksEnabled: cfg.sessionChecksEnabled,
       clearHashAfterLogin: true,
+      useSilentRefresh: false,
     });
-
     oauth.setStorage(localStorage as unknown as OAuthStorage);
 
-    // discovery + code->tokens
-    await oauth.loadDiscoveryDocumentAndTryLogin().catch(() => {});
-
-    // включаем silent refresh (если поддерживается)
-    try { oauth.setupAutomaticSilentRefresh(); } catch {}
-
-    // чистим мусорные query-параметры ABP, чтобы не было циклов/чёрного экрана
-    const url = new URL(window.location.href);
-    if (url.searchParams.has('iss') || url.searchParams.has('culture') || url.searchParams.has('ui-culture')) {
-      await router.navigateByUrl(router.url.split('?')[0], { replaceUrl: true });
-    }
-
-    // если логин удался — уходим на сохранённый returnUrl
-    if (oauth.hasValidAccessToken()) {
-      const returnUrl = sessionStorage.getItem('returnUrl');
-      if (returnUrl) {
-        sessionStorage.removeItem('returnUrl');
-        await router.navigateByUrl(returnUrl, { replaceUrl: true });
-      }
+    // discovery нужен гарду, чтобы корректно завершить tryLoginCodeFlow
+    try {
+      await oauth.loadDiscoveryDocument();
+    } catch (e) {
+      console.error('Discovery load failed', e);
     }
   };
 }
 
-// Build allowedUrls for attaching Authorization: Bearer
 const API = environment.apis.default.url.replace(/\/+$/, '');
 const ALLOWED_URLS = [API, `${API}/`];
 
@@ -84,13 +64,13 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(
       routes,
-      withEnabledBlockingInitialNavigation(),
+      withEnabledBlockingInitialNavigation(),                 // ждём инициализаторы до первого перехода
       withRouterConfig({ paramsInheritanceStrategy: 'always' }),
     ),
     provideHttpClient(withInterceptorsFromDi()),
     provideAbpCore(withOptions({
       environment,
-      registerLocaleFn,
+      registerLocaleFn,                                       // ABP съест culture/ui-culture сам
     })),
     provideAbpOAuth(),
     provideOAuthClient({
@@ -99,6 +79,6 @@ bootstrapApplication(AppComponent, {
         sendAccessToken: true,
       },
     }),
-    { provide: APP_INITIALIZER, useFactory: authInitializer, multi: true },
+    { provide: APP_INITIALIZER, useFactory: authInitializer, deps: [OAuthService], multi: true },
   ],
 }).catch(console.error);
