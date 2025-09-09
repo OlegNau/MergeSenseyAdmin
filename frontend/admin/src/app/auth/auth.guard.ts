@@ -2,32 +2,29 @@ import { CanActivateChildFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 
-let exchanging = false;
+function stripQuery(url: string) {
+  const q = url.indexOf('?');
+  return q >= 0 ? url.slice(0, q) : url;
+}
 
 export const authGuard: CanActivateChildFn = async (_route, state) => {
   const oauth = inject(OAuthService);
   const router = inject(Router);
 
-  const search = new URLSearchParams(window.location.search);
-  const hasCode = search.has('code') && search.has('state');
+  // Возврат с code/state → обмен на токены и очистка query
+  const qp = new URLSearchParams(window.location.search);
+  const hasCode = qp.has('code') && qp.has('state');
 
-  if (hasCode && !exchanging) {
-    exchanging = true;
+  if (hasCode) {
     try {
-      // ✅ Гарантируем discovery ДО обмена code→tokens
-      await oauth.loadDiscoveryDocument();
       await oauth.tryLoginCodeFlow();
-
-      // после входа — чистим query (в т.ч. iss/culture/ui-culture) и остаёмся на том же пути
-      const cleanUrl = state.url.split('?')[0] || '/dashboard';
-      await router.navigateByUrl(cleanUrl, { replaceUrl: true });
+      const cleanUrl = stripQuery(state.url);
+      await router.navigateByUrl(cleanUrl, { replaceUrl: true } as any);
+      return true;
     } catch (e) {
-      // если вдруг exchange не удался — отправляем на логин
       console.error('tryLoginCodeFlow failed', e);
-      sessionStorage.setItem('returnUrl', state.url || '/dashboard');
-      return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: state.url } });
-    } finally {
-      exchanging = false;
+      const cleanUrl = stripQuery(state.url || '/dashboard');
+      return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: cleanUrl } });
     }
   }
 
@@ -35,7 +32,7 @@ export const authGuard: CanActivateChildFn = async (_route, state) => {
     return true;
   }
 
-  // Не авторизован — ведём на публичный логин, запоминая, куда возвращаться
-  sessionStorage.setItem('returnUrl', state.url || '/dashboard');
-  return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: state.url } });
+  const cleanUrl = stripQuery(state.url || '/dashboard');
+  sessionStorage.setItem('returnUrl', cleanUrl);
+  return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: cleanUrl } });
 };

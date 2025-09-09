@@ -7,20 +7,18 @@ export const environment: Environment = {
     logoUrl: '',
   },
   oAuthConfig: {
-    issuer: 'https://localhost:44396/',          // ВАЖНО: с завершающим слешем
+    issuer: 'https://localhost:44396/',          // с завершающим слешем
     redirectUri: 'http://localhost:4200',
     postLogoutRedirectUri: 'http://localhost:4200',
     clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
-    scope: 'openid profile offline_access AICodeReview',
+    scope: 'openid profile AICodeReview',         // БЕЗ offline_access (если не нужен)
     requireHttps: true,
     strictDiscoveryDocumentValidation: true,
     showDebugInformation: true,
     sessionChecksEnabled: false,
   },
   apis: {
-    default: {
-      url: 'https://localhost:44396',
-    },
+    default: { url: 'https://localhost:44396' },
   },
 };

@@ -11,7 +11,6 @@ import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { environment } from './environments/environment';
 
-/** Регистрация локалей (ru/en/de/fr) для Angular i18n */
 const registerLocaleFn = (locale: string) => {
   const key = (locale || 'en').split('-')[0].toLowerCase();
   const loaders: Record<string, () => Promise<any>> = {
@@ -28,8 +27,7 @@ const registerLocaleFn = (locale: string) => {
   });
 };
 
-/** Лёгкий bootstrap для загрузки discovery ДО первого роутинга */
-function authInitializer(oauth: OAuthService) {
+function oauthInitializer(oauth: OAuthService) {
   return async () => {
     const cfg = environment.oAuthConfig!;
     oauth.configure({
@@ -37,18 +35,17 @@ function authInitializer(oauth: OAuthService) {
       redirectUri: cfg.redirectUri,
       postLogoutRedirectUri: cfg.postLogoutRedirectUri,
       clientId: cfg.clientId,
-      responseType: cfg.responseType,         // 'code'
-      scope: cfg.scope,                       // с offline_access
+      responseType: cfg.responseType,
+      scope: cfg.scope,
       requireHttps: cfg.requireHttps,
       strictDiscoveryDocumentValidation: cfg.strictDiscoveryDocumentValidation,
       showDebugInformation: cfg.showDebugInformation,
       sessionChecksEnabled: cfg.sessionChecksEnabled,
       clearHashAfterLogin: true,
-      useSilentRefresh: false,                // для code+refresh не нужен iframe
+      useSilentRefresh: false,
     });
     oauth.setStorage(localStorage as unknown as OAuthStorage);
-    await oauth.loadDiscoveryDocument();      // чтобы гард видел tokenEndpoint
-    oauth.setupAutomaticSilentRefresh();      // авто-рефреш по таймеру событиям
+    await oauth.loadDiscoveryDocument().catch(err => console.error('Discovery failed', err));
   };
 }
 
@@ -59,21 +56,15 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(
       routes,
-      withEnabledBlockingInitialNavigation(),                 // ждём инициализаторы до первого перехода
+      withEnabledBlockingInitialNavigation(),
       withRouterConfig({ paramsInheritanceStrategy: 'always' }),
     ),
     provideHttpClient(withInterceptorsFromDi()),
-    provideAbpCore(withOptions({
-      environment,
-      registerLocaleFn,                                       // ABP съест culture/ui-culture сам
-    })),
+    provideAbpCore(withOptions({ environment, registerLocaleFn })),
     provideAbpOAuth(),
     provideOAuthClient({
-      resourceServer: {
-        allowedUrls: ALLOWED_URLS,
-        sendAccessToken: true,
-      },
+      resourceServer: { allowedUrls: ALLOWED_URLS, sendAccessToken: true },
     }),
-    { provide: APP_INITIALIZER, useFactory: authInitializer, deps: [OAuthService], multi: true },
+    { provide: APP_INITIALIZER, useFactory: oauthInitializer, deps: [OAuthService], multi: true },
   ],
 }).catch(console.error);

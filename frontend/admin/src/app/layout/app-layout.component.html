@@ -1,17 +1,11 @@
 <div class="min-h-screen bg-neutral-950 text-neutral-100 flex">
-  <aside
-    class="hidden md:flex flex-col w-64 shrink-0 border-r border-white/10 bg-white/[0.02]"
-    [ngClass]="{ '!hidden': !sidebarOpen }"
-  >
+  <aside class="hidden md:flex flex-col w-64 shrink-0 border-r border-white/10 bg-white/[0.02]" [ngClass]="{ '!hidden': !sidebarOpen }">
     <div class="h-14 px-4 flex items-center border-b border-white/10">
       <div class="text-lg font-semibold">MergeSensey</div>
     </div>
-
     <nav class="p-2 space-y-1">
       <a routerLink="/dashboard" routerLinkActive="bg-white/10" [routerLinkActiveOptions]="{ exact: true }"
          class="block rounded-md px-3 py-2 hover:bg-white/10 transition">Dashboard</a>
-      <a routerLink="/dashboard-stats" routerLinkActive="bg-white/10"
-         class="block rounded-md px-3 py-2 hover:bg-white/10 transition">Stats</a>
       <a routerLink="/projects" routerLinkActive="bg-white/10"
          class="block rounded-md px-3 py-2 hover:bg-white/10 transition">Projects</a>
       <a routerLink="/all-pipelines" routerLinkActive="bg-white/10"
@@ -30,14 +24,13 @@
                 (click)="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
         <div class="font-semibold">Dashboard</div>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-3">
         <span class="text-sm text-neutral-400">v0.1</span>
       </div>
     </header>
 
     <main class="p-4 md:p-6">
       <router-outlet />
-      <router-outlet name="modal"></router-outlet>
     </main>
   </div>
 </div>

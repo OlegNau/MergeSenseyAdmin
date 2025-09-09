@@ -3,10 +3,13 @@ import { authGuard } from './auth/auth.guard';
 import { AppLayoutComponent } from './layout/app-layout.component';
 
 export const routes: Routes = [
+  // Публичная авторизация (без шапки/сайдбара)
   {
     path: 'auth/login',
     loadComponent: () => import('./auth/auth-login.component').then(m => m.AuthLoginComponent),
   },
+
+  // Защищённая зона ПОД оболочкой
   {
     path: '',
     component: AppLayoutComponent,
@@ -14,12 +17,28 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
 
-      { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent) },
-      { path: 'projects', loadComponent: () => import('./pages/projects/projects.component').then(m => m.ProjectsComponent) },
-      { path: 'all-pipelines', loadComponent: () => import('./pages/all-pipelines/all-pipelines.component').then(m => m.AllPipelinesComponent) },
-      { path: 'settings', loadComponent: () => import('./pages/settings/settings.component').then(m => m.SettingsComponent) },
-      { path: 'help', loadComponent: () => import('./pages/help/help.component').then(m => m.HelpComponent) },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
+      },
+      {
+        path: 'projects',
+        loadComponent: () => import('./pages/projects/projects.component').then(m => m.ProjectsComponent),
+      },
+      {
+        path: 'all-pipelines',
+        loadComponent: () => import('./pages/all-pipelines/all-pipelines.component').then(m => m.AllPipelinesComponent),
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./pages/settings/settings.component').then(m => m.SettingsComponent),
+      },
+      {
+        path: 'help',
+        loadComponent: () => import('./pages/help/help.component').then(m => m.HelpComponent),
+      },
     ],
   },
+
   { path: '**', redirectTo: 'dashboard' },
 ];

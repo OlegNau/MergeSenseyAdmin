@@ -9,28 +9,46 @@ namespace AICodeReview.OpenIddict;
 
 public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDependency
 {
-    private readonly IOpenIddictApplicationManager _applications;
-    private readonly IOpenIddictScopeManager _scopes;
+    private readonly IOpenIddictApplicationManager _applicationManager;
+    private readonly IOpenIddictScopeManager _scopeManager;
 
     public OpenIddictDataSeedContributor(
-        IOpenIddictApplicationManager applications,
-        IOpenIddictScopeManager scopes)
+        IOpenIddictApplicationManager applicationManager,
+        IOpenIddictScopeManager scopeManager)
     {
-        _applications = applications;
-        _scopes = scopes;
+        _applicationManager = applicationManager;
+        _scopeManager = scopeManager;
     }
 
     public async Task SeedAsync(DataSeedContext context)
     {
+        // Создаём только наш API-скоуп
         await CreateOrUpdateScopeAsync("AICodeReview", "AICodeReview API");
+
+        // SPA клиент под PKCE Authorization Code
         await CreateOrUpdateSpaClientAsync();
+    }
+
+    private async Task CreateOrUpdateScopeAsync(string name, string displayName)
+    {
+        var scope = await _scopeManager.FindByNameAsync(name);
+        var desc = new OpenIddictScopeDescriptor
+        {
+            Name = name,
+            DisplayName = displayName
+        };
+
+        if (scope is null)
+            await _scopeManager.CreateAsync(desc);
+        else
+            await _scopeManager.UpdateAsync(scope, desc);
     }
 
     private async Task CreateOrUpdateSpaClientAsync()
     {
         const string clientId = "MergeSenseyAdmin_Angular";
 
-        var app = await _applications.FindByClientIdAsync(clientId);
+        var existing = await _applicationManager.FindByClientIdAsync(clientId);
 
         var descriptor = new OpenIddictApplicationDescriptor
         {
@@ -40,49 +58,37 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             ConsentType = ConsentTypes.Implicit       // без экрана согласия
         };
 
-        descriptor.RedirectUris.Add(new Uri("http://localhost:4200"));
-        descriptor.PostLogoutRedirectUris.Add(new Uri("http://localhost:4200"));
+        // Разрешённые редиректы (dev)
+        var redirect = new Uri("http://localhost:4200");
+        descriptor.RedirectUris.Add(redirect);
+        descriptor.PostLogoutRedirectUris.Add(redirect);
 
+        // Разрешённые endpoints
         descriptor.Permissions.UnionWith(new[]
         {
-            // endpoints
             Permissions.Endpoints.Authorization,
             Permissions.Endpoints.Token,
 
-            // code + refresh
+            // Code Flow + PKCE
             Permissions.GrantTypes.AuthorizationCode,
-            Permissions.GrantTypes.RefreshToken,
-
-            // response type
             Permissions.ResponseTypes.Code,
 
-            // scopes (ВАЖНО: через Prefixes.Scope + Scopes.*)
+            // Scopes (через префикс Scope + имя)
             Permissions.Prefixes.Scope + Scopes.OpenId,
             Permissions.Prefixes.Scope + Scopes.Profile,
-            Permissions.Prefixes.Scope + Scopes.OfflineAccess,
-            Permissions.Prefixes.Scope + "AICodeReview"
+            Permissions.Prefixes.Scope + "AICodeReview",
         });
 
-        descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange); // PKCE
+        // Если понадобится refresh token/offline_access, РАСКомментируй:
+        // descriptor.Permissions.Add(Permissions.GrantTypes.RefreshToken);
+        // descriptor.Permissions.Add(Permissions.Prefixes.Scope + Scopes.OfflineAccess);
 
-        if (app is null)
-            await _applications.CreateAsync(descriptor);
+        descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
+
+        if (existing is null)
+            await _applicationManager.CreateAsync(descriptor);
         else
-            await _applications.UpdateAsync(app, descriptor);
-    }
-
-    private async Task CreateOrUpdateScopeAsync(string name, string displayName)
-    {
-        var scope = await _scopes.FindByNameAsync(name);
-        var desc = new OpenIddictScopeDescriptor
-        {
-            Name = name,
-            DisplayName = displayName
-        };
-
-        if (scope is null)
-            await _scopes.CreateAsync(desc);
-        else
-            await _scopes.UpdateAsync(scope, desc);
+            await _applicationManager.UpdateAsync(existing, descriptor);
     }
 }
+

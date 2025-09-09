@@ -21,7 +21,8 @@ export class AuthLoginComponent {
     this.loading = true;
     try {
       const ret = this.route.snapshot.queryParamMap.get('returnUrl');
-      if (ret) sessionStorage.setItem('returnUrl', ret);
+      const pathOnly = ret ? ret.split('?')[0] : '/dashboard';
+      sessionStorage.setItem('returnUrl', pathOnly);
       this.oauth.initCodeFlow();
     } finally {
       this.loading = false;
