@@ -1,104 +1,28 @@
 <div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
-  <!-- Page header -->
   <header class="pt-8 pb-6">
     <h1 class="text-3xl font-bold">Dashboard</h1>
     <p class="mt-1 text-sm text-gray-400">Overview of your project and pipeline performance</p>
   </header>
 
-  <!-- KPI cards -->
-  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-    @for (s of stats; track s.id) {
-      <article class="rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-colors"
-               style="box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset">
-        <div class="p-5">
-          <div class="flex items-start justify-between">
-            <div class="text-sm text-gray-400">{{ s.title }}</div>
-            <div class="text-gray-400">
-              @switch (s.icon) {
-                @case ('trend') { <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M19 7l-7 7-4-4-5 5"/></svg> }
-                @case ('activity') { <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> }
-                @case ('code') { <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 8-4 4 4 4"/><path d="m17 8 4 4-4 4"/><path d="m14 4-4 16"/></svg> }
-                @case ('bug') { <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7V3m8 4V3M3 13h18M5 7h14M6 19a6 6 0 0 0 12 0V9H6z"/></svg> }
-                @case ('team') { <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> }
-                @case ('time') { <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> }
-              }
-            </div>
-          </div>
-          <div class="mt-3 text-2xl font-semibold">{{ s.value }}</div>
-          <div class="mt-1 text-xs"
-               [ngClass]="s.deltaDir === 'up' ? 'text-emerald-400' : 'text-rose-400'">
-            {{ s.deltaText }}
-          </div>
-        </div>
-      </article>
-    }
-  </section>
-
-  <!-- Bottom grid: Recent Activity + Performance -->
-  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 pb-10">
-    <!-- Recent Activity -->
-    <article class="rounded-xl border border-white/10 bg-white/[0.03]" style="box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset">
-      <header class="px-5 pt-5 pb-3">
-        <h2 class="text-xl font-semibold">Recent Activity</h2>
-      </header>
-      <ul class="divide-y divide-white/10">
-        @for (a of activities; track a.id) {
-          <li class="px-5 py-3 hover:bg-white/[0.04] transition-colors">
-            <div class="flex items-center gap-3">
-              <div class="flex-1">
-                <div class="text-sm font-medium">{{ a.title }}</div>
-                <div class="text-xs text-gray-400">{{ a.project }}</div>
-              </div>
-              <span class="rounded-full px-2 py-0.5 text-[11px]"
-                    [ngClass]="a.status==='Active' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'">
-                {{ a.status }}
-              </span>
-            </div>
-          </li>
-        }
-      </ul>
-    </article>
-
-    <!-- Project Performance -->
-    <article class="rounded-xl border border-white/10 bg-white/[0.03]" style="box-shadow:0 0 0 1px rgba(255,255,255,0.02) inset">
-      <header class="px-5 pt-5 pb-3">
-        <h2 class="text-xl font-semibold">Project Performance</h2>
-      </header>
-
-      <div class="px-5 pb-5 space-y-6">
-        <!-- Success Rate -->
-        <div>
-          <div class="flex items-center justify-between text-sm">
-            <span>Success Rate</span><span>{{ performance.successRate }}%</span>
-          </div>
-          <div class="mt-2 h-2 rounded bg-white/10">
-            <div class="h-2 rounded bg-emerald-500"
-                 [style.width.%]="performance.successRate"></div>
-          </div>
-        </div>
-
-        <!-- Avg Duration -->
-        <div>
-          <div class="flex items-center justify-between text-sm">
-            <span>Avg Duration</span><span>{{ performance.avgDurationText }}</span>
-          </div>
-          <div class="mt-2 h-2 rounded bg-white/10">
-            <div class="h-2 rounded bg-blue-500"
-                 [style.width.%]="performance.avgDuration"></div>
-          </div>
-        </div>
-
-        <!-- Queue Time -->
-        <div>
-          <div class="flex items-center justify-between text-sm">
-            <span>Queue Time</span><span>{{ performance.queueTimeText }}</span>
-          </div>
-          <div class="mt-2 h-2 rounded bg-white/10">
-            <div class="h-2 rounded bg-amber-500"
-                 [style.width.%]="performance.queueTime"></div>
-          </div>
-        </div>
+  @if (loading()) {
+    <div class="animate-pulse h-6 w-40 bg-white/10 rounded mb-4"></div>
+    <div class="animate-pulse h-24 bg-white/5 rounded"></div>
+  } @else {
+    <div class="grid gap-4">
+      <div class="rounded border border-white/10 p-4">
+        <div class="text-sm text-gray-400">Total Pipelines</div>
+        <div class="text-2xl font-semibold">{{ totalPipelines }}</div>
       </div>
-    </article>
-  </section>
+
+      <div class="rounded border border-white/10 p-4">
+        <div class="text-sm text-gray-400 mb-2">Pipelines</div>
+        <ul>
+          @for (p of pipelines(); track p.id) {
+            <li class="py-1">{{ p.name }}</li>
+          }
+        </ul>
+      </div>
+    </div>
+  }
 </div>
+
