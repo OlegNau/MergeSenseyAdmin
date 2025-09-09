@@ -72,7 +72,7 @@ public class ProjectSummaryDto : EntityDto<Guid>
     public string Name { get; set; } = default!;
     public string RepoPath { get; set; } = default!;
     public string Provider { get; set; } = default!;
-    public bool IsActive { get; set; }                 // <- добавили
+    public bool IsActive { get; set; }                 
     public int TotalPipelinesCount { get; set; }
     public int ActivePipelinesCount { get; set; }
 }

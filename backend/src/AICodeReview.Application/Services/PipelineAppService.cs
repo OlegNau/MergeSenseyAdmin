@@ -21,11 +21,11 @@ public class PipelineAppService
     {
     }
 
-    // Пагинация — остаётся как есть (авто-контроллер ABP повесит GET /api/app/pipeline)
+    
     public override Task<PagedResultDto<PipelineDto>> GetListAsync(PagedAndSortedResultRequestDto input)
         => base.GetListAsync(input);
 
-    // Отдельный "все записи" — скрываем от авто-контроллера, чтобы не было конфликта маршрутов
+    
     [RemoteService(false)]
     public async Task<ListResultDto<PipelineDto>> GetAllAsync()
     {

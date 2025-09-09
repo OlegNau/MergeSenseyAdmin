@@ -7,12 +7,12 @@ export const environment: Environment = {
     name: 'MergeSenseyAdmin',
   },
   oAuthConfig: {
-    issuer: 'https://localhost:44396/', // со слешом!
+    issuer: 'https://localhost:44396/',
     redirectUri: 'http://localhost:4200',
     postLogoutRedirectUri: 'http://localhost:4200',
-    clientId: 'MergeSenseiAdmin_Angular',
+    clientId: 'MergeSenseyAdmin_Angular',
     responseType: 'code',
-    scope: 'openid profile offline_access MergeSensei',
+    scope: 'openid profile offline_access AICodeReview',
     requireHttps: true,
     strictDiscoveryDocumentValidation: true,
     showDebugInformation: true,

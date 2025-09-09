@@ -15,7 +15,6 @@ public class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        // Для Npgsql 8+ на случай сторонних Local DateTime
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         Log.Logger = new LoggerConfiguration()
@@ -38,7 +37,6 @@ public class Program
             var builder = WebApplication.CreateBuilder(args);
             var configuration = builder.Configuration;
 
-            // CORS
             builder.Services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy =>
@@ -55,7 +53,7 @@ public class Program
             });
 
             builder.Host
-                .AddAppSettingsSecretsJson() // подхватит appsettings.secrets.json при наличии
+                .AddAppSettingsSecretsJson()
                 .UseAutofac()
                 .UseSerilog();
 
@@ -70,7 +68,6 @@ public class Program
                     var appEntity = await manager.FindByClientIdAsync(clientId);
                     if (appEntity is null) return Results.NotFound(new { clientId });
 
-                    // Извлечём дескриптор, чтобы увидеть RedirectUris/PostLogoutRedirectUris
                     var type = appEntity.GetType();
                     var redirectUris = (IEnumerable<Uri>)(type.GetProperty("RedirectUris")?.GetValue(appEntity) as IEnumerable<Uri> ?? Enumerable.Empty<Uri>());
                     var postLogoutUris = (IEnumerable<Uri>)(type.GetProperty("PostLogoutRedirectUris")?.GetValue(appEntity) as IEnumerable<Uri> ?? Enumerable.Empty<Uri>());
@@ -84,7 +81,7 @@ public class Program
                 });
             }
 
-            app.UseCors(); // place before auth
+            app.UseCors();
 
             await app.InitializeApplicationAsync();
             await app.RunAsync();

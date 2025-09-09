@@ -5,7 +5,7 @@ using Volo.Abp.Security.Encryption;
 
 internal static class EfEncryption
 {
-    // На рантайме проставится из DbContext; на дизайн-тайме может быть null => no-op
+    
     public static IStringEncryptionService? Service { get; set; }
 
     public static string? Encrypt(string? plain)

@@ -10,7 +10,7 @@ export const environment = {
     redirectUri: baseUrl,                  // root redirect in prod too
     clientId: 'MergeSenseyAdmin_Angular',  // must match prod client in OpenIddict
     responseType: 'code',
-    scope: 'offline_access openid profile MergeSensei',
+    scope: 'openid profile offline_access AICodeReview',
     requireHttps: true,
     strictDiscoveryDocumentValidation: true,
     showDebugInformation: false,

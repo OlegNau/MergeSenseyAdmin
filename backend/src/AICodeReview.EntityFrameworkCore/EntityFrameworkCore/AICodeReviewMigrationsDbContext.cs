@@ -28,7 +28,7 @@ public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigratio
     {
         base.OnModelCreating(builder);
 
-        // ABP-модули
+        
         builder.ConfigurePermissionManagement();
         builder.ConfigureSettingManagement();
         builder.ConfigureBackgroundJobs();
@@ -38,7 +38,7 @@ public class AICodeReviewMigrationsDbContext : AbpDbContext<AICodeReviewMigratio
         builder.ConfigureFeatureManagement();
         builder.ConfigureTenantManagement();
 
-        // Ваши прикладные сущности (таблицы App*)
+        
         builder.ApplyConfiguration(new AiModelConfiguration());
         builder.ApplyConfiguration(new ProjectConfiguration());
         builder.ApplyConfiguration(new RepositoryConfiguration());
