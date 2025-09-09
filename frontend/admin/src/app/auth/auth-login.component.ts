@@ -1,27 +1,29 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from './auth.service';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { OAuthService } from 'angular-oauth2-oidc';
 
 @Component({
-  selector: 'app-auth-login',
   standalone: true,
+  selector: 'app-auth-login',
   imports: [CommonModule],
   templateUrl: './auth-login.component.html',
-  styleUrls: ['./auth-login.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AuthLoginComponent {
-  private readonly auth = inject(AuthService);
-  public readonly route = inject(ActivatedRoute);
+export class AuthLoginComponent implements OnInit {
+  private oauth = inject(OAuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
-  ngOnInit() {
-    sessionStorage.removeItem('auth.loginInProgress');
+  async ngOnInit() {
+    // Если уже авторизованы (возврат с IdP) — уходим на returnUrl
+    if (this.oauth.hasValidAccessToken()) {
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+      await this.router.navigateByUrl(returnUrl, { replaceUrl: true });
+    }
   }
 
-  async onLogin() {
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
-    sessionStorage.setItem('returnUrl', returnUrl);
-    this.auth.login(returnUrl);
+  login() {
+    this.oauth.initCodeFlow();
   }
 }
