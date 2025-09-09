@@ -22,57 +22,53 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
     public async Task SeedAsync(DataSeedContext context)
     {
-        // кастомный API-скоуп
         await CreateOrUpdateScopeAsync("AICodeReview", "AICodeReview API");
-
-        // SPA-клиент
         await CreateOrUpdateSpaClientAsync();
     }
 
     private async Task CreateOrUpdateSpaClientAsync()
     {
         const string clientId = "MergeSenseyAdmin_Angular";
-        var existing = await _applications.FindByClientIdAsync(clientId);
+
+        var app = await _applications.FindByClientIdAsync(clientId);
 
         var descriptor = new OpenIddictApplicationDescriptor
         {
             ClientId = clientId,
             DisplayName = "MergeSensey Admin SPA",
-            ClientType = ClientTypes.Public,         // SPA = Public
-            ConsentType = ConsentTypes.Implicit,     // без экрана согласия
+            ClientType = ClientTypes.Public,          // SPA = Public
+            ConsentType = ConsentTypes.Implicit       // без экрана согласия
         };
 
-        // redirect / post-logout
         descriptor.RedirectUris.Add(new Uri("http://localhost:4200"));
         descriptor.PostLogoutRedirectUris.Add(new Uri("http://localhost:4200"));
 
-        // разрешения
         descriptor.Permissions.UnionWith(new[]
         {
             // endpoints
             Permissions.Endpoints.Authorization,
             Permissions.Endpoints.Token,
 
-            // code flow + PKCE
+            // code + refresh
             Permissions.GrantTypes.AuthorizationCode,
             Permissions.GrantTypes.RefreshToken,
+
+            // response type
             Permissions.ResponseTypes.Code,
 
-            // стандартные скоупы
-            Permissions.Scopes.OpenId,
-            Permissions.Scopes.Profile,
-            Permissions.Scopes.OfflineAccess,
-
-            // кастомный скоуп API
-            Permissions.Prefixes.Scope + "AICodeReview",
+            // scopes (ВАЖНО: через Prefixes.Scope + Scopes.*)
+            Permissions.Prefixes.Scope + Scopes.OpenId,
+            Permissions.Prefixes.Scope + Scopes.Profile,
+            Permissions.Prefixes.Scope + Scopes.OfflineAccess,
+            Permissions.Prefixes.Scope + "AICodeReview"
         });
 
-        descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
+        descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange); // PKCE
 
-        if (existing is null)
+        if (app is null)
             await _applications.CreateAsync(descriptor);
         else
-            await _applications.UpdateAsync(existing, descriptor);
+            await _applications.UpdateAsync(app, descriptor);
     }
 
     private async Task CreateOrUpdateScopeAsync(string name, string displayName)
