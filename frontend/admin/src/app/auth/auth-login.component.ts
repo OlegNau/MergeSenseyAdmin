@@ -13,9 +13,19 @@ import { OAuthService } from 'angular-oauth2-oidc';
 export class AuthLoginComponent implements OnInit {
   private oauth = inject(OAuthService);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
+  // ВАЖНО: делаем публичным, если где-то всё ещё используешь в шаблоне
+  public route = inject(ActivatedRoute);
+
+  // Публичные поля для отображения ошибок из query params
+  public error: string | null = null;
+  public errorDescription: string | null = null;
 
   async ngOnInit() {
+    // Считаем ошибки (если IdP вернул ошибку)
+    this.error = this.route.snapshot.queryParamMap.get('error');
+    this.errorDescription = this.route.snapshot.queryParamMap.get('error_description');
+
+    // Если уже авторизованы — сразу уходим на returnUrl
     if (this.oauth.hasValidAccessToken()) {
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
       await this.router.navigateByUrl(returnUrl, { replaceUrl: true });
@@ -23,6 +33,7 @@ export class AuthLoginComponent implements OnInit {
   }
 
   login() {
+    // Сохраняем желаемый маршрут и стартуем code flow
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
     sessionStorage.setItem('returnUrl', returnUrl);
     this.oauth.initCodeFlow();
