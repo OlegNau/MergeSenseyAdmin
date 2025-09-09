@@ -13,8 +13,6 @@ using AICodeReview.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
 using Microsoft.OpenApi.Models;
-using OpenIddict.Server;
-using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
 using Volo.Abp;
 using Volo.Abp.Account;
@@ -32,8 +30,8 @@ using Volo.Abp.Swashbuckle;
 using Volo.Abp.UI.Navigation.Urls;
 using Volo.Abp.VirtualFileSystem;
 using Volo.Abp.Data;
-using Volo.Abp.Timing;           // ⬅️ добавлено
-using Volo.Abp.BackgroundJobs;   // ⬅️ добавлено
+using Volo.Abp.Timing;
+using Volo.Abp.BackgroundJobs;
 
 namespace AICodeReview;
 
@@ -52,11 +50,12 @@ public class AICodeReviewHttpApiHostModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {
+        // Валидация access-токенов через локальный сервер OpenIddict
         PreConfigure<OpenIddictBuilder>(builder =>
         {
             builder.AddValidation(options =>
             {
-                options.AddAudiences("AICodeReview");
+                options.AddAudiences("AICodeReview"); // audience вашего API
                 options.UseLocalServer();
                 options.UseAspNetCore();
             });
@@ -68,10 +67,10 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         var configuration = context.Services.GetConfiguration();
         var hostingEnvironment = context.Services.GetHostingEnvironment();
 
-        // ⬇️ Ключевая фиксация: все DateTime — в UTC
+        // Все DateTime в UTC — меньше сюрпризов с токенами и логами
         Configure<AbpClockOptions>(o => o.Kind = DateTimeKind.Utc);
 
-        // ⬇️ В dev отключаем выполнение фоновых задач, чтобы они не трогали БД во время старта
+        // В dev — без фоновых задач (ускоряет запуск, меньше побочек)
         if (hostingEnvironment.IsDevelopment())
         {
             Configure<AbpBackgroundJobOptions>(o => o.IsJobExecutionEnabled = false);
@@ -84,13 +83,14 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         ConfigureVirtualFileSystem(context);
         ConfigureCors(context, configuration);
         ConfigureSwaggerServices(context, configuration);
-
-        // context.Services.AddHostedService<Development.DevelopmentSeederHostedService>();
     }
 
     private void ConfigureAuthentication(ServiceConfigurationContext context)
     {
+        // Все аутентификации Bearer прокидываем в OpenIddict Validation
         context.Services.ForwardIdentityAuthenticationForBearer(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+
+        // Динамические клеймы ABP (роллы/пермишены подтянутся)
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
             options.IsDynamicClaimsEnabled = true;
@@ -110,6 +110,7 @@ public class AICodeReviewHttpApiHostModule : AbpModule
 
     private void ConfigureUrls(IConfiguration configuration)
     {
+        // Важно, чтобы SelfUrl и ClientUrl были заданы в appsettings.json
         Configure<AppUrlOptions>(options =>
         {
             options.Applications["MVC"].RootUrl = configuration["App:SelfUrl"];
@@ -151,7 +152,7 @@ public class AICodeReviewHttpApiHostModule : AbpModule
     private static void ConfigureSwaggerServices(ServiceConfigurationContext context, IConfiguration configuration)
     {
         context.Services.AddAbpSwaggerGenWithOAuth(
-            configuration["AuthServer:Authority"]!,
+            configuration["AuthServer:Authority"]!, // например: https://localhost:44396/
             new Dictionary<string, string> { { "AICodeReview", "AICodeReview API" } },
             options =>
             {
@@ -163,6 +164,7 @@ public class AICodeReviewHttpApiHostModule : AbpModule
 
     private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)
     {
+        // Разрешаем запросы с фронта (http://localhost:4200)
         context.Services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
@@ -207,7 +209,11 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         app.UseCorrelationId();
         app.MapAbpStaticAssets();
         app.UseRouting();
+
+        // CORS до аутентификации
         app.UseCors();
+
+        // Аутентификация/валидация токена
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
 
@@ -224,11 +230,11 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         app.UseAbpSwaggerUI(c =>
         {
             c.SwaggerEndpoint("/swagger/v1/swagger.json", "AICodeReview API");
-
             var configuration = context.ServiceProvider.GetRequiredService<IConfiguration>();
+
             c.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
             c.OAuthUsePkce();
-            // Request all useful scopes by default (DEV-friendly)
+            // Запрашиваем полезные скоупы (dev-friendly)
             c.OAuthScopes("AICodeReview", "openid", "profile", "offline_access", "MergeSensei");
         });
 
@@ -236,6 +242,7 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
 
+        // Сидер (в т.ч. клиент/скоупы OpenIddict)
         context.ServiceProvider
             .GetRequiredService<IDataSeeder>()
             .SeedAsync()

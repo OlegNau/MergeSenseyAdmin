@@ -17,18 +17,10 @@ export class DashboardComponent {
 
   constructor() {
     this.api.getAll().subscribe({
-      next: (items) => {
-        this.pipelines.set(items ?? []);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.pipelines.set([]);
-        this.loading.set(false);
-      },
+      next: (items) => { this.pipelines.set(items); this.loading.set(false); },
+      error: () => { this.pipelines.set([]); this.loading.set(false); },
     });
   }
 
-  get totalPipelines() {
-    return this.pipelines().length;
-  }
+  get totalPipelines() { return this.pipelines().length; }
 }

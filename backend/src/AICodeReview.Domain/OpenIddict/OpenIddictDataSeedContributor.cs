@@ -127,6 +127,17 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
             sd.Name = apiScope; // обязательно при Update
             sd.DisplayName = "MergeSensei API";
+        const string clientId = "MergeSenseiAdmin_Angular"; // совпадает с фронтом
+                ClientType = ClientTypes.Public,
+            // стандартные скоупы
+            // явно — то, что запрашивает фронт
+            d.Permissions.Add(Permissions.Prefixes.Scope + "openid");
+            d.Permissions.Add(Permissions.Prefixes.Scope + "offline_access");
+            d.Permissions.Add(Permissions.Prefixes.Scope + "MergeSensei");
+            d.ClientId = clientId; // важно при Update
+            d.Permissions.Add(Permissions.Prefixes.Scope + "openid");
+
+            sd.Name = apiScope; // обязательно при Update
             sd.Resources.Clear();
             sd.Resources.Add(apiScope);
 
