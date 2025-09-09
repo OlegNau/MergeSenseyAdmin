@@ -73,14 +73,8 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
     private async Task CreateApplicationsAsync()
     {
         var configurationSection = _configuration.GetSection("OpenIddict:Applications");
-
-        await EnsureScopeAsync(_scopeManager, "MergeSensei", "MergeSensei API", "AICodeReview");
-
-        await UpsertSpaAsync(
-            _applicationManager,
-            "MergeSenseyAdmin_Angular",
-            "MergeSenseyAdmin Angular"
-        );
+        await CreateOrUpdateScopeAsync();
+        await CreateOrUpdateSpaClientAsync();
 
         var swaggerClientId = configurationSection["AICodeReview_Swagger:ClientId"];
         if (!swaggerClientId.IsNullOrWhiteSpace())
@@ -97,80 +91,78 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         }
     }
 
-    private static async Task EnsureScopeAsync(
-        IOpenIddictScopeManager scopeManager,
-        string name,
-        string displayName,
-        params string[] resources)
+    private async Task CreateOrUpdateSpaClientAsync()
     {
-        if (await scopeManager.FindByNameAsync(name) is null)
+        const string clientId = "MergeSenseiAdmin_Angular";
+        var existing = await _applicationManager.FindByClientIdAsync(clientId);
+
+        var redirectUri = new Uri("http://localhost:4200");
+        var postLogoutUri = new Uri("http://localhost:4200");
+
+        if (existing is null)
         {
-            var d = new OpenIddictScopeDescriptor
+            var descriptor = new OpenIddictApplicationDescriptor
             {
-                Name = name,
-                DisplayName = displayName
+                ClientId = clientId,
+                DisplayName = "MergeSensei Admin Angular",
+                ConsentType = ConsentTypes.Explicit,
             };
-            if (resources != null)
-            {
-                foreach (var r in resources)
-                    d.Resources.Add(r);
-            }
-            await scopeManager.CreateAsync(d);
+            (typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType") ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type"))?.SetValue(descriptor, ClientTypes.Public);
+            descriptor.RedirectUris.Add(redirectUri);
+            descriptor.PostLogoutRedirectUris.Add(postLogoutUri);
+            descriptor.Permissions.Add(Permissions.Endpoints.Authorization);
+            descriptor.Permissions.Add(Permissions.Endpoints.Token);
+            descriptor.Permissions.Add(Permissions.Endpoints.Logout);
+            descriptor.Permissions.Add(Permissions.GrantTypes.AuthorizationCode);
+            descriptor.Permissions.Add(Permissions.ResponseTypes.Code);
+            descriptor.Permissions.Add(Permissions.Scopes.OpenId);
+            descriptor.Permissions.Add(Permissions.Scopes.Profile);
+            descriptor.Permissions.Add(Permissions.Scopes.OfflineAccess);
+            descriptor.Permissions.Add(Permissions.Prefixes.Scope + "MergeSensei");
+            descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
+            await _applicationManager.CreateAsync(descriptor);
+        }
+        else
+        {
+            var descriptor = new OpenIddictApplicationDescriptor();
+            await _applicationManager.PopulateAsync(existing, descriptor);
+            descriptor.DisplayName = "MergeSensei Admin Angular";
+            (typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType") ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type"))?.SetValue(descriptor, ClientTypes.Public);
+            descriptor.ConsentType = ConsentTypes.Explicit;
+            descriptor.RedirectUris.Clear();
+            descriptor.PostLogoutRedirectUris.Clear();
+            descriptor.RedirectUris.Add(redirectUri);
+            descriptor.PostLogoutRedirectUris.Add(postLogoutUri);
+            descriptor.Permissions.Clear();
+            descriptor.Permissions.Add(Permissions.Endpoints.Authorization);
+            descriptor.Permissions.Add(Permissions.Endpoints.Token);
+            descriptor.Permissions.Add(Permissions.Endpoints.Logout);
+            descriptor.Permissions.Add(Permissions.GrantTypes.AuthorizationCode);
+            descriptor.Permissions.Add(Permissions.ResponseTypes.Code);
+            descriptor.Permissions.Add(Permissions.Scopes.OpenId);
+            descriptor.Permissions.Add(Permissions.Scopes.Profile);
+            descriptor.Permissions.Add(Permissions.Scopes.OfflineAccess);
+            descriptor.Permissions.Add(Permissions.Prefixes.Scope + "MergeSensei");
+            descriptor.Requirements.Clear();
+            descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
+            await _applicationManager.UpdateAsync(existing, descriptor);
         }
     }
 
-    private static async Task UpsertSpaAsync(
-        IOpenIddictApplicationManager applicationManager,
-        string clientId,
-        string displayName)
+    private async Task CreateOrUpdateScopeAsync()
     {
-        var existing = await applicationManager.FindByClientIdAsync(clientId);
-        if (existing is not null)
+        const string apiScope = "MergeSensei";
+        var existing = await _scopeManager.FindByNameAsync(apiScope);
+        if (existing is null)
         {
-            await applicationManager.DeleteAsync(existing);
+            var descriptor = new OpenIddictScopeDescriptor
+            {
+                Name = apiScope,
+                DisplayName = "MergeSensei API",
+            };
+            descriptor.Resources.Add(apiScope);
+            await _scopeManager.CreateAsync(descriptor);
         }
-
-        var d = new OpenIddictApplicationDescriptor
-        {
-            ClientId = clientId,
-            DisplayName = displayName,
-            ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
-        };
-
-        // Public client (совместимо с v4/v5)
-        (typeof(OpenIddictApplicationDescriptor).GetProperty("ClientType")
-         ?? typeof(OpenIddictApplicationDescriptor).GetProperty("Type"))
-         ?.SetValue(d, OpenIddictConstants.ClientTypes.Public);
-
-        // === РОВНО эти URI ===
-        d.RedirectUris.Add(new Uri("http://localhost:4200"));
-        d.RedirectUris.Add(new Uri("http://localhost:4200/"));
-        d.RedirectUris.Add(new Uri("https://localhost:4200"));
-        d.RedirectUris.Add(new Uri("https://localhost:4200/"));
-
-        d.PostLogoutRedirectUris.Add(new Uri("http://localhost:4200"));
-        d.PostLogoutRedirectUris.Add(new Uri("http://localhost:4200/"));
-        d.PostLogoutRedirectUris.Add(new Uri("https://localhost:4200"));
-        d.PostLogoutRedirectUris.Add(new Uri("https://localhost:4200/"));
-
-        // Разрешения: code + refresh + нужные скоупы
-        d.Permissions.UnionWith(new[]
-        {
-            OpenIddictConstants.Permissions.Endpoints.Authorization,
-            OpenIddictConstants.Permissions.Endpoints.Token,
-            OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
-            OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
-            OpenIddictConstants.Permissions.ResponseTypes.Code,
-            OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OpenId,
-            OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.Profile,
-            OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OfflineAccess,
-            OpenIddictConstants.Permissions.Prefixes.Scope + "MergeSensei",
-        });
-
-        // Требовать PKCE
-        d.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
-
-        await applicationManager.CreateAsync(d);
     }
 
     private static async Task CreateOrReplaceSwaggerClientAsync(
