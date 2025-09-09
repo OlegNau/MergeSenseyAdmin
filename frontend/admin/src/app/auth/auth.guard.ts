@@ -2,6 +2,8 @@ import { CanActivateChildFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 
+let exchanging = false;
+
 export const authGuard: CanActivateChildFn = async (_route, state) => {
   const oauth = inject(OAuthService);
   const router = inject(Router);
@@ -9,7 +11,8 @@ export const authGuard: CanActivateChildFn = async (_route, state) => {
   const search = new URLSearchParams(window.location.search);
   const hasCode = search.has('code') && search.has('state');
 
-  if (hasCode) {
+  if (hasCode && !exchanging) {
+    exchanging = true;
     try {
       // ✅ Гарантируем discovery ДО обмена code→tokens
       await oauth.loadDiscoveryDocument();
@@ -23,6 +26,8 @@ export const authGuard: CanActivateChildFn = async (_route, state) => {
       console.error('tryLoginCodeFlow failed', e);
       sessionStorage.setItem('returnUrl', state.url || '/dashboard');
       return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: state.url } });
+    } finally {
+      exchanging = false;
     }
   }
 

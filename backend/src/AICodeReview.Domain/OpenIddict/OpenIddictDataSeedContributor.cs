@@ -47,7 +47,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         descriptor.PostLogoutRedirectUris.Add(new Uri("http://localhost:4200"));
 
         // разрешения
-        foreach (var p in new[]
+        descriptor.Permissions.UnionWith(new[]
         {
             // endpoints
             Permissions.Endpoints.Authorization,
@@ -55,22 +55,17 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
             // code flow + PKCE
             Permissions.GrantTypes.AuthorizationCode,
+            Permissions.GrantTypes.RefreshToken,
             Permissions.ResponseTypes.Code,
 
             // стандартные скоупы
-            Permissions.Prefixes.Scope + Scopes.OpenId,
-            Permissions.Prefixes.Scope + Scopes.Profile,
+            Permissions.Scopes.OpenId,
+            Permissions.Scopes.Profile,
+            Permissions.Scopes.OfflineAccess,
 
             // кастомный скоуп API
             Permissions.Prefixes.Scope + "AICodeReview",
-
-            // ЕСЛИ нужно offline_access, раскомментируйте две строки ниже
-            //Permissions.GrantTypes.RefreshToken,
-            //Permissions.Prefixes.Scope + Scopes.OfflineAccess,
-        })
-        {
-            descriptor.Permissions.Add(p);
-        }
+        });
 
         descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
 

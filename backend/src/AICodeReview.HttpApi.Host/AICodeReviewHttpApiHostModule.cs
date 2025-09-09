@@ -13,6 +13,8 @@ using AICodeReview.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
 using Microsoft.OpenApi.Models;
+using OpenIddict.Server;
+using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
 using Volo.Abp;
 using Volo.Abp.Account;
@@ -55,10 +57,20 @@ public class AICodeReviewHttpApiHostModule : AbpModule
         {
             builder.AddValidation(options =>
             {
-                options.AddAudiences("AICodeReview"); 
+                options.AddAudiences("AICodeReview");
                 options.UseLocalServer();
                 options.UseAspNetCore();
             });
+        });
+
+        PreConfigure<OpenIddictServerBuilder>(options =>
+        {
+            options.AllowAuthorizationCodeFlow()
+                   .RequireProofKeyForCodeExchange();
+
+            options.AllowRefreshTokenFlow();
+            options.SetAccessTokenLifetime(TimeSpan.FromMinutes(60));
+            options.SetRefreshTokenLifetime(TimeSpan.FromDays(7));
         });
     }
 
