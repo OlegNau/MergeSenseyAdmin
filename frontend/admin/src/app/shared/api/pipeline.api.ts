@@ -12,7 +12,7 @@ export type PipelineDto = {
 @Injectable({ providedIn: 'root' })
 export class PipelineApi {
   private http = inject(HttpClient);
-  private base = environment.apis.default.url;
+  private base = environment.apis.default.url.replace(/\/+$/, '');
 
   getAll() {
     return this.http
@@ -20,4 +20,3 @@ export class PipelineApi {
       .pipe(map((r) => r.items), shareReplay({ bufferSize: 1, refCount: true }));
   }
 }
-

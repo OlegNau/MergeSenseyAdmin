@@ -18,7 +18,7 @@ export class DashboardComponent {
   constructor() {
     this.api.getAll().subscribe({
       next: (items) => {
-        this.pipelines.set(items);
+        this.pipelines.set(items ?? []);
         this.loading.set(false);
       },
       error: () => {
@@ -32,4 +32,3 @@ export class DashboardComponent {
     return this.pipelines().length;
   }
 }
-

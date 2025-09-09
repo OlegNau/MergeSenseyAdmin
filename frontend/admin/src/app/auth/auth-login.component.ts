@@ -16,7 +16,7 @@ export class AuthLoginComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
   async ngOnInit() {
-    // Если уже авторизованы (возврат с IdP) — уходим на returnUrl
+    // Если уже авторизованы — уйдём на returnUrl
     if (this.oauth.hasValidAccessToken()) {
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
       await this.router.navigateByUrl(returnUrl, { replaceUrl: true });
@@ -24,6 +24,9 @@ export class AuthLoginComponent implements OnInit {
   }
 
   login() {
+    // Сохраним желаемый маршрут — заберём его в APP_INITIALIZER после успешного логина
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
+    sessionStorage.setItem('returnUrl', returnUrl);
     this.oauth.initCodeFlow();
   }
 }

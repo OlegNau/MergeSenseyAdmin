@@ -9,6 +9,7 @@ import { provideAbpOAuth } from '@abp/ng.oauth';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { environment } from './environments/environment';
+import { Router } from '@angular/router';
 
 /** Лениво регистрируем локали для ABP */
 const registerLocaleFn = (locale: string) => {
@@ -23,10 +24,11 @@ const registerLocaleFn = (locale: string) => {
   return load().then((m) => (m as any).default ?? m);
 };
 
-/** Простой bootstrap OIDC: discovery + tryLogin — и всё */
+/** Простой bootstrap OIDC: discovery + tryLogin — и навигируем на returnUrl, если он был */
 function authInitializer() {
   return async () => {
     const oauth = inject(OAuthService);
+    const router = inject(Router);
     const cfg = environment.oAuthConfig!;
 
     oauth.configure({
@@ -45,10 +47,17 @@ function authInitializer() {
 
     oauth.setStorage(localStorage as unknown as OAuthStorage);
 
-    // Вся магия — одной строкой: discovery + обмен code→tokens + очистка URL
+    // discovery + обмен code→tokens + очистка URL
     await oauth.loadDiscoveryDocumentAndTryLogin();
 
-    // Silent refresh, если сервер это поддерживает
+    // Вернём пользователя туда, куда он шёл перед логином (если есть токен)
+    const returnUrl = sessionStorage.getItem('returnUrl');
+    if (returnUrl && oauth.hasValidAccessToken()) {
+      sessionStorage.removeItem('returnUrl');
+      await router.navigateByUrl(returnUrl, { replaceUrl: true });
+    }
+
+    // Silent refresh, если сервер поддерживает
     try { oauth.setupAutomaticSilentRefresh(); } catch {}
   };
 }
