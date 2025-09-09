@@ -11,17 +11,11 @@ import { OAuthService } from 'angular-oauth2-oidc';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthLoginComponent implements OnInit {
-  private oauth = inject(OAuthService);
-  private router = inject(Router);
+  public oauth = inject(OAuthService);
+  public router = inject(Router);
   public route = inject(ActivatedRoute);
 
-  public error: string | null = null;
-  public errorDescription: string | null = null;
-
   async ngOnInit() {
-    this.error = this.route.snapshot.queryParamMap.get('error');
-    this.errorDescription = this.route.snapshot.queryParamMap.get('error_description');
-
     if (this.oauth.hasValidAccessToken()) {
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/dashboard';
       await this.router.navigateByUrl(returnUrl, { replaceUrl: true });
